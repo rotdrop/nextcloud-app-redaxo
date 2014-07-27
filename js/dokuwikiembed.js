@@ -27,7 +27,7 @@ var DWEmbed = DWEmbed || {};
 
 $(document).ready(function() {
     $(window).resize(function() {
-	fillWindow($('#dokuwiki_container'));
+        //fillWindow($('#dokuwiki_container'));
     });
     $(window).resize();
 
