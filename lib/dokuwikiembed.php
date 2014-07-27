@@ -100,11 +100,12 @@ class App
     if ($fp !== false) {
       $result = stream_get_contents($fp);
       fclose($fp);
+      $responseHdr = $http_response_header;
     } else {
       $result = '';
+      $responseHdr = '';
     }
 
-    $responseHdr = $http_response_header;
     $response = xmlrpc_decode($result);
     if (is_array($response) && xmlrpc_is_fault($response)) {
       \OCP\Util::writeLog(self::APPNAME,
