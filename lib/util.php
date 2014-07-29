@@ -81,6 +81,35 @@ class Ajax
 
 class Util
 {
+  private static $inlineScripts = array();
+  private static $externalScripts = array();
+
+  /**Add some java-script external code (e.g. Google maps). Emit it
+   * with emitExternalScripts().
+   */
+  public static function addExternalScript($script = '') 
+  {
+    self::$externalScripts[] = $script;
+  }
+
+  /**Dump all external java-script scripts previously add with
+   * addExternalScript(). Each inline-script is wrapped into a separate
+   * <script></script> element to make debugging easier.
+   */
+  public static function emitExternalScripts()
+  {
+    $scripts = '';
+    foreach(self::$externalScripts as $script) {
+      $scripts .=<<<__EOT__
+<script type="text/javascript" src="$script"></script>
+
+__EOT__;
+    }
+    self::$externalScripts = array(); // don't dump twice.
+
+    return $scripts;
+  }
+
   public static function composeURL($location)
   {
     // Assume an absolute location w.r.t. to SERVERROOT
