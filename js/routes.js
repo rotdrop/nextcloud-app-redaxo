@@ -1,6 +1,6 @@
 $(document).ready(function(){
-    var url = OC.generateUrl('apps/dokuwikiembed/refresh');
+    var url = OC.generateUrl('apps/'+DWEmbed.appName+'/refresh');
     setInterval(function(){
         $.post(url);
-    }, 300000);
+    }, DWEmbed.refreshInterval*1000);
 });

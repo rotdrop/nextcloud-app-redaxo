@@ -23,6 +23,7 @@ var DWEmbed = DWEmbed || {};
 (function(window, $, DWEmbed) {
     // Dummy, maybe more later
     DWEmbed.appName = 'dokuwikiembed';
+    DWEmbed.refreshInterval = 300000;
 })(window, jQuery, DWEmbed);
 
 $(document).ready(function() {

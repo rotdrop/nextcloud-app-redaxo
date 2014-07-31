@@ -37,4 +37,10 @@ $tmpl = new OCP\Template($appName, 'admin-settings');
 
 $tmpl->assign('wikilocation', OCP\Config::GetAppValue($appName, 'wikilocation', ''));
 
+$refresh = OCP\Config::GetAppValue($appName, 'refreshInterval', '');
+if (is_numeric($refresh)) {
+  $refresh = intval($refresh);
+}
+$tmpl->assign('wikiRefreshInterval', $refresh);
+
 return $tmpl->fetchPage();

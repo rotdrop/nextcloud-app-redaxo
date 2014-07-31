@@ -1,6 +1,6 @@
 <?php
 
-/**Main driver module for this app.
+/**Auth module for this app.
  *
  * @author Claus-Justus Heine
  * @copyright 2013 Claus-Justus Heine <himself@claus-justus-heine.de>

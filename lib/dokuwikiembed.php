@@ -27,7 +27,6 @@ namespace DWEMBED
 class App
 {
   const APPNAME = 'dokuwikiembed';
-
   const RPCPATH = '/lib/exe/xmlrpc.php';
 
   private $dwProto;

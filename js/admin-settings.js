@@ -21,12 +21,12 @@
 DWEmbed.Settings = DWEmbed.Settings || {};
 
 (function(window, $, DWEmbed) {
-    DWEmbed.Settings.storeWikiLocation = function(event) {
+    DWEmbed.Settings.storeSettings = function(event, id) {
 	event.preventDefault();
         if ($.trim($('#dwembedsettings .msg').html()) == '') {
             $('#dwembedsettings .msg').hide();
         }
-	var post = $( "#DW_Location" ).serialize();
+	var post = $(id).serialize();
 	$.post(OC.filePath(DWEmbed.appName, 'ajax', 'admin-settings.php'),
                post,
                function(data){
@@ -38,6 +38,7 @@ DWEmbed.Settings = DWEmbed.Settings || {};
                    $('#dwembedsettings .msg').show();
 	       }, 'json');
     };
+
 })(window, jQuery, DWEmbed);
 
 
@@ -45,11 +46,13 @@ $(document).ready(function(){
 
     $('#DW_Location').blur(function (event) {
         event.preventDefault();
-        $('#dwembedsettings').trigger('submit');
+        DWEmbed.Settings.storeSettings(event, '#DW_Location');
         return false;
     });
 
-    $('#dwembedsettings').submit(DWEmbed.Settings.storeWikiLocation);
-
-
+    $('#DW_RefreshInterval').blur(function (event) {
+        event.preventDefault();
+        DWEmbed.Settings.storeSettings(event, '#DW_RefreshInterval');
+        return false;
+    });
 });

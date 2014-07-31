@@ -75,12 +75,13 @@ OC::$CLASSPATH['DWEMBED\L'] = OC_App::getAppPath($appName) . '/lib/util.php';
 OC::$CLASSPATH['DWEMBED\Util'] = OC_App::getAppPath($appName) . '/lib/util.php';
 OC::$CLASSPATH['DWEMBED\App'] = OC_App::getAppPath($appName) . '/lib/dokuwikiembed.php';
 OC::$CLASSPATH['DWEMBED\AuthHooks'] = OC_App::getAppPath($appName) . '/lib/auth.php';
+OC::$CLASSPATH['DWEMBED\Config'] = OC_App::getAppPath($appName) . '/lib/config.php';
 
 OCP\Util::connectHook('OC_User', 'post_login', 'DWEMBED\AuthHooks', 'login');
 OCP\Util::connectHook('OC_User', 'logout', 'DWEMBED\AuthHooks', 'logout');
 
-// probably no longer needed, now that we use routes ...
-// OCP\BackgroundJob::AddRegularTask('DWEMBED\AuthHooks', 'refresh');
+// Hurray! There is a config hook!
+OCP\Util::connectHook('\OCP\Config', 'js', 'DWEMBED\Config', 'jsLoadHook');
 
 OCP\App::registerAdmin($appName, 'admin-settings');
 

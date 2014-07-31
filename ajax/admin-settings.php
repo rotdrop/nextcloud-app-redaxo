@@ -31,17 +31,14 @@ OCP\JSON::callCheck();
 
 if (isset($_POST['DW_Location'])) {
   $location = trim($_POST['DW_Location']);
-  \OC_AppConfig::setValue($appName, 'wikilocation', $location);
 
-  // TODO: insert checks here which check whether the DokuWiki can
-  // indeed be found at this location and report possible success and
-  // error states back to the user
   if ($location == '') {
     $message = L::t("Got an empty wiki location.");  
   } else if (!Util::URLIsValid($location)) {
     $message = L::t("Setting wiki location to `%s' but the location seems to be invalid.",
                     array($location));
   } else {
+    \OC_AppConfig::setValue($appName, 'wikilocation', $location);
     $message = L::t("Setting wiki location to `%s'.", array($location));
   }
   
@@ -50,8 +47,25 @@ if (isset($_POST['DW_Location'])) {
   return true;
 }
 
+if (isset($_POST['DW_RefreshInterval'])) {
+  $refresh = trim($_POST['DW_RefreshInterval']);
+
+  if ($refresh == '') {
+    $message = L::t("Got an empty refresh value.");  
+  } else if (!is_numeric($refresh)) {
+    $message = L::t("This does not appear to be a number: `%s'", array($refresh));
+  } else {
+    $message = L::t("Setting DokuWiki session refresh to %s seconds.", array($refresh));
+    \OC_AppConfig::setValue($appName, 'refreshInterval', intval($refresh));
+  }
+  
+  OC_JSON::success(array("data" => array("message" => $message)));
+
+  return true;
+}
+
 OC_JSON::error(
-  array("data" => array("message" => L::t('Unknown request.'))));
+  array("data" => array("message" => L::t('Unknown request.').print_r($_POST, true))));
 
 return false;
 
