@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dokuwikiembded\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-11-29 00:20+0100\n"
-"PO-Revision-Date: 2013-11-29 00:24+0100\n"
+"POT-Creation-Date: 2014-07-30 09:02+0200\n"
+"PO-Revision-Date: 2014-07-30 09:03+0200\n"
 "Last-Translator: Claus-Justus Heine <himself@claus-justus-heine.de>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -23,7 +23,9 @@ msgstr "Wiki-Pfad fehlt."
 #: ajax/admin-settings.php:42
 #, php-format
 msgid "Setting wiki location to `%s' but the location seems to be invalid."
-msgstr "Wiki-Location ist jetzt `%s', aber dort scheint kein Wiki installiert zu sein."
+msgstr ""
+"Wiki-Location ist jetzt `%s', aber dort scheint kein Wiki installiert zu "
+"sein."
 
 #: ajax/admin-settings.php:45
 #, php-format
@@ -34,7 +36,7 @@ msgstr "Wiki-Location ist jetzt `%s'."
 msgid "Unknown request."
 msgstr "Unbekannte Anfrage."
 
-#: appinfo/app.php:95
+#: appinfo/app.php:96
 msgid "DokuWiki"
 msgstr "DokuWiki"
 
@@ -55,7 +57,7 @@ msgid ""
 "have to enable the XMLRPC protocol in your DokuWiki."
 msgstr ""
 "Bitte geben Sie den Ort der DokuWiki-Installation an.\n"
-"Entweder als \"absoluten\" Pfad, aber relativ zum Basis-Verzeichnis\n"
+"Entweder als ``absoluten'' Pfad, aber relativ zum Basis-Verzeichnis\n"
 "Ihres Web-Servers, oder als vollständigen URL mit der Web-Adresse\n"
 "der DokuWiki-Installation. Sie müssen im DokuWiki das\n"
 "XMLRPC-Protokoll aktivieren"
