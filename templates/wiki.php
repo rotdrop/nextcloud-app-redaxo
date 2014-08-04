@@ -28,7 +28,7 @@
 <?php echo $_['wikiURL']?>
 </pre> -->
 
-<img src="<?php echo \OCP\Util::imagePath($_['app'], 'loader.gif'); ?>" id="loader">
+<img src="<?php echo \OCP\Util::imagePath($_['app'], 'loader.gif'); ?>" id="dokuwikiLoader">
 <iframe style="display:none;overflow:auto"
         src="<?php echo $_['wikiURL'].$_['wikiPath'];?>"
         id="dokuwikiFrame"

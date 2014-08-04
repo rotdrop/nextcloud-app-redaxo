@@ -43,7 +43,7 @@ $(document).ready(function() {
             $(this).attr('target','_blank');
         });
 
-	$('#loader').fadeOut('slow');
+	$('#dokuwikiLoader').fadeOut('slow');
 	$('#dokuwikiFrame').slideDown('slow');
     });
 
