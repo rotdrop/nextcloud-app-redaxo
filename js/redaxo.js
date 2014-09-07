@@ -36,7 +36,12 @@ $(document).ready(function() {
     redaxoFrame.load(function(){
         var redaxo = redaxoFrame.contents();
 
+        // Remove the logout stuff
         redaxo.find('ul.rex-logout').remove();
+        
+        // shift the entire thing a little bit into the inside
+        redaxo.find('div#rex-website').css({'margin-left': '50px',
+                                            'margin-top': '50px'});
 
         redaxo.find('a').filter(function() {
             return this.hostname && this.hostname !== window.location.hostname;

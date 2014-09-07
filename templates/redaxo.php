@@ -32,8 +32,7 @@
 <iframe style="display:none;overflow:auto"
         src="<?php echo $_['redaxoURL'].$_['redaxoPath'];?>"
         id="redaxoFrame"
-        name="redaxo"
-        width="100%">
+        name="redaxo">
 </iframe>
 
 </div>
