@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <info>
-	<id>dokuwikiembed</id>
-	<name>Embedded DokuWiki Wiki</name>
-	<description>Integrates existing dokuwiki into OwnCloud. Inspired by RoundCube app.</description>
+	<id>redaxo</id>
+	<name>Embedded Redaxo CMS</name>
+	<description>Integrates existing an Redaxo CMS into OwnCloud. Inspired by RoundCube app.</description>
 	<version>1.0.0</version>
 	<licence>AGPL</licence>
 	<author>Claus-Justus Heine</author>

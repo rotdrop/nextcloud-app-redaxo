@@ -1,6 +1,6 @@
 <?php
 
-/**Embed a DokuWiki instance as app into ownCloud, intentionally with
+/**Embed a Redaxo instance as app into ownCloud, intentionally with
  * single-sign-on.
  * 
  * @author Claus-Justus Heine
@@ -20,37 +20,36 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-use DWEMBED\L;
-use DWEMBED\App;
+use Redaxo\L;
+use Redaxo\App;
 ?>
 
 <div class="section">
-  <form id="dwembedsettings">
+  <form id="redaxosettings">
     <legend>
-      <img class="svg dokuwikilogo" src="<?php echo OCP\Util::imagePath(App::APPNAME, 'dokuwiki-logo.svg'); ?>" >
-      <strong><?php echo L::t('Embedded DokuWiki');?></strong><br />
+      <img class="redaxologo" src="<?php echo OCP\Util::imagePath(App::APP_NAME, 'redaxo-logo.png'); ?>" >
+      <strong><?php echo L::t('Embedded Redaxo CMS');?></strong><br />
     </legend>
     <input type="text"
-           name="DW_Location"
-           id="DW_Location"
-           value="<?php echo $_['wikilocation']; ?>"
+           name="REX_Location"
+           id="REX_Location"
+           value="<?php echo $_['redaxolocation']; ?>"
            placeholder="<?php echo L::t('Location');?>"
-           title="<?php echo L::t('Please enter the location of the already installed DokuWiki
+           title="<?php echo L::t('Please enter the location of the already installed Redaxo
 instance. This should either be an abolute path relative to the
-root of the web-browser, or a complete URL which points to the
-web-location of the DokuWiki. In order to make things work your
-have to enable the XMLRPC protocol in your DokuWiki.'); ?>"
+root of the owncloud instance, or a complete URL which points to the
+web-location of the Redaxo CMS.'); ?>"
     />
-    <label for="DW_Location"><?php echo L::t('DokuWiki Location');?></label>
+    <label for="REX_Location"><?php echo L::t('Redaxo Location');?></label>
     <br/>
     <input type="text"
-           name="DW_RefreshInterval"
-           id="DW_RefreshInterval"
-           value="<?php echo $_['wikiRefreshInterval']; ?>"
+           name="REX_RefreshInterval"
+           id="REX_RefreshInterval"
+           value="<?php echo $_['redaxoRefreshInterval']; ?>"
            placeholder="<?php echo L::t('RefreshTime [s]'); ?>"
-           title="<?php echo L::t('Please enter the desired session-refresh interval here. The interval is measured in seconds and should be somewhat smaller than the configured session life-time for the DokuWiki instance in use.'); ?>"
+           title="<?php echo L::t('Please enter the desired session-refresh interval here. The interval is measured in seconds and should be somewhat smaller than the configured session life-time for the Redaxo instance in use.'); ?>"
     />
-    <label for="DW_RefreshInterval"><?php echo L::t('DokuWiki Session Refresh Interval [s]'); ?></label>
+    <label for="REX_RefreshInterval"><?php echo L::t('Redaxo Session Refresh Interval [s]'); ?></label>
     <br/>        
     <span class="msg"></span>
   </form>

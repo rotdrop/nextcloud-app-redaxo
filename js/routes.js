@@ -1,6 +1,6 @@
 $(document).ready(function(){
-    var url = OC.generateUrl('apps/'+DWEmbed.appName+'/refresh');
+    var url = OC.generateUrl('apps/'+Redaxo.appName+'/refresh');
     setInterval(function(){
         $.post(url);
-    }, DWEmbed.refreshInterval*1000);
+    }, Redaxo.refreshInterval*1000);
 });

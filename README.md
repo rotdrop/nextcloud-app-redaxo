@@ -21,10 +21,10 @@ Theory of operation:
   Redaxo and obtains its session cookie. This cookie is then echoed
   back (with a modified path) to the users web-browser.
 
-- in order to do so without SSO, the app encrypts the Redaxo
-  credentials with a public key. On login, the corresponding private
-  key is unlocked with the users password and the Redaxo credentials
-  are decrypted
+- in order to do so without a hacked version of Redaxo which uses
+  Owncloud in order to validate passwords, the user must have the same
+  password in Redaxo as in Owncloud. This application does not store
+  foreign auth credentials.
 
 - after successful login into Redaxo the Redaxo session is kept open
   by periodically pinging it with a page fetch (this causes traffic,

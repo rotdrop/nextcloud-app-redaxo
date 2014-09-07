@@ -1,4 +1,4 @@
-/**Embed a DokuWiki instance as app into ownCloud, intentionally with
+/**Embed a Redaxo instance as app into ownCloud, intentionally with
  * single-sign-on.
  * 
  * @author Claus-Justus Heine
@@ -18,33 +18,34 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var DWEmbed = DWEmbed || {};
+var Redaxo = Redaxo || {};
 
-(function(window, $, DWEmbed) {
+(function(window, $, Redaxo) {
     // Dummy, maybe more later
-    DWEmbed.appName = 'dokuwikiembed';
-    DWEmbed.refreshInterval = 300000;
-})(window, jQuery, DWEmbed);
+    Redaxo.appName = 'redaxo';
+    Redaxo.refreshInterval = 300000;
+})(window, jQuery, Redaxo);
 
 $(document).ready(function() {
     $(window).resize(function() {
-        //fillWindow($('#dokuwiki_container'));
+        //fillWindow($('#redaxo_container'));
     });
     $(window).resize();
 
-    $('#dokuwikiFrame').load(function(){
-        $('#dokuwikiFrame').contents().find('.logout').remove();
-        $('#dokuwikiFrame').contents().find('li:empty').remove();
-        $('#dokuwikiFrame').contents().find('form.btn_logout').remove();
+    var redaxoFrame = $('#redaxoFrame');
+    redaxoFrame.load(function(){
+        var redaxo = redaxoFrame.contents();
 
-        $('#dokuwikiFrame').contents().find('a').filter(function() {
+        redaxo.find('ul.rex-logout').remove();
+
+        redaxo.find('a').filter(function() {
             return this.hostname && this.hostname !== window.location.hostname;
         }).each(function() {
             $(this).attr('target','_blank');
         });
 
-	$('#dokuwikiLoader').fadeOut('slow');
-	$('#dokuwikiFrame').slideDown('slow');
+	$('#redaxoLoader').fadeOut('slow');
+	redaxoFrame.slideDown('slow');
     });
 
 });

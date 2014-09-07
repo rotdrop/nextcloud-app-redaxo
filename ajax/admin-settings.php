@@ -1,6 +1,6 @@
 <?php
 
-/**Embed a DokuWiki instance as app into ownCloud, intentionally with
+/**Embed a Redaxo instance as app into ownCloud, intentionally with
  * single-sign-on.
  * 
  * @author Claus-Justus Heine
@@ -20,26 +20,26 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-use DWEMBED\App;
-use DWEMBED\L;
-use DWEMBED\Util;
+use Redaxo\App;
+use Redaxo\L;
+use Redaxo\Util;
 
-$appName = App::APPNAME;
+$appName = App::APP_NAME;
 
 OCP\User::checkAdminUser();
 OCP\JSON::callCheck();
 
-if (isset($_POST['DW_Location'])) {
-  $location = trim($_POST['DW_Location']);
+if (isset($_POST['REX_Location'])) {
+  $location = trim($_POST['REX_Location']);
 
   if ($location == '') {
-    $message = L::t("Got an empty wiki location.");  
+    $message = L::t("Got an empty Redaxo location.");  
   } else if (!Util::URLIsValid($location)) {
-    $message = L::t("Setting wiki location to `%s' but the location seems to be invalid.",
+    $message = L::t("Setting Redaxo location to `%s' but the location seems to be invalid.",
                     array($location));
   } else {
-    \OC_AppConfig::setValue($appName, 'wikilocation', $location);
-    $message = L::t("Setting wiki location to `%s'.", array($location));
+    \OC_AppConfig::setValue($appName, 'redaxolocation', $location);
+    $message = L::t("Setting Redaxo location to `%s'.", array($location));
   }
   
   OC_JSON::success(array("data" => array("message" => $message)));
@@ -47,15 +47,15 @@ if (isset($_POST['DW_Location'])) {
   return true;
 }
 
-if (isset($_POST['DW_RefreshInterval'])) {
-  $refresh = trim($_POST['DW_RefreshInterval']);
+if (isset($_POST['REX_RefreshInterval'])) {
+  $refresh = trim($_POST['REX_RefreshInterval']);
 
   if ($refresh == '') {
     $message = L::t("Got an empty refresh value.");  
   } else if (!is_numeric($refresh)) {
     $message = L::t("This does not appear to be a number: `%s'", array($refresh));
   } else {
-    $message = L::t("Setting DokuWiki session refresh to %s seconds.", array($refresh));
+    $message = L::t("Setting Redaxo session refresh to %s seconds.", array($refresh));
     \OC_AppConfig::setValue($appName, 'refreshInterval', intval($refresh));
   }
   

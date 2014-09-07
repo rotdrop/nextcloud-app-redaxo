@@ -17,9 +17,9 @@
  */
 
 
-/**DWEMBED namespace to prevent name-collisions.
+/**Redaxo namespace to prevent name-collisions.
  */
-namespace DWEMBED
+namespace Redaxo
 {
 
 /**Support for internationalization.
@@ -116,6 +116,7 @@ __EOT__;
     if ($location[0] == '/') {
       $location = \OC_Helper::makeURLAbsolute($location);
     }
+    $location = rtrim($location, '/').'/';
     return $location;
   }
 
@@ -128,7 +129,7 @@ __EOT__;
   {
     $location = self::composeURL($location);
     
-    \OCP\Util::writeLog(App::APPNAME, "Checking ".$location, LOG_DEBUG);
+    \OCP\Util::writeLog(App::APP_NAME, "Checking ".$location, LOG_DEBUG);
 
     // Don't try to access it if it is not a valid URL
     if (filter_var($location, FILTER_VALIDATE_URL) === false) {

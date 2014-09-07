@@ -1,6 +1,6 @@
 <?php
 
-/**Embed a DokuWiki instance as app into ownCloud, intentionally with
+/**Embed a Redaxo instance as app into ownCloud, intentionally with
  * single-sign-on.
  * 
  * @author Claus-Justus Heine
@@ -20,27 +20,27 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-use DWEMBED\App;
-use DWEMBED\Util;
-use DWEMBED\L;
+use Redaxo\App;
+use Redaxo\Util;
+use Redaxo\L;
 
-$appName = App::APPNAME;
+$appName = App::APP_NAME;
 
 OCP\User::checkAdminUser();
 
-OCP\Util::addScript($appName, "dokuwikiembed");
+OCP\Util::addScript($appName, "redaxo");
 OCP\Util::addScript($appName, "admin-settings");
 
 OCP\Util::addStyle($appName, "admin-settings");
 
 $tmpl = new OCP\Template($appName, 'admin-settings');
 
-$tmpl->assign('wikilocation', OCP\Config::GetAppValue($appName, 'wikilocation', ''));
+$tmpl->assign('redaxolocation', OCP\Config::GetAppValue($appName, 'redaxolocation', ''));
 
 $refresh = OCP\Config::GetAppValue($appName, 'refreshInterval', '');
 if (is_numeric($refresh)) {
   $refresh = intval($refresh);
 }
-$tmpl->assign('wikiRefreshInterval', $refresh);
+$tmpl->assign('redaxoRefreshInterval', $refresh);
 
 return $tmpl->fetchPage();

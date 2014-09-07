@@ -1,6 +1,6 @@
 <?php
 
-/**Embed a DokuWiki instance as app into ownCloud, intentionally with
+/**Embed a Redaxo instance as app into ownCloud, intentionally with
  * single-sign-on.
  * 
  * @author Claus-Justus Heine
@@ -20,10 +20,10 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-use DWEMBED\App;
-use DWEMBED\Util;
+use Redaxo\App;
+use Redaxo\Util;
 
-$appName = App::APPNAME;
+$appName = App::APP_NAME;
 
 // Check if we are a user
 OCP\User::checkLoggedIn();
@@ -44,20 +44,20 @@ OCP\Util::addScript($appName, $appName);
 // add new navigation entry
 OCP\App::setActiveNavigationEntry($appName);
 
-$wikiLocation = OCP\Config::GetAppValue($appName, 'wikilocation', '');
+$redaxoLocation = OCP\Config::GetAppValue($appName, 'redaxolocation', '');
 
-$tmpl = new OCP\Template($appName, "wiki", "user");
+$tmpl = new OCP\Template($appName, "redaxo", "user");
 
-$dokuWikiEmbed = new App($wikiLocation);
-$wikiURL  = $dokuWikiEmbed->wikiURL();
-$wikiPath = Util::cgiValue('wikiPath', '');
+$redaxo = new App($redaxoLocation);
+$redaxoURL  = $redaxo->redaxoURL();
+$redaxoPath = Util::cgiValue('redaxoPath', '');
 
-$dokuWikiEmbed->emitAuthHeaders();
+$redaxo->emitAuthHeaders();
 
 $tmpl->assign('app', $appName);
-$tmpl->assign('wikilocation', $wikiLocation);
-$tmpl->assign('wikiURL', $wikiURL);
-$tmpl->assign('wikiPath', $wikiPath);
+$tmpl->assign('redaxolocation', $redaxoLocation);
+$tmpl->assign('redaxoURL', $redaxoURL);
+$tmpl->assign('redaxoPath', $redaxoPath);
 
 $tmpl->printpage();
 

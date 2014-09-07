@@ -1,6 +1,6 @@
 <?php
 
-/**Embed a DokuWiki instance as app into ownCloud, intentionally with
+/**Embed a Redaxo instance as app into ownCloud, intentionally with
  * single-sign-on.
  * 
  * @author Claus-Justus Heine
@@ -22,17 +22,17 @@
 
 ?>
 
-<div id="dokuwiki_container">
+<div id="redaxo_container">
 
 <!-- <pre>
-<?php echo $_['wikiURL']?>
+<?php echo $_['redaxoURL']?>
 </pre> -->
 
-<img src="<?php echo \OCP\Util::imagePath($_['app'], 'loader.gif'); ?>" id="dokuwikiLoader">
+<img src="<?php echo \OCP\Util::imagePath($_['app'], 'loader.gif'); ?>" id="redaxoLoader">
 <iframe style="display:none;overflow:auto"
-        src="<?php echo $_['wikiURL'].$_['wikiPath'];?>"
-        id="dokuwikiFrame"
-        name="dokuwikiembed"
+        src="<?php echo $_['redaxoURL'].$_['redaxoPath'];?>"
+        id="redaxoFrame"
+        name="redaxo"
         width="100%">
 </iframe>
 

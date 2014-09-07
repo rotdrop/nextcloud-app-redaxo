@@ -19,9 +19,9 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**DWEMBED namespace to prevent name-collisions.
+/**Redaxo namespace to prevent name-collisions.
  */
-namespace DWEMBED 
+namespace Redaxo 
 {
 
 /**This class provides the two static login- and logoff-hooks needed
@@ -31,40 +31,46 @@ class AuthHooks
 {
   public static function login($params)
   {
-    if (defined('DOKU_INC')) {
+    if (defined('REDAXO_INCLUDE')) {
       return;
     }
 
-    $wikiLocation = \OCP\Config::GetAppValue(App::APPNAME, 'wikilocation', '');
+    $redaxoLocation = \OCP\Config::GetAppValue(App::APP_NAME, 'redaxolocation', '');
 
-    $dokuWikiEmbed = new App($wikiLocation);
-    $wikiURL = $dokuWikiEmbed->wikiURL();
+    $redaxo = new App($redaxoLocation);
+    $redaxoURL = $redaxo->redaxoURL();
 
     $username = $params['uid'];
     $password = $params['password'];
 
-    if ($dokuWikiEmbed->login($username, $password)) {
-      $dokuWikiEmbed->emitAuthHeaders();
-      \OCP\Util::writeLog(App::APPNAME,
-                          "DokuWiki login of user ".
+    if ($redaxo->login($username, $password)) {
+      $redaxo->emitAuthHeaders();
+      \OCP\Util::writeLog(App::APP_NAME,
+                          "Redaxo login of user ".
                           $username.
                           " probably succeeded.",
+                          \OC_Log::INFO);
+    } else {
+      \OCP\Util::writeLog(App::APP_NAME,
+                          "Redaxo login of user ".
+                          $username.
+                          " probably failed.",
                           \OC_Log::INFO);
     }
   }
   
   public static function logout()
   {
-    if (defined('DOKU_INC')) {
+    if (defined('REDAXO_INCLUDE')) {
       return;
     }
 
-    $wikiLocation = \OCP\Config::GetAppValue(App::APPNAME, 'wikilocation', '');
-    $dokuWikiEmbed = new App($wikiLocation);
-    if ($dokuWikiEmbed->logout()) {
-      $dokuWikiEmbed->emitAuthHeaders();
-      \OCP\Util::writeLog(App::APPNAME,
-                          "DokuWiki logoff probably succeeded.",
+    $redaxoLocation = \OCP\Config::GetAppValue(App::APP_NAME, 'redaxolocation', '');
+    $redaxo = new App($redaxoLocation);
+    if ($redaxo->logout()) {
+      $redaxo->emitAuthHeaders();
+      \OCP\Util::writeLog(App::APP_NAME,
+                          "Redaxo logoff probably succeeded.",
                           \OC_Log::INFO);
     }
   }
@@ -74,16 +80,19 @@ class AuthHooks
    */
   public static function refresh() 
   {
-    $wikiLocation = \OCP\Config::GetAppValue(App::APPNAME, 'wikilocation', '');
-    $dokuWikiEmbed = new App($wikiLocation);
-    $version = $dokuWikiEmbed->version();
-    if ($version === false) {
-        \OCP\Util::writeLog(App::APPNAME,
-                            "DokuWiki refresh failed.",
+    if (defined('REDAXO_INCLUDE')) {
+      return;
+    }
+
+    $redaxoLocation = \OCP\Config::GetAppValue(App::APP_NAME, 'redaxolocation', '');
+    $redaxo = new App($redaxoLocation);
+    if (!$redaxo->isLoggedIn()) { // triggers load of Redaxo start page   
+        \OCP\Util::writeLog(App::APP_NAME,
+                            "Redaxo refresh failed.",
                             \OC_Log::ERROR);
     } else {
-        \OCP\Util::writeLog(App::APPNAME,
-                            "DokuWiki@".$version." refresh probably succeeded.",
+        \OCP\Util::writeLog(App::APP_NAME,
+                            "Redaxo refresh probably succeeded.",
                             \OC_Log::INFO);
     }
   }

@@ -1,5 +1,5 @@
-/**Embed a DokuWiki instance as app into ownCloud, intentionally with
- * single-sign-on.
+/**Embed a Redaxo CMS instance as app into ownCloud, intentionally
+ * with single-sign-on.
  * 
  * @author Claus-Justus Heine
  * @copyright 2013 Claus-Justus Heine <himself@claus-justus-heine.de>
@@ -18,41 +18,41 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-DWEmbed.Settings = DWEmbed.Settings || {};
+Redaxo.Settings = Redaxo.Settings || {};
 
-(function(window, $, DWEmbed) {
-    DWEmbed.Settings.storeSettings = function(event, id) {
+(function(window, $, Redaxo) {
+    Redaxo.Settings.storeSettings = function(event, id) {
 	event.preventDefault();
-        if ($.trim($('#dwembedsettings .msg').html()) == '') {
-            $('#dwembedsettings .msg').hide();
+        if ($.trim($('#redaxosettings .msg').html()) == '') {
+            $('#redaxosettings .msg').hide();
         }
 	var post = $(id).serialize();
-	$.post(OC.filePath(DWEmbed.appName, 'ajax', 'admin-settings.php'),
+	$.post(OC.filePath(Redaxo.appName, 'ajax', 'admin-settings.php'),
                post,
                function(data){
                    if (data.status == 'success') {
-	               $('#dwembedsettings .msg').html(data.data.message);
+	               $('#redaxosettings .msg').html(data.data.message);
                    } else {
-	               $('#dwembedsettings .msg').html(data.data.message);
+	               $('#redaxosettings .msg').html(data.data.message);
                    }
-                   $('#dwembedsettings .msg').show();
+                   $('#redaxosettings .msg').show();
 	       }, 'json');
     };
 
-})(window, jQuery, DWEmbed);
+})(window, jQuery, Redaxo);
 
 
 $(document).ready(function(){
 
-    $('#DW_Location').blur(function (event) {
+    $('#REX_Location').blur(function (event) {
         event.preventDefault();
-        DWEmbed.Settings.storeSettings(event, '#DW_Location');
+        Redaxo.Settings.storeSettings(event, '#REX_Location');
         return false;
     });
 
-    $('#DW_RefreshInterval').blur(function (event) {
+    $('#REX_RefreshInterval').blur(function (event) {
         event.preventDefault();
-        DWEmbed.Settings.storeSettings(event, '#DW_RefreshInterval');
+        Redaxo.Settings.storeSettings(event, '#REX_RefreshInterval');
         return false;
     });
 });

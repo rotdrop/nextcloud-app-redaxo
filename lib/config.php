@@ -19,9 +19,9 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**DWEMBED namespace to prevent name-collisions.
+/**Redaxo namespace to prevent name-collisions.
  */
-namespace DWEMBED 
+namespace Redaxo 
 {
 
 /**This class provides the two static login- and logoff-hooks needed
@@ -38,11 +38,11 @@ class Config
   {
     $jsAssign = &$params['array'];
 
-    $refresh = \OCP\Config::GetAppValue(App::APPNAME, 'refreshInterval', 300);
-    $jsAssign['DWEmbed'] =
-      "DWEmbed || {};\n".
-      "DWEmbed.appName = '".App::APPNAME."';\n".
-      "DWEmbed.refreshInterval = ".$refresh;
+    $refresh = \OCP\Config::GetAppValue(App::APP_NAME, 'refreshInterval', 300);
+    $jsAssign['Redaxo'] =
+      "Redaxo || {};\n".
+      "Redaxo.appName = '".App::APP_NAME."';\n".
+      "Redaxo.refreshInterval = ".$refresh;
   }
 };
 

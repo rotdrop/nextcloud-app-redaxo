@@ -1,7 +1,7 @@
 <?php
 
-OC::$CLASSPATH['DWEMBED\AuthHooks'] = OC_App::getAppPath("dokuwikiembed") . '/lib/auth.php';
+OC::$CLASSPATH['Redaxo\AuthHooks'] = OC_App::getAppPath("redaxo") . '/lib/auth.php';
 
-$this->create('dokuwikirefresh', '/refresh')->post()->action('DWEMBED\AuthHooks', 'refresh');
+$this->create('redaxorefresh', '/refresh')->post()->action('Redaxo\AuthHooks', 'refresh');
 
 ?>
