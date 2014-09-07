@@ -1,4 +1,4 @@
-capp-dokuwikiembed
+ocapp-dokuwikiembed
 ===================
 
 OwnCloud "app" which embeds an existing DokuWiki instance into
