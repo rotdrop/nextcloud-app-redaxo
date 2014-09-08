@@ -18,7 +18,12 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-Redaxo.Settings = Redaxo.Settings || {};
+var Redaxo = Redaxo || {
+    appName: 'redaxo',
+    refreshInterval: 300,
+};
+
+Redaxo.Settings = Redaxo.Settings || {},
 
 (function(window, $, Redaxo) {
     Redaxo.Settings.storeSettings = function(event, id) {

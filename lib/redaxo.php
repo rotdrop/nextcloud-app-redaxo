@@ -257,17 +257,34 @@ namespace Redaxo
       }
     }
 
-    private function testRequest()
+    /**Add a new empty article
+     *
+     * @param $name The name of the article.
+     *
+     * @param $category The category id of the article.
+     *
+     * @param $template The template id of the article.
+     *
+     * @param $position The position of the article.
+     */
+    public function addArticle($name, $category, $template, $position = 10000)
     {
-      \OCP\Util::writeLog(self::APP_NAME, "Before Login", \OC_LOG::DEBUG);
-      $this->login('cafev', '!@k!w*ch$*(');
-      \OCP\Util::writeLog(self::APP_NAME, "After Login", \OC_LOG::DEBUG);
-      \OCP\Util::writeLog(self::APP_NAME, "Before Check", \OC_LOG::DEBUG);
-      $this->isLoggedIn();
-      \OCP\Util::writeLog(self::APP_NAME, "After Check", \OC_LOG::DEBUG);
-      \OCP\Util::writeLog(self::APP_NAME, "Before Logout", \OC_LOG::DEBUG);
-      $this->logout();
-      \OCP\Util::writeLog(self::APP_NAME, "After Logout", \OC_LOG::DEBUG);
+      if (!isLoggedIn()) {
+        return false;        
+      }
+      
+      $result = sendRequest('index.php',
+                            array( // populate all form fields
+                              'page' => 'structure',
+                              'category_id' => $category,
+                              'clang' => 0, // ???
+                              'template_id' => $template,
+                              'article_name' => $name,
+                              'Position_New_Articel' => $position,
+                              'artadd_function' => 'blah' // should not matter, submit button
+                              ));
+      
+      return $result !== false;
     }
 
   };

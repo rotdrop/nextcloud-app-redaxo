@@ -18,15 +18,19 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Redaxo = Redaxo || {};
+var Redaxo = Redaxo || {
+    appName: 'redaxo',
+    refreshInterval: 300
+};
 
 (function(window, $, Redaxo) {
-    // Dummy, maybe more later
-    Redaxo.appName = 'redaxo';
-    Redaxo.refreshInterval = 300000;
+
+    // Dummy
+
 })(window, jQuery, Redaxo);
 
 $(document).ready(function() {
+
     $(window).resize(function() {
         //fillWindow($('#redaxo_container'));
     });
