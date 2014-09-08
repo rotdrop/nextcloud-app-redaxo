@@ -80,7 +80,7 @@ namespace Redaxo
 
     /**Return the URL for use with an iframe or object tag
      */
-    public function redaxoURL()
+    public function redaxoURL($articleId = false, $editMode = false)
     {
       return $this->proto.'://'.$this->host.$this->port.$this->path;
     }
@@ -103,7 +103,7 @@ namespace Redaxo
       }
 
       if ($response === false) {
-        $response = $this->sendRequest($this->location);
+        $response = $this->doSendRequest($this->location);
       }
       
       //LOGGED IN:
@@ -138,7 +138,7 @@ namespace Redaxo
     
     public function logout()
     {
-      $response = $this->sendRequest($this->location.'?rex_logout=1');
+      $response = $this->doSendRequest($this->location.'?rex_logout=1');
       $this->updateLoginStatus($response);
       return $this->loginStatus == -1;
     }
@@ -151,7 +151,7 @@ namespace Redaxo
         $this->logout();
       }
 
-      $response = $this->sendRequest($this->location,
+      $response = $this->doSendRequest($this->location,
                                      array('javascript' => 1,
                                            'rex_user_login' => $user,
                                            'rex_user_psw' => $password));
@@ -164,7 +164,7 @@ namespace Redaxo
     /**Send a post request corresponding to $postData as post
      * values.
      */
-    private function sendRequest($formPath, $postData = false)
+    private function doSendRequest($formPath, $postData = false)
     {
       if (is_array($postData)) {
         $postData = http_build_query($postData, '', '&');
@@ -195,7 +195,7 @@ namespace Redaxo
                                                )));
       $url  = self::redaxoURL().$formPath;
 
-      \OCP\Util::writeLog(self::APP_NAME, "sendRequest() to ".$url." data ".$postData, \OC_LOG::DEBUG);
+      \OCP\Util::writeLog(self::APP_NAME, "doSendRequest() to ".$url." data ".$postData, \OC_LOG::DEBUG);
 
       $fp = fopen($url, 'rb', false, $context);
       $result = '';
@@ -241,10 +241,23 @@ namespace Redaxo
                               \OC_LOG::ERROR);
           return false;
         }
-        return self::sendRequest($location);
+        return self::doSendRequest($location);
       }
 
       return $result == '' ? false : new Response($responseHdr, $result);
+    }
+
+
+    /**Send a post request corresponding to $postData as post
+     * values. Like doSendRequest but only allow if already logged in.
+     */
+    public function sendRequest($formPath, $postData = false)
+    {
+      if (!$this->isLoggedIn()) {
+        return false;        
+      }
+
+      return $this->doSendRequest($formPath, $postData);
     }
 
     /**Send authentication headers previously aquired
@@ -257,228 +270,6 @@ namespace Redaxo
       }
     }
 
-    /**Move an article to a different category.
-     */
-    public function moveArticle($articleId, $destCat)
-    {
-      if (!$this->isLoggedIn()) {
-        return false;        
-      }
-
-      $result = $this->sendRequest('index.php',
-                                   array('article_id' => $articleId,
-                                         'page' => 'content', // needed?
-                                         'mode' => 'functions',
-                                         'save' => 1,
-                                         'clang' => 0,
-                                         'ctype' => 1,
-                                         'category_id_new' => $destCat,
-                                         'movearticle' => 'blah', // submit button
-                                         'category_copy_id_new' => $articleId,
-                                     ));
-      if ($result === false) {
-        return false;
-      }
-
-      // Unlink serialization issue on my Linux box, perhaps a BTRFS
-      //issue. Redaxo unlinks files, but apparantly another thread
-      //still sees them for more than 1 seconds.
-      //sleep(3);
-
-      $reqData = http_build_query(array('article_id' => $articleId,
-                                        'page' => 'content', // needed?
-                                        'mode' => 'functions',
-                                        'clang' => 0,
-                                        'ctype' => 1,
-                                    ), '', '&');
-
-      $result = $this->sendRequest('index.php'.'?'.$reqData);
-      if ($result === false) {
-        return false;
-      }
-
-      $html = $result->getContents();
-      
-      /* The result show contain the path with id information:
-       * <ul id="rex-navi-path">
-       *   <li>Pfad</li>
-       *   <li>: <a href="index.php?page=structure&amp;category_id=0&amp;clang=0" tabindex="16">Homepage</a></li>
-       *   <li>: <a href="index.php?page=structure&amp;category_id=75&amp;clang=0" tabindex="15">papierkorb</a></li>
-       * </ul>
-       *
-       * We want the values from the last <li> element, of course
-       */
-      $matches = array();
-      $cnt = preg_match('|<ul\s+id="rex-navi-path">\s*'.
-                        '(<li>.*</li>)*\s*'.
-                        '(<li>[^<]+<a\s+href="index.php\\?page=structure.*'.
-                        'category_id=([0-9]+).*'.
-                        '</li>)\s*</ul>'.
-                        '|si', $html, $matches);
-      if ($cnt == 0) {
-        return "noMatch";
-        return false;
-      }
-      $actCat = $matches[3];
-      
-      return $actCat == $destCat;
-    }
-
-    /**Delete an article, given its id. To delete all article matching
-     * a name, one first has to obtain a list via articlesByName and
-     * then delete each one in turn. Seemingly this can be done by a
-     * GET, no need for a post. Mmmh.
-     */
-    public function deleteArticle($articleId, $category)
-    {
-      if (!$this->isLoggedIn()) {
-        return false;        
-      }
-
-      $result = $this->sendRequest('index.php',
-                                   array(
-                                     'page' => 'structure',
-                                     'article_id' => $articleId,
-                                     'function' => 'artdelete_function',
-                                     'category_id' => $category,
-                                     'clang' => 0));
-
-      if ($result === false) {
-        return false;
-      }
-
-      // We could parse the request and have a look if the article is
-      // still there ... do it.
-
-      $html = $result->getContents();
-
-      $articles = $this->filterArticlesByName($name, $html);
-
-      if ($articles === false) {
-        return false; 
-      }
-
-      foreach ($articles as $article) {
-        if ($article['article'] == $articleId) {
-          return false; // failure 
-        }
-      }
-
-      return true;
-    }
-
-    /**Add a new empty article
-     *
-     * @param $name The name of the article.
-     *
-     * @param $category The category id of the article.
-     *
-     * @param $template The template id of the article.
-     *
-     * @param $position The position of the article.
-     */
-    public function addArticle($name, $category, $template, $position = 10000)
-    {
-      if (!$this->isLoggedIn()) {
-        return false;        
-      }
-      
-      $result = $this->sendRequest('index.php',
-                                   array( // populate all form fields
-                                     'page' => 'structure',
-                                     'category_id' => $category,
-                                     'clang' => 0, // ???
-                                     'template_id' => $template,
-                                     'article_name' => $name,
-                                     'Position_New_Articel' => $position,
-                                     'artadd_function' => 'blah' // should not matter, submit button
-                                     ));
-      
-      if ($result === false) {
-        return false;
-      }
-
-      $html = $result->getContents();
-
-      return $this->filterArticlesByName($name, $html);
-    }
-
-    /**Fetch all matching articles by name. Still, the category has to
-     * be given as id.
-     */
-    public function articlesByName($name, $category)
-    {
-      if (!$this->isLoggedIn()) {
-        return false;        
-      }
-      
-      $result = $this->sendRequest('index.php?page=structure&category_id='.$category.'&clang=0');  
-      if ($result === false) {
-        return false;
-      }
-      
-      $html = $result->getContents();
-
-      return $this->filterArticlesByName($name, $html);
-    }
-
-    /**If the request was successful the response should contain some
-     * elements matching the article ID and providing the article
-     * ID. The article name is not unique, so we simply check for all
-     * lines with the matching article and return an array of ids in
-     * success, or false if none is found.
-     *
-     * We analyze the following element:
-     *
-     * <td class="rex-icon">
-     *   <a class="rex-i-element rex-i-article" href="index.php?page=content&amp;article_id=76&amp;category_id=75&amp;mode=edit&amp;clang=0">
-     *     <span class="rex-i-element-text">
-     *       blah2014
-     *     </span>
-     *   </a>
-     * </td>
-     *
-     * We use some preg stuff to detect the two cases. No need to
-     * catch the most general case.
-     *
-     * @param $name Not too complicated regexp
-     *
-     */
-    private function filterArticlesByName($name, $html)
-    {
-      if ($name == '.*') {
-        $name = '[^<]*';
-      }
-
-      $matches = array();
-      $cnt = preg_match_all('|<a\s+class="rex-i-element\s+rex-i-article"\s+'.
-                            'href="index.php\\?'.
-                            'page=content[^"]*'.
-                            'article_id=([0-9]+)[^"]*'.
-                            'category_id=([0-9]+)[^"]*">\s*'.
-                            '<span[^>]*>\s*('.$name.')\s*</span>\s*</a>|si', $html, $matches);
-
-      if ($cnt === false || $cnt == 0) {
-        return array();
-      }
-      
-      // Fine, we are done. Return an array with the results. Although
-      // redundant, we return for each match the triple articleId, categoryId, name
-      $result = array();
-      for ($i = 0; $i < $cnt; ++$i) {
-        $result[] = array('article' => $matches[1][$i],
-                          'category' => $matches[2][$i],
-                          'name' => $matches[3][$i]);
-      }
-
-      // sort ascending w.r.t. to article id
-      usort($result, function($a, $b) {
-          return $a['article'] < $b['article'] ? -1 : 1;
-        });
-
-      return $result;
-    }
-    
   };
 
 

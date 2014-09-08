@@ -33,6 +33,7 @@ OC::$CLASSPATH['Redaxo\Util'] = OC_App::getAppPath($appName) . '/lib/util.php';
 OC::$CLASSPATH['Redaxo\App'] = OC_App::getAppPath($appName) . '/lib/redaxo.php';
 OC::$CLASSPATH['Redaxo\AuthHooks'] = OC_App::getAppPath($appName) . '/lib/auth.php';
 OC::$CLASSPATH['Redaxo\Config'] = OC_App::getAppPath($appName) . '/lib/config.php';
+OC::$CLASSPATH['Redaxo\RPC'] = OC_App::getAppPath($appName) . '/lib/remoteprotocol.php';
 
 OCP\Util::connectHook('OC_User', 'post_login', 'Redaxo\AuthHooks', 'login');
 OCP\Util::connectHook('OC_User', 'logout', 'Redaxo\AuthHooks', 'logout');
