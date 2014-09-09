@@ -151,7 +151,7 @@ namespace Redaxo
       }
 
       foreach ($articles as $article) {
-        if ($article['article'] == $articleId) {
+        if ($article['id'] == $articleId) {
           return false; // failure 
         }
       }
@@ -388,16 +388,16 @@ namespace Redaxo
 
       $result = array();
       for ($i = 0; $i < $cnt; ++$i) {
-        $result[] = array('article' => $matches[1][$i],
-                          'category' => $matches[2][$i],
+        $result[] = array('id' => $matches[1][$i],
+                          'categoryId' => $matches[2][$i],
                           'name' => $matches[3][$i],
                           'priority' => $matches[8][$i],
-                          'template' => trim($matches[9][$i]));
+                          'templateId' => trim($matches[9][$i]));
       }
 
       // sort ascending w.r.t. to article id
       usort($result, function($a, $b) {
-          return $a['article'] < $b['article'] ? -1 : 1;
+          return $a['id'] < $b['id'] ? -1 : 1;
         });
 
       return $result;
