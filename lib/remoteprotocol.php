@@ -261,6 +261,7 @@ namespace Redaxo
                               'clang' => 0,
                               'ctype' => 1,
                               'btn_save' => 'blah');
+      $target = 'index.php'.'#slice'.$sliceId;
 
       // passed, send out another query
       $result = $this->app->sendRequest($target, $requiredFields);
@@ -388,11 +389,11 @@ namespace Redaxo
 
       $result = array();
       for ($i = 0; $i < $cnt; ++$i) {
-        $result[] = array('id' => $matches[1][$i],
-                          'categoryId' => $matches[2][$i],
-                          'name' => $matches[3][$i],
-                          'priority' => $matches[8][$i],
-                          'templateId' => trim($matches[9][$i]));
+        $result[] = array('ArticleId' => $matches[1][$i],
+                          'CategoryId' => $matches[2][$i],
+                          'ArticleName' => $matches[3][$i],
+                          'Priority' => $matches[8][$i],
+                          'TemplateName' => trim($matches[9][$i]));
       }
 
       // sort ascending w.r.t. to article id
