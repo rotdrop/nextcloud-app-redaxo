@@ -144,19 +144,10 @@ namespace Redaxo
 
       $html = $result->getContents();
 
-      $articles = $this->filterArticlesByName($name, $html);
+      $articles = $this->filterArticlesByIdAndName($articlId, '.*', $html);
 
-      if ($articles === false) {
-        return false; 
-      }
-
-      foreach ($articles as $article) {
-        if ($article['id'] == $articleId) {
-          return false; // failure 
-        }
-      }
-
-      return true;
+      // Successful delete: return should be an empty array
+      return is_array($articles) && count($articles) == 0;
     }
 
     /**Add a new empty article
@@ -189,7 +180,7 @@ namespace Redaxo
 
       $html = $result->getContents();
 
-      return $this->filterArticlesByName($name, $html);
+      return $this->filterArticlesByIdAndName('.*', $name, $html);
     }
 
     /**Add a block to an existing article */
@@ -286,17 +277,17 @@ namespace Redaxo
      * TODO: will not work ATM. Not so important, as the web-stuff is
      * tied by id, not by title.
      */
-    public function editArticle($article, $category, $name, $template, $position = 10000)
+    public function editArticle($articleId, $categoryId, $name, $templateId, $position = 10000)
     {
       $result = $this->app->sendRequest('index.php',
                                         array(
                                           'page' => 'structure',
-                                          'category_id' => $category,
-                                          'article_id' => $article,
-                                          'category_id' => $category,
+                                          'category_id' => $categoryId,
+                                          'article_id' => $articleId,
+                                          'category_id' => $categoryId,
                                           'function' => 'artedit_function',
                                           'article_name' => $name,
-                                          'template_id' => $template,
+                                          'template_id' => $templateId,
                                           'Position_Article' => $position,
                                           'clang' => 0));
       if ($result === false) {
@@ -305,7 +296,63 @@ namespace Redaxo
 
       $html = $result->getContents();
 
-      return $this->filterArticlesByName($name, $html);
+      // Id should be unique, so the following should just return the
+      // one article matching articleId.
+      return $this->filterArticlesByIdAndName($articleId, '.*', $html);
+    }
+
+    /**Set the article's name to a new value without changing anything
+     * else.
+     */
+    public function setArticleName($articleId, $name)
+    {
+      $post = array("page" => "content",
+                    "article_id" => $articleId,
+                    "mode" => "meta",
+                    "save" => "1",
+                    "clang" => "0",
+                    "ctype" => "1",
+                    "meta_article_name" => $name,
+                    "savemeta" => "blahsubmit");
+
+      $result = $this->app->sendRequest('index.php', $post);
+
+      if ($result === false) {
+        return false;
+      }
+
+      $html = $result->getContents();
+
+      // Search for the updated meta_article_name with the new name,
+      // and compare the article-id for safety.
+      $document = new \DOMDocument();
+      $document->loadHTML($html);
+
+      $inputs = $document->getElementsByTagName("input");
+      $currentId = -1;
+      foreach ($inputs as $input) {
+        if ($input->getAttribute("name") == "article_id" &&
+            $input->getAttribute("value") == $articleId) {
+          $currentId = $input->getAttribute("value");
+          break;
+        }
+      }
+
+      if ($currentId != $articleId) {
+        \OCP\Util::writeLog(App::APP_NAME, "Changing the article name failed, mis-matched article ids", \OC_LOG::DEBUG);
+        return false;
+      }
+
+      $input = $document->getElementById("rex-form-meta-article-name");
+      $valueName  = $input->getAttribute("name");
+      $valueValue = $input->getAttribute("value");
+      
+      if ($valueName != "meta_article_name" || $valueValue != $name) {
+        \OCP\Util::writeLog(App::APP_NAME, "Changing the article name failed, got ".$valueName.'="'.$valueValue.'"', \OC_LOG::DEBUG);
+        return false;
+      }
+
+      return true;
     }
 
     /**Fetch all matching articles by name. Still, the category has to
@@ -320,11 +367,36 @@ namespace Redaxo
       
       $html = $result->getContents();
 
-      return $this->filterArticlesByName($name, $html);
+      return $this->filterArticlesByIdAndName('.*', $name, $html);
+    }
+
+    /**Fetch articles by matching an array of ids
+     *
+     * @param $idList Flat array with id to search for. Use the empty
+     * array or '.*' to match all articles. Otherwise the elements of
+     * idList are used to form a simple regular expression matching
+     * the given numerical ids.
+     *
+     * @param $categoryId Id of the category (folder) the article belongs to.
+     *
+     * @return The list of matching articles of false in case of an
+     * error. It is no error if no articles match, the returned array
+     * is empty in this case.
+     */
+    public function articlesById($idList, $categoryId)
+    {
+      $result = $this->app->sendRequest('index.php?page=structure&category_id='.$categoryId.'&clang=0');  
+      if ($result === false) {
+        return false;
+      }
+      
+      $html = $result->getContents();
+
+      return $this->filterArticlesByIdAndName($idList, '.*', $html);
     }
 
     /**If the request was successful the response should contain some
-     * elements matching the article ID and providing the article
+     * elements matching the category ID and providing the article
      * ID. The article name is not unique, so we simply check for all
      * lines with the matching article and return an array of ids in
      * success, or false if none is found.
@@ -342,31 +414,51 @@ namespace Redaxo
      * We use some preg stuff to detect the two cases. No need to
      * catch the most general case.
      *
-     * @param $name Not too complicated regexp
+     * @param $idList Flat array with id to search for. Use the empty
+     * array or '.*' to match all articles. Otherwise the elements of
+     * idList are used to form a simple regular expression matching
+     * the given numerical ids.
+     *
+     * @param $nameRe Regular expression for matching the names. Use
+     * '.*' to match all articles.
+     *
+     * @return list of articles matching the given criteria (both at
+     * the same time).
      *
      */
-    private function filterArticlesByName($name, $html)
+    private function filterArticlesByIdAndName($idList, $nameRe, $html)
     {
-      if ($name == '.*') {
-        $name = '[^<]*';
+      if ($nameRe == '.*') {
+        $nameRe = '[^<]*';
+      }
+      if (!is_array($idList)) {
+        if ($idList == '.*') {
+          $idRe = '[0-9]+';
+        }
+      } else {
+        if (count($idList) == 0) {
+          $idRe = '[0-9]+';
+        } else {
+          $idRe = implode('|', $idList);
+        }
       }
 
       $matches = array();
       $cnt = preg_match_all('|<td\s+class="rex-icon">\s*'.
                             '<a\s+class="rex-i-element\s+rex-i-article"\s+'.
                             'href="index.php\\?page=content[^"]*'.
-                            'article_id=([0-9]+)[^"]*'.
+                            'article_id=('.$idRe.')[^"]*'.
                             'category_id=([0-9]+)[^"]*">\s*'.
-                            '<span[^>]*>\s*('.$name.')\s*</span>\s*</a>\s*'.
+                            '<span[^>]*>\s*('.$nameRe.')\s*</span>\s*</a>\s*'.
                             '</td>\s*'.
                             '<td\s+class="rex-small">\s*'.
                             '([0-9]+)\s*'.
                             '</td>\s*'.
                             '<td>\s*'.
                             '<a\s+href="index.php\\?page=content[^"]*'.
-                            'article_id=([0-9]+)[^"]*'.
+                            'article_id=('.$idRe.')[^"]*'.
                             'category_id=([0-9]+)[^"]*">\s*'.
-                            '('.$name.')\s*</a>\s*'.
+                            '('.$nameRe.')\s*</a>\s*'.
                             '</td>\s*'.
                             '<td>\s*([0-9]+)\s*</td>\s*'.
                             '<td>\s*([^<]+)\s*</td>'.
@@ -398,13 +490,12 @@ namespace Redaxo
 
       // sort ascending w.r.t. to article id
       usort($result, function($a, $b) {
-          return $a['id'] < $b['id'] ? -1 : 1;
+          return $a['ArticelId'] < $b['ArticleId'] ? -1 : 1;
         });
 
       return $result;
     }
-    
-
+ 
   };
   
 
