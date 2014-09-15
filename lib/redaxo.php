@@ -244,7 +244,7 @@ namespace Redaxo
         return self::doSendRequest($location);
       }
 
-      return $result == '' ? false : new Response($responseHdr, $result);
+      return $result == '' ? false : new Response($formPath, $responseHdr, $result);
     }
 
 
@@ -280,13 +280,24 @@ namespace Redaxo
    */
   class Response {
 
+    private $request;
     private $responseHeaders;
-
     private $content;
 
-    public function __construct($pHeader, $pContent){
+    public function __construct($pRequest, $pHeader, $pContent){
+      $this->request = $pRequest;
       $this->responseHeaders = $pHeader;
       $this->content = $pContent;
+    }
+
+    /**
+     *
+     * @return the latest request. This will contain the most recent
+     * redirect doSendRequest() was following, and not necessarily the
+     * original request..
+     */
+    public function getRequest(){
+      return $this->request;
     }
 
     /**

@@ -73,51 +73,47 @@ namespace Redaxo
                                               'category_copy_id_new' => $articleId,
                                           ));
       if ($result === false) {
+        \OCP\Util::writeLog(App::APP_NAME, __FUNCTION__."(): sendRequest() failed.",
+                            \OC_LOG::DEBUG);
         return false;
       }
 
-      // Unlink serialization issue on my Linux box, perhaps a BTRFS
-      //issue. Redaxo unlinks files, but apparantly another thread
-      //still sees them for more than 1 seconds.
-      //sleep(3);
-
-      $reqData = http_build_query(array('article_id' => $articleId,
-                                        'page' => 'content', // needed?
-                                        'mode' => 'functions',
-                                        'clang' => 0,
-                                        'ctype' => 1,
-                                    ), '', '&');
-
-      $result = $this->app->sendRequest('index.php'.'?'.$reqData);
-      if ($result === false) {
-        return false;
-      }
-
-      $html = $result->getContents();
-      
-      /* The result show contain the path with id information:
-       * <ul id="rex-navi-path">
-       *   <li>Pfad</li>
-       *   <li>: <a href="index.php?page=structure&amp;category_id=0&amp;clang=0" tabindex="16">Homepage</a></li>
-       *   <li>: <a href="index.php?page=structure&amp;category_id=75&amp;clang=0" tabindex="15">papierkorb</a></li>
-       * </ul>
+      /**Seemingly there is some potential for race-conditions: moving
+       * an article and retrieving the category view directly
+       * afterwards display, unfortunately, potentially wrong
+       * results. However, Redaxo answers with a status message in the
+       * configured backend-language. This is even present in the
+       * latest redirected request.
        *
-       * We want the values from the last <li> element, of course
        */
-      $matches = array();
-      $cnt = preg_match('|<ul\s+id="rex-navi-path">\s*'.
-                        '(<li>.*</li>)*\s*'.
-                        '(<li>[^<]+<a\s+href="index.php\\?page=structure.*'.
-                        'category_id=([0-9]+).*'.
-                        '</li>)\s*</ul>'.
-                        '|si', $html, $matches);
-      if ($cnt == 0) {
-        return "noMatch";
-        return false;
+      //<div class=\"rex-message\"><div class=\"rex-info\"><p><span>Artikel wurde verschoben<\/span><\/p><\/div>
+      // index.php?page=content&article_id=92&mode=functions&clang=0&ctype=1&info=Artikel+wurde+verschoben
+
+      $redirectReq = $result->getRequest();
+
+      if (false) {
+        \OCP\Util::writeLog(App::APP_NAME, __FUNCTION__."(): sendRequest() latest request URI: ".$redirectReq,
+                            \OC_LOG::DEBUG);
       }
-      $actCat = $matches[3];
-      
-      return $actCat == $destCat;
+
+      /*Redaxo currently only has de_de and en_gb as backend language, we accept both answers. 
+       *
+       * content_articlemoved = Artikel wurde verschoben
+       * content_articlemoved = Article moved.
+       */
+      $validAnswers = array('de_de' => 'Artikel wurde verschoben',
+                            'en_gb' => 'Article moved.');
+      foreach ($validAnswers as $lang => $answer) {
+        $answer = 'info='.urlencode($answer);
+        if (strstr($redirectReq, $answer)) {
+          return true; // got it, this is a success
+        }
+      }
+
+      \OCP\Util::writeLog(App::APP_NAME, __FUNCTION__."(): rename failed, latest redirect request: ".$redirectReq,
+                          \OC_LOG::DEBUG);
+
+      return false;
     }
 
     /**Delete an article, given its id. To delete all article matching
@@ -490,7 +486,7 @@ namespace Redaxo
 
       // sort ascending w.r.t. to article id
       usort($result, function($a, $b) {
-          return $a['ArticelId'] < $b['ArticleId'] ? -1 : 1;
+          return $a['ArticleId'] < $b['ArticleId'] ? -1 : 1;
         });
 
       return $result;
