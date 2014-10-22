@@ -477,11 +477,13 @@ namespace Redaxo
 
       $result = array();
       for ($i = 0; $i < $cnt; ++$i) {
-        $result[] = array('ArticleId' => $matches[1][$i],
-                          'CategoryId' => $matches[2][$i],
-                          'ArticleName' => $matches[3][$i],
-                          'Priority' => $matches[8][$i],
-                          'TemplateName' => trim($matches[9][$i]));
+        $article = array('ArticleId' => $matches[1][$i],
+                         'CategoryId' => $matches[2][$i],
+                         'ArticleName' => $matches[3][$i],
+                         'Priority' => $matches[8][$i],
+                         'TemplateName' => trim($matches[9][$i]));
+        $result[] = $article;
+        \OCP\Util::writeLog(App::APP_NAME, "Got article: ".print_r($article, true), \OC_LOG::DEBUG);
       }
 
       // sort ascending w.r.t. to article id
