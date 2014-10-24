@@ -208,12 +208,12 @@ namespace Redaxo
       // On success we have the following div:
       //<div class="rex-form rex-form-content-editmode-add-slice">
       $addCnt = preg_match_all('/<div\s+class="rex-form\s+rex-form-content-editmode-add-slice">/si',
-                               $html);
+                               $html, $matches);
 
       // Each existing block is surrounded by this div:
       //<div class="rex-content-editmode-slice-output">
       $haveCnt = preg_match_all('/<div\s+class="rex-content-editmode-slice-output">/si',
-                                $html);
+                                $html, $matches);
       
       if ($addCnt != 1) {
         \OCP\Util::writeLog(App::APP_NAME, "Adding block failed, edit-form is missing", \OC_LOG::DEBUG);
@@ -255,8 +255,9 @@ namespace Redaxo
 
       $html = $result->getContents();
 
+      $dummy = array();
       $haveCntAfter = preg_match_all('/<div\s+class="rex-content-editmode-slice-output">/si',
-                                     $html);
+                                     $html, $dummy);
 
       if ($haveCntAfter != $haveCnt + 1) {
         \OCP\Util::writeLog(App::APP_NAME, "AFTER BLOCK ADD: ".$html, \OC_LOG::DEBUG);
