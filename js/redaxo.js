@@ -25,36 +25,39 @@ var Redaxo = Redaxo || {
 
 (function(window, $, Redaxo) {
 
-    // Dummy
+  // Dummy
+  Redaxo.loadHandler = function(redaxoFrame) {
+    var redaxo = redaxoFrame.contents();
+
+    // Remove the logout stuff
+    redaxo.find('ul.rex-logout').remove();
+    
+    // shift the entire thing a little bit into the inside
+    redaxo.find('div#rex-website').css({'margin-left': '50px',
+                                        'margin-top': '50px'});
+
+    redaxo.find('a').filter(function() {
+      return this.hostname && this.hostname !== window.location.hostname;
+    }).each(function() {
+      $(this).attr('target','_blank');
+    });
+
+    $('#redaxoLoader').fadeOut('slow');
+    redaxoFrame.slideDown('slow');
+  }
 
 })(window, jQuery, Redaxo);
 
 $(document).ready(function() {
 
-    $(window).resize(function() {
-        //fillWindow($('#redaxo_container'));
+  var redaxoFrame = $('#redaxoFrame');
+  var redaxo = redaxoFrame.contents();
+  if (redaxo.find('ul.rex-logout').length > 0) {
+    Redaxo.loadHandler(redaxoFrame);
+  } else {
+    redaxoFrame.load(function() {
+      Redaxo.loadHandler(redaxoFrame);
     });
-    $(window).resize();
-
-    var redaxoFrame = $('#redaxoFrame');
-    redaxoFrame.load(function(){
-        var redaxo = redaxoFrame.contents();
-
-        // Remove the logout stuff
-        redaxo.find('ul.rex-logout').remove();
-        
-        // shift the entire thing a little bit into the inside
-        redaxo.find('div#rex-website').css({'margin-left': '50px',
-                                            'margin-top': '50px'});
-
-        redaxo.find('a').filter(function() {
-            return this.hostname && this.hostname !== window.location.hostname;
-        }).each(function() {
-            $(this).attr('target','_blank');
-        });
-
-	$('#redaxoLoader').fadeOut('slow');
-	redaxoFrame.slideDown('slow');
-    });
+  }
 
 });
