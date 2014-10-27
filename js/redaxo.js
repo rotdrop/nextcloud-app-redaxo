@@ -52,12 +52,11 @@ $(document).ready(function() {
 
   var redaxoFrame = $('#redaxoFrame');
   var redaxo = redaxoFrame.contents();
+  redaxoFrame.load(function() {
+    Redaxo.loadHandler(redaxoFrame);
+  });
   if (redaxo.find('ul.rex-logout').length > 0) {
     Redaxo.loadHandler(redaxoFrame);
-  } else {
-    redaxoFrame.load(function() {
-      Redaxo.loadHandler(redaxoFrame);
-    });
   }
 
 });
