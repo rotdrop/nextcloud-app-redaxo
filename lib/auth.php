@@ -34,6 +34,13 @@ class AuthHooks
     if (defined('REDAXO_INCLUDE')) {
       return;
     }
+    $via = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+    if (preg_match('#(/ocs/v1.php|'.
+                   '/apps/calendar/caldav.php|'.
+                   '/apps/contacts/carddav.php|'.
+                   '/remote.php/webdav)/#', $via)) {
+      return;
+    }
 
     $redaxoLocation = \OCP\Config::GetAppValue(App::APP_NAME, 'redaxolocation', '');
 
@@ -62,6 +69,13 @@ class AuthHooks
   public static function logout()
   {
     if (defined('REDAXO_INCLUDE')) {
+      return;
+    }
+    $via = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+    if (preg_match('#(/ocs/v1.php|'.
+                   '/apps/calendar/caldav.php|'.
+                   '/apps/contacts/carddav.php|'.
+                   '/remote.php/webdav)/#', $via)) {
       return;
     }
 
