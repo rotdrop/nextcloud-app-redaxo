@@ -26,7 +26,7 @@ var Redaxo = Redaxo || {
 (function(window, $, Redaxo) {
 
   // Dummy
-  Redaxo.loadHandler = function(redaxoFrame) {
+  Redaxo.loadHandler = function(redaxoFrame, callback) {
     var redaxo = redaxoFrame.contents();
 
     // Remove the logout stuff
@@ -42,21 +42,46 @@ var Redaxo = Redaxo || {
       $(this).attr('target','_blank');
     });
 
-    $('#redaxoLoader').fadeOut('slow');
-    redaxoFrame.slideDown('slow');
+    if (typeof callback == 'undefined') {
+      callback = function() {};
+    }
+
+    if (redaxoFrame.is(':hidden')) {
+      $('#redaxoLoader').fadeOut('slow');
+      redaxoFrame.slideDown('slow', function() {
+        callback();
+      });
+    } else {
+      $('#redaxoLoader').fadeOut('slow');
+      callback();
+    }
   }
 
 })(window, jQuery, Redaxo);
 
 $(document).ready(function() {
 
+  var redaxoContainer = $('#redaxo_container');
   var redaxoFrame = $('#redaxoFrame');
   var redaxo = redaxoFrame.contents();
-  redaxoFrame.load(function() {
-    Redaxo.loadHandler(redaxoFrame);
-  });
+
+  var setHeightCallback = function() {
+    redaxoContainer.height($('#content').height());
+  };
+  
+  if (redaxoFrame.length > 0) {
+    redaxoFrame.load(function() {
+      Redaxo.loadHandler(redaxoFrame, setHeightCallback);
+    });
+    
+    var resizeTimer;
+    $(window).resize(function()  {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(setHeightCallback);
+    });
+  }
   if (redaxo.find('ul.rex-logout').length > 0) {
-    Redaxo.loadHandler(redaxoFrame);
+    Redaxo.loadHandler(redaxoFrame, setHeightCallback);
   }
 
 });
