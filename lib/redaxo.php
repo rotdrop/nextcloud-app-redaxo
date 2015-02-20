@@ -72,7 +72,8 @@ namespace Redaxo
       // If we have auth-cookies stored in the session, fill the
       // authHeaders array with those. Will be replaced on successful
       // login.
-      $sessionAuth = \OC::$session->get('Redaxo\\authHeaders');
+      $sessionAuth = \OC::$server->getSession()->get('Redaxo\\authHeaders');
+
       if (is_array($sessionAuth)) {
         $this->authHeaders = $sessionAuth;
       }
@@ -229,7 +230,7 @@ namespace Redaxo
       }
       if (count($newAuthHeaders) > 0) {
         $this->authHeaders = $newAuthHeaders;
-        \OC::$session->set('Redaxo\\authHeaders', $this->authHeaders);
+        \OC::$server->getSession()->set('Redaxo\\authHeaders', $this->authHeaders);
       }
       //\OCP\Util::writeLog(self::APP_NAME, "Data Response: ".$result, \OC_LOG::DEBUG);
 
