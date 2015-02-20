@@ -1,6 +1,8 @@
 #! /bin/bash
 
-perl ./l10n.pl read
-msgmerge -vU --previous --backup=numbered de/dokuwikiembed.po  templates/dokuwikiembed.pot
-perl ./l10n.pl write
+APP=redaxo
+
+perl ./l10n.pl read ${APP}
+msgmerge -vU --previous --backup=numbered de/${APP}.po  templates/${APP}.pot
+perl ./l10n.pl write ${APP}
 

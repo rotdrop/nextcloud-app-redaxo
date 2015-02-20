@@ -1,4 +1,4 @@
-#! /usr/bin/perl
+#!/usr/bin/perl
 use strict;
 use Locale::PO;
 use Cwd;
@@ -18,7 +18,7 @@ sub crawlPrograms{
 	foreach my $i ( @files ){
 		next if substr( $i, 0, 1 ) eq '.';
 		if( $i eq 'l10n' && !$ignore ){
-            print $dir;
+                        print $dir;
 			push( @found, $dir );
 		}
 		elsif( -d $dir.'/'.$i ){
@@ -41,7 +41,7 @@ sub crawlFiles{
 	foreach my $i ( @files ){
 		next if substr( $i, 0, 1 ) eq '.';
 		next if $i eq 'l10n';
-		
+
 		if( -d $dir.'/'.$i ){
 			push( @found, crawlFiles( $dir.'/'.$i ));
 		}
@@ -79,8 +79,18 @@ sub readIgnorelist{
 	return %ignore;
 }
 
+sub getPluralInfo {
+	my( $info ) = @_;
+
+	# get string
+	$info =~ s/.*Plural-Forms: (.+)\\n.*/$1/;
+	$info =~ s/^(.*)\\n.*/$1/g;
+
+	return $info;
+}
+
 my $task = shift( @ARGV );
-my $place = '../../dokuwikiembed';
+my $place = '../../' . shift( @ARGV );
 
 die( "Usage: l10n.pl task\ntask: read, write\n" ) unless $task && $place;
 
@@ -125,11 +135,17 @@ if( $task eq 'read' ){
                         }
                         next if $stop;
 			next if $ignore{$file};
-			my $keyword = ( $file =~ /\.js$/ ? 't:2' : 't');
+			my $keywords = '';
+			if( $file =~ /\.js$/ ){
+				$keywords = '--keyword=t:2 --keyword=n:2,3';
+			}
+			else{
+				$keywords = '--keyword=t --keyword=n:1,2';
+			}
 			my $language = ( $file =~ /\.js$/ ? 'Python' : 'PHP');
 			my $joinexisting = ( -e $output ? '--join-existing' : '');
 			print "    Reading $file\n";
-			`xgettext --output="$output" $joinexisting --keyword=$keyword --language=$language --from-code=UTF-8 "$file"`;
+			`xgettext --output="$output" $joinexisting $keywords --language=$language --from-code=UTF-8 "$file"`;
 		}
 		chdir( $whereami );
 	}
@@ -143,7 +159,7 @@ elsif( $task eq 'write' ){
 		print "  Processing $app\n";
 		foreach my $language ( @languages ){
 			next if $language eq 'templates';
-			
+
 			my $input = "${whereami}/$language/$app.po";
 			next unless -e $input;
 
@@ -151,24 +167,58 @@ elsif( $task eq 'write' ){
 			my $array = Locale::PO->load_file_asarray( $input );
 			# Create array
 			my @strings = ();
+			my @js_strings = ();
+			my $plurals;
+
 			foreach my $string ( @{$array} ){
-				next if $string->msgid() eq '""';
-				next if $string->msgstr() eq '""';
-                                # escape dollar signs
-                                my $msgid  = $string->msgid();
-                                my $msgstr = $string->msgstr();
-                                $msgid =~ s/\$/\\\$/g;
-                                $msgstr =~ s/\$/\\\$/g;
-				push( @strings, $msgid." => ".$msgstr);
+				if( $string->msgid() eq '""' ){
+					# Translator information
+					$plurals = getPluralInfo( $string->msgstr());
+				}
+				elsif( defined( $string->msgstr_n() )){
+					# plural translations
+					my @variants = ();
+					my $identifier = $string->msgid()."::".$string->msgid_plural();
+					$identifier =~ s/"/_/g;
+
+					foreach my $variant ( sort { $a <=> $b} keys( %{$string->msgstr_n()} )){
+						push( @variants, $string->msgstr_n()->{$variant} );
+					}
+
+					push( @strings, "\"$identifier\" => array(".join(",", @variants).")");
+					push( @js_strings, "\"$identifier\" : [".join(",", @variants)."]");
+				}
+				else{
+					# singular translations
+					next if $string->msgstr() eq '""';
+					push( @strings, $string->msgid()." => ".$string->msgstr());
+					push( @js_strings, $string->msgid()." : ".$string->msgstr());
+				}
 			}
 			next if $#strings == -1; # Skip empty files
 
-			# Write PHP file
-			open( OUT, ">$language.php" );
-			print OUT "<?php \$TRANSLATIONS = array(\n";
-			print OUT join( ",\n", @strings );
-			print OUT "\n);\n";
+			for (@strings) {
+				s/\$/\\\$/g;
+			}
+
+            # delete old php file
+            unlink "$language.php";
+
+			# Write js file
+			open( OUT, ">$language.js" );
+			print OUT "OC.L10N.register(\n    \"$app\",\n    {\n    ";
+			print OUT join( ",\n    ", @js_strings );
+			print OUT "\n},\n\"$plurals\");\n";
 			close( OUT );
+
+			# Write json file
+			open( OUT, ">$language.json" );
+			print OUT "{ \"translations\": ";
+			print OUT "{\n    ";
+			print OUT join( ",\n    ", @js_strings );
+			print OUT "\n},\"pluralForm\" :\"$plurals\"\n}";
+			close( OUT );
+
 		}
 		chdir( $whereami );
 	}
