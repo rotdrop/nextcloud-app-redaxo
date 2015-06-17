@@ -1,6 +1,6 @@
 /**Embed a Redaxo CMS instance as app into ownCloud, intentionally
  * with single-sign-on.
- * 
+ *
  * @author Claus-Justus Heine
  * @copyright 2013 Claus-Justus Heine <himself@claus-justus-heine.de>
  *
@@ -20,7 +20,8 @@
 
 var Redaxo = Redaxo || {
     appName: 'redaxo',
-    refreshInterval: 300
+    refreshInterval: 300,
+    refreshTimer: false
 };
 
 (function(window, $, Redaxo) {
@@ -32,23 +33,22 @@ var Redaxo = Redaxo || {
             this.refresh = function(){
                 if (OC.currentUser) {
                     $.post(url, {}, function() {
-                        setTimeout(self.refresh, self.refreshInterval*1000);
+                        self.refreshTimer = setTimeout(self.refresh, self.refreshInterval*1000);
                     });
-                } else {
-                    clearTimeout(this.refresh);
+                } else if (self.refreshTimer !== false) {
+                    clearTimeout(self.refreshTimer);
+                    self.refreshTimer = false;
                 }
             };
-            setTimeout(this.refresh, this.refreshInterval*1000);
-        } else {
-            if (typeof this.refresh != 'undefined') {
-                clearTimeout(this.refresh);
-            }
+            this.refreshTimer = setTimeout(this.refresh, this.refreshInterval*1000);
+        } else if (this.refreshTimer !== false) {
+            clearTimeout(this.refreshTimer);
+            self.refreshTimer = false;
         }
     };
 
 })(window, jQuery, Redaxo);
 
 $(document).ready(function() {
-
     Redaxo.routes();
 });
