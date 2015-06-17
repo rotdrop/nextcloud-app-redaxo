@@ -27,12 +27,12 @@ var Redaxo = Redaxo || {
 (function(window, $, Redaxo) {
 
     Redaxo.routes = function() {
-        self = this;
+        var self = this;
         if (OC.currentUser) {
             var url = OC.generateUrl('apps/'+this.appName+'/refresh');
             this.refresh = function(){
                 if (OC.currentUser) {
-                    $.post(url, {}, function() {
+                    $.post(url, {}).always(function() {
                         self.refreshTimer = setTimeout(self.refresh, self.refreshInterval*1000);
                     });
                 } else if (self.refreshTimer !== false) {
@@ -52,3 +52,7 @@ var Redaxo = Redaxo || {
 $(document).ready(function() {
     Redaxo.routes();
 });
+
+// Local Variables: ***
+// js3-indent-level: 4 ***
+// End: ***
