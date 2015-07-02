@@ -21,14 +21,14 @@
 
 /**Redaxo namespace to prevent name-collisions.
  */
-namespace Redaxo 
+namespace Redaxo
 {
 
   class App
   {
     const APP_NAME = 'redaxo';
 
-    const COOKIE_RE = 'PHPSESSID';
+    const COOKIE_RE = 'PHPSESSID|redaxo_sessid';
     private $user;
     private $password;
     private $proto;
@@ -42,7 +42,7 @@ namespace Redaxo
     private $authCookies;  //!< $key -> $value array of relevant cookies
 
     private $loginStatus;  // 0 unknown, -1 logged off, 1 logged on
-      
+
     public function __construct($location)
     {
       $url = Util::composeURL($location);
@@ -106,7 +106,7 @@ namespace Redaxo
       if ($response === false) {
         $response = $this->doSendRequest($this->location);
       }
-      
+
       //LOGGED IN:
       //<div id="rex-navi-logout">
       //  <ul class="rex-logout">
@@ -130,13 +130,13 @@ namespace Redaxo
       \OCP\Util::writeLog(self::APP_NAME, "Login Status: ".$this->loginStatus, \OC_LOG::DEBUG);
     }
 
-    public function isLoggedIn() 
+    public function isLoggedIn()
     {
       $this->updateLoginStatus();
-      
+
       return $this->loginStatus == 1;
     }
-    
+
     public function logout()
     {
       $response = $this->doSendRequest($this->location.'?rex_logout=1');
@@ -147,7 +147,7 @@ namespace Redaxo
     public function login($user, $password)
     {
       $this->updateLoginStatus();
-      
+
       if ($this->isLoggedIn()) {
         $this->logout();
       }
@@ -158,7 +158,7 @@ namespace Redaxo
                                            'rex_user_psw' => $password));
 
       $this->updateLoginStatus($response, true);
-      
+
       return $this->loginStatus == 1;
     }
 
@@ -170,7 +170,7 @@ namespace Redaxo
       if (is_array($postData)) {
         $postData = http_build_query($postData, '', '&');
       }
-      $method = (!$postData) ? "GET" : "POST";      
+      $method = (!$postData) ? "GET" : "POST";
 
       $cookies = array();
       foreach (array_merge($this->cookies, $this->authCookies) as $name => $value) {
@@ -219,7 +219,7 @@ namespace Redaxo
           $this->authCookies[$match[1]] = $match[2];
           \OCP\Util::writeLog(self::APP_NAME, "Auth Header: ".$header, \OC_LOG::DEBUG);
           \OCP\Util::writeLog(self::APP_NAME, "Rex Cookie: ".$match[1]."=".$match[2], \OC_LOG::DEBUG);
-          \OCP\Util::writeLog(self::APP_NAME, "AuthHeaders: ".print_r($this->authHeaders, true), \OC_LOG::DEBUG);          
+          \OCP\Util::writeLog(self::APP_NAME, "AuthHeaders: ".print_r($this->authHeaders, true), \OC_LOG::DEBUG);
         } else if (preg_match('|^HTTP/1.[0-9]\s+(30[23])|', $header, $match)) {
           $redirect = true;
           \OCP\Util::writeLog(self::APP_NAME, "Redirect status: ".$match[1], \OC_LOG::DEBUG);
@@ -255,7 +255,7 @@ namespace Redaxo
     public function sendRequest($formPath, $postData = false)
     {
       if (!$this->isLoggedIn()) {
-        return false;        
+        return false;
       }
 
       return $this->doSendRequest($formPath, $postData);
@@ -263,7 +263,7 @@ namespace Redaxo
 
     /**Send authentication headers previously aquired
      */
-    public function emitAuthHeaders() 
+    public function emitAuthHeaders()
     {
       foreach ($this->authHeaders as $header) {
         \OCP\Util::writeLog(self::APP_NAME, "Emitting auth header: ".$header, \OC_LOG::DEBUG);
