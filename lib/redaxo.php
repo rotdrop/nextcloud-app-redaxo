@@ -28,7 +28,7 @@ namespace Redaxo
   {
     const APP_NAME = 'redaxo';
 
-    const COOKIE_RE = 'PHPSESSID|redaxo_sessid';
+    const COOKIE_RE = 'PHPSESSID|redaxo_sessid|KEY_PHPSESSID|KEY_redaxo_sessid';
     private $user;
     private $password;
     private $proto;
@@ -153,9 +153,9 @@ namespace Redaxo
       }
 
       $response = $this->doSendRequest($this->location,
-                                     array('javascript' => 1,
-                                           'rex_user_login' => $user,
-                                           'rex_user_psw' => $password));
+                                       array('javascript' => 1,
+                                             'rex_user_login' => $user,
+                                             'rex_user_psw' => $password));
 
       $this->updateLoginStatus($response, true);
 
@@ -196,7 +196,8 @@ namespace Redaxo
                                                )));
       $url  = self::redaxoURL().$formPath;
 
-      \OCP\Util::writeLog(self::APP_NAME, "doSendRequest() to ".$url." data ".$postData, \OC_LOG::DEBUG);
+      $logPostData = preg_replace('/rex_user_psw=[^&]*(&|$)/', 'rex_user_psw=XXXXXX$1', $postData);
+      \OCP\Util::writeLog(self::APP_NAME, "doSendRequest() to ".$url." data ".$logPostData, \OC_LOG::DEBUG);
 
       $fp = fopen($url, 'rb', false, $context);
       $result = '';
@@ -214,12 +215,14 @@ namespace Redaxo
       $newAuthHeaders = array();
       foreach ($responseHdr as $header) {
         if (preg_match('/^Set-Cookie:\s*('.self::COOKIE_RE.')=([^;]+);/i', $header, $match)) {
-          $newAuthHeaders[] = $header;
-          $newAuthHeaders[] = preg_replace('|path=([^;]+);?|i', 'path='.\OC::$WEBROOT.'/;', $header);
-          $this->authCookies[$match[1]] = $match[2];
-          \OCP\Util::writeLog(self::APP_NAME, "Auth Header: ".$header, \OC_LOG::DEBUG);
-          \OCP\Util::writeLog(self::APP_NAME, "Rex Cookie: ".$match[1]."=".$match[2], \OC_LOG::DEBUG);
-          \OCP\Util::writeLog(self::APP_NAME, "AuthHeaders: ".print_r($this->authHeaders, true), \OC_LOG::DEBUG);
+          if ($match[2] !== 'deleted') {
+            $newAuthHeaders[] = $header;
+            $newAuthHeaders[] = preg_replace('|path=([^;]+);?|i', 'path='.\OC::$WEBROOT.'/;', $header);
+            $this->authCookies[$match[1]] = $match[2];
+            \OCP\Util::writeLog(self::APP_NAME, "Auth Header: ".$header, \OC_LOG::DEBUG);
+            \OCP\Util::writeLog(self::APP_NAME, "Rex Cookie: ".$match[1]."=".$match[2], \OC_LOG::DEBUG);
+            \OCP\Util::writeLog(self::APP_NAME, "AuthHeaders: ".print_r($newAuthHeaders, true), \OC_LOG::DEBUG);
+          }
         } else if (preg_match('|^HTTP/1.[0-9]\s+(30[23])|', $header, $match)) {
           $redirect = true;
           \OCP\Util::writeLog(self::APP_NAME, "Redirect status: ".$match[1], \OC_LOG::DEBUG);
