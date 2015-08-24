@@ -49,7 +49,7 @@ OCP\Util::addScript($appName, 'routes');
 OCP\App::addNavigationEntry(array(
 		'id' => $appName, 
 		'order' => 10, 
-		'href' => OCP\Util::linkTo($appName, 'index.php'), 
+                'href' => OCP\Util::linkToRoute('redaxo_root'),
 		'icon' => OCP\Util::imagePath($appName, 'redaxo-logo-gray.png'),
 		'name' => $l->t('Redaxo')));
 
