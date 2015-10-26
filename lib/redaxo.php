@@ -127,7 +127,7 @@ namespace Redaxo
           $this->loginStatus = 1;
         }
       }
-      \OCP\Util::writeLog(self::APP_NAME, "Login Status: ".$this->loginStatus, \OC_LOG::DEBUG);
+      \OCP\Util::writeLog(self::APP_NAME, "Login Status: ".$this->loginStatus, \OCP\Util::DEBUG);
     }
 
     public function isLoggedIn()
@@ -197,7 +197,7 @@ namespace Redaxo
       $url  = self::redaxoURL().$formPath;
 
       $logPostData = preg_replace('/rex_user_psw=[^&]*(&|$)/', 'rex_user_psw=XXXXXX$1', $postData);
-      \OCP\Util::writeLog(self::APP_NAME, "doSendRequest() to ".$url." data ".$logPostData, \OC_LOG::DEBUG);
+      \OCP\Util::writeLog(self::APP_NAME, "doSendRequest() to ".$url." data ".$logPostData, \OCP\Util::DEBUG);
 
       $fp = fopen($url, 'rb', false, $context);
       $result = '';
@@ -219,30 +219,30 @@ namespace Redaxo
             $newAuthHeaders[] = $header;
             $newAuthHeaders[] = preg_replace('|path=([^;]+);?|i', 'path='.\OC::$WEBROOT.'/;', $header);
             $this->authCookies[$match[1]] = $match[2];
-            \OCP\Util::writeLog(self::APP_NAME, "Auth Header: ".$header, \OC_LOG::DEBUG);
-            \OCP\Util::writeLog(self::APP_NAME, "Rex Cookie: ".$match[1]."=".$match[2], \OC_LOG::DEBUG);
-            \OCP\Util::writeLog(self::APP_NAME, "AuthHeaders: ".print_r($newAuthHeaders, true), \OC_LOG::DEBUG);
+            \OCP\Util::writeLog(self::APP_NAME, "Auth Header: ".$header, \OCP\Util::DEBUG);
+            \OCP\Util::writeLog(self::APP_NAME, "Rex Cookie: ".$match[1]."=".$match[2], \OCP\Util::DEBUG);
+            \OCP\Util::writeLog(self::APP_NAME, "AuthHeaders: ".print_r($newAuthHeaders, true), \OCP\Util::DEBUG);
           }
         } else if (preg_match('|^HTTP/1.[0-9]\s+(30[23])|', $header, $match)) {
           $redirect = true;
-          \OCP\Util::writeLog(self::APP_NAME, "Redirect status: ".$match[1], \OC_LOG::DEBUG);
+          \OCP\Util::writeLog(self::APP_NAME, "Redirect status: ".$match[1], \OCP\Util::DEBUG);
         } else if (preg_match('/^Location:\s*(\S+)$/', $header, $match)) {
           $location = $match[1];
-          \OCP\Util::writeLog(self::APP_NAME, "Redirect location: ".$location, \OC_LOG::DEBUG);
+          \OCP\Util::writeLog(self::APP_NAME, "Redirect location: ".$location, \OCP\Util::DEBUG);
         }
       }
       if (count($newAuthHeaders) > 0) {
         $this->authHeaders = $newAuthHeaders;
         \OC::$server->getSession()->set('Redaxo\\authHeaders', $this->authHeaders);
       }
-      //\OCP\Util::writeLog(self::APP_NAME, "Data Response: ".$result, \OC_LOG::DEBUG);
+      //\OCP\Util::writeLog(self::APP_NAME, "Data Response: ".$result, \OCP\Util::DEBUG);
 
       if ($redirect && $location !== false) {
         // Follow the redirection
         if (substr($location, 0, 4) == 'http') {
           \OCP\Util::writeLog(self::APP_NAME,
                               "Refusing to follow absolute location header: ".$location,
-                              \OC_LOG::ERROR);
+                              \OCP\Util::ERROR);
           return false;
         }
         return self::doSendRequest($location);
@@ -269,7 +269,7 @@ namespace Redaxo
     public function emitAuthHeaders()
     {
       foreach ($this->authHeaders as $header) {
-        \OCP\Util::writeLog(self::APP_NAME, "Emitting auth header: ".$header, \OC_LOG::DEBUG);
+        \OCP\Util::writeLog(self::APP_NAME, "Emitting auth header: ".$header, \OCP\Util::DEBUG);
         header($header, false /* replace or not??? */);
       }
     }

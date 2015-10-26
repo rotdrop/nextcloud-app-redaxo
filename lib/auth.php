@@ -56,13 +56,13 @@ class AuthHooks
                           "Redaxo login of user ".
                           $username.
                           " probably succeeded.",
-                          \OC_Log::INFO);
+                          \OCP\Util::INFO);
     } else {
       \OCP\Util::writeLog(App::APP_NAME,
                           "Redaxo login of user ".
                           $username.
                           " probably failed.",
-                          \OC_Log::INFO);
+                          \OCP\Util::INFO);
     }
   }
   
@@ -85,7 +85,7 @@ class AuthHooks
       $redaxo->emitAuthHeaders();
       \OCP\Util::writeLog(App::APP_NAME,
                           "Redaxo logoff probably succeeded.",
-                          \OC_Log::INFO);
+                          \OCP\Util::INFO);
     }
   }
 
@@ -103,11 +103,11 @@ class AuthHooks
     if (!$redaxo->isLoggedIn()) { // triggers load of Redaxo start page   
         \OCP\Util::writeLog(App::APP_NAME,
                             "Redaxo refresh failed.",
-                            \OC_Log::ERROR);
+                            \OCP\Util::ERROR);
     } else {
         \OCP\Util::writeLog(App::APP_NAME,
                             "Redaxo refresh probably succeeded.",
-                            \OC_Log::INFO);
+                            \OCP\Util::INFO);
     }
   }
   

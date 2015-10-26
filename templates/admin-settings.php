@@ -25,11 +25,11 @@ use Redaxo\App;
 ?>
 
 <div class="section">
+  <h2><?php echo L::t('Embedded Redaxo CMS');?></h2>
   <form id="redaxosettings">
-    <legend>
-      <img class="redaxologo" src="<?php echo OCP\Util::imagePath(App::APP_NAME, 'redaxo-logo.png'); ?>" >
-      <strong><?php echo L::t('Embedded Redaxo CMS');?></strong><br />
-    </legend>
+    <!--
+    <img class="redaxologo" src="<?php echo OCP\Util::imagePath(App::APP_NAME, 'redaxo-logo.png'); ?>" >
+    -->
     <input type="text"
            name="REX_Location"
            id="REX_Location"
