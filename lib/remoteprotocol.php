@@ -74,7 +74,7 @@ namespace Redaxo
                                           ));
       if ($result === false) {
         \OCP\Util::writeLog(App::APP_NAME, __FUNCTION__."(): sendRequest() failed.",
-                            \OC_LOG::DEBUG);
+                            \OC\Util::DEBUG);
         return false;
       }
 
@@ -93,7 +93,7 @@ namespace Redaxo
 
       if (false) {
         \OCP\Util::writeLog(App::APP_NAME, __FUNCTION__."(): sendRequest() latest request URI: ".$redirectReq,
-                            \OC_LOG::DEBUG);
+                            \OC\Util::DEBUG);
       }
 
       /*Redaxo currently only has de_de and en_gb as backend language, we accept both answers. 
@@ -111,7 +111,7 @@ namespace Redaxo
       }
 
       \OCP\Util::writeLog(App::APP_NAME, __FUNCTION__."(): rename failed, latest redirect request: ".$redirectReq,
-                          \OC_LOG::DEBUG);
+                          \OC\Util::DEBUG);
 
       return false;
     }
@@ -199,7 +199,7 @@ namespace Redaxo
 
       $html = $result->getContents();
 
-      //\OCP\Util::writeLog(App::APP_NAME, "AFTER BLOCK ADD: ".$html, \OC_LOG::DEBUG);
+      //\OCP\Util::writeLog(App::APP_NAME, "AFTER BLOCK ADD: ".$html, \OC\Util::DEBUG);
 
       $matches = array();
       $cnt = preg_match_all('/<div\s+class="rex-form\s+rex-form-content-editmode-add-slice">/si',
@@ -216,7 +216,7 @@ namespace Redaxo
                                 $html, $matches);
       
       if ($addCnt != 1) {
-        \OCP\Util::writeLog(App::APP_NAME, "Adding block failed, edit-form is missing", \OC_LOG::DEBUG);
+        \OCP\Util::writeLog(App::APP_NAME, "Adding block failed, edit-form is missing", \OC\Util::DEBUG);
       }
 
       /* In the case of success we are confonted with an input form
@@ -260,7 +260,7 @@ namespace Redaxo
                                      $html, $dummy);
 
       if ($haveCntAfter != $haveCnt + 1) {
-        \OCP\Util::writeLog(App::APP_NAME, "AFTER BLOCK ADD: ".$html, \OC_LOG::DEBUG);
+        \OCP\Util::writeLog(App::APP_NAME, "AFTER BLOCK ADD: ".$html, \OC\Util::DEBUG);
         return false;
       }
 
@@ -336,7 +336,7 @@ namespace Redaxo
       }
 
       if ($currentId != $articleId) {
-        \OCP\Util::writeLog(App::APP_NAME, "Changing the article name failed, mis-matched article ids", \OC_LOG::DEBUG);
+        \OCP\Util::writeLog(App::APP_NAME, "Changing the article name failed, mis-matched article ids", \OC\Util::DEBUG);
         return false;
       }
 
@@ -345,7 +345,7 @@ namespace Redaxo
       $valueValue = $input->getAttribute("value");
       
       if ($valueName != "meta_article_name" || $valueValue != $name) {
-        \OCP\Util::writeLog(App::APP_NAME, "Changing the article name failed, got ".$valueName.'="'.$valueValue.'"', \OC_LOG::DEBUG);
+        \OCP\Util::writeLog(App::APP_NAME, "Changing the article name failed, got ".$valueName.'="'.$valueValue.'"', \OC\Util::DEBUG);
         return false;
       }
 
@@ -443,7 +443,7 @@ namespace Redaxo
       $matches = array();
       $cnt = preg_match_all('|<td\s+class="rex-icon">\s*'.
                             '<a\s+class="rex-i-element\s+rex-i-article"\s+'.
-                            'href="index.php\\?page=content[^"]*'.
+                            'href="index.php\?page=content[^"]*'.
                             'article_id=('.$idRe.')[^"]*'.
                             'category_id=([0-9]+)[^"]*">\s*'.
                             '<span[^>]*>\s*('.$nameRe.')\s*</span>\s*</a>\s*'.
@@ -452,7 +452,7 @@ namespace Redaxo
                             '([0-9]+)\s*'.
                             '</td>\s*'.
                             '<td>\s*'.
-                            '<a\s+href="index.php\\?page=content[^"]*'.
+                            '<a\s+href="index.php\?page=content[^"]*'.
                             'article_id=('.$idRe.')[^"]*'.
                             'category_id=([0-9]+)[^"]*">\s*'.
                             '('.$nameRe.')\s*</a>\s*'.
@@ -484,7 +484,7 @@ namespace Redaxo
                          'Priority' => $matches[8][$i],
                          'TemplateName' => trim($matches[9][$i]));
         $result[] = $article;
-        \OCP\Util::writeLog(App::APP_NAME, "Got article: ".print_r($article, true), \OC_LOG::DEBUG);
+        \OCP\Util::writeLog(App::APP_NAME, "Got article: ".print_r($article, true), \OCP\Util::DEBUG);
       }
 
       // sort ascending w.r.t. to article id
