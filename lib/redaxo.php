@@ -37,7 +37,6 @@ namespace Redaxo
     private $path;
     private $location;
 
-    private $cookies;      //!< General cookies
     private $authHeaders;  //!< Authentication headers echoed back to the user
     private $authCookies;  //!< $key -> $value array of relevant cookies
 
@@ -56,26 +55,31 @@ namespace Redaxo
       $this->location = "index.php";
       $this->loginStatus = 0;
 
-      $this->cookies = array();
       $this->authCookies = array();
       $this->authHeaders = array();
 
-      // If we have cookies with AuthData, then store them in authHeaders
+      /*
+      // could be done, in principle, if the cookie-path is set accordingly.
       foreach ($_COOKIE as $cookie => $value) {
         if (preg_match('/'.self::COOKIE_RE.'/', $cookie)) {
           $this->authCookies[$cookie] = $value;
-        } else {
-          $this->cookies[$cookie] = $value;
         }
       }
+      */
 
       // If we have auth-cookies stored in the session, fill the
-      // authHeaders array with those. Will be replaced on successful
-      // login.
+      // authHeaders and -Cokies array with those. Will be replaced on
+      // successful login. This is only for the OC internal
+      // communication. The cookies for the iframe-embedded redaxo
+      // web-pages will be send by the user's web-browser.
       $sessionAuth = \OC::$server->getSession()->get('Redaxo\\authHeaders');
-
       if (is_array($sessionAuth)) {
         $this->authHeaders = $sessionAuth;
+        foreach ($this->authHeaders as $header) {
+          if (preg_match('/^Set-Cookie:\s*('.self::COOKIE_RE.')=([^;]+);/i', $header, $match)) {
+            $this->authCookies[$match[1]] = $match[2];
+          }
+        }
       }
     }
 
@@ -84,17 +88,6 @@ namespace Redaxo
     public function redaxoURL($articleId = false, $editMode = false)
     {
       return $this->proto.'://'.$this->host.$this->port.$this->path;
-    }
-
-    private function cleanCookies()
-    {
-      $this->authHeaders = array();
-      $this->authCookies = array();
-      foreach ($_COOKIE as $cookie => $value) {
-        if (preg_match('/'.self::COOKIE_RE.'/', $cookie)) {
-          unset($_COOKIE[$cookie]);
-        }
-      }
     }
 
     private function updateLoginStatus($response = false, $forceUpdate = false)
@@ -173,7 +166,7 @@ namespace Redaxo
       $method = (!$postData) ? "GET" : "POST";
 
       $cookies = array();
-      foreach (array_merge($this->cookies, $this->authCookies) as $name => $value) {
+      foreach ($this->authCookies as $name => $value) {
         $cookies[] = "$name=$value";
       }
       $cookies = (count($cookies) > 0) ? "Cookie: " . join("; ", $cookies) . "\r\n" : '';
@@ -215,9 +208,9 @@ namespace Redaxo
       $newAuthHeaders = array();
       foreach ($responseHdr as $header) {
         if (preg_match('/^Set-Cookie:\s*('.self::COOKIE_RE.')=([^;]+);/i', $header, $match)) {
-          if ($match[2] !== 'deleted') {
+          if (true || $match[2] !== 'deleted') {
             $newAuthHeaders[] = $header;
-            $newAuthHeaders[] = preg_replace('|path=([^;]+);?|i', 'path='.\OC::$WEBROOT.'/;', $header);
+            //$newAuthHeaders[] = preg_replace('|path=([^;]+);?|i', 'path='.\OC::$WEBROOT.'/;', $header);
             $this->authCookies[$match[1]] = $match[2];
             \OCP\Util::writeLog(self::APP_NAME, "Auth Header: ".$header, \OCP\Util::DEBUG);
             \OCP\Util::writeLog(self::APP_NAME, "Rex Cookie: ".$match[1]."=".$match[2], \OCP\Util::DEBUG);
@@ -270,7 +263,7 @@ namespace Redaxo
     {
       foreach ($this->authHeaders as $header) {
         \OCP\Util::writeLog(self::APP_NAME, "Emitting auth header: ".$header, \OCP\Util::DEBUG);
-        header($header, false /* replace or not??? */);
+        header($header, false);
       }
     }
 
