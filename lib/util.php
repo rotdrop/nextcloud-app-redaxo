@@ -41,7 +41,7 @@ class L
   {
     if (self::$l === false) {
       self::$l = \OC_L10N::get('dokuwikiembed');
- 
+
       // If I omit the next line then the first call to $l->t()
       // generates a spurious new-line. Why?
       //
@@ -61,7 +61,7 @@ class Ajax
     self::debug($msg, $tracelevel, $debuglevel);
     exit();
   }
-  
+
   public static function debug($msg, $tracelevel = 0, $debuglevel = \OCP\Util::DEBUG)
   {
     if (PHP_VERSION >= "5.4") {
@@ -69,7 +69,7 @@ class Ajax
     } else {
       $call = debug_backtrace(false);
     }
-    
+
     $call = $call[$tracelevel];
     if ($debuglevel !== false) {
       \OCP\Util::writeLog(Config::APP_NAME,
@@ -87,7 +87,7 @@ class Util
   /**Add some java-script external code (e.g. Google maps). Emit it
    * with emitExternalScripts().
    */
-  public static function addExternalScript($script = '') 
+  public static function addExternalScript($script = '')
   {
     self::$externalScripts[] = $script;
   }
@@ -128,14 +128,14 @@ __EOT__;
   public static function URLIsValid($location)
   {
     $location = self::composeURL($location);
-    
-    \OCP\Util::writeLog(App::APP_NAME, "Checking ".$location, \OC\Util::DEBUG);
+
+    \OCP\Util::writeLog(App::APP_NAME, "Checking ".$location, \OCP\Util::DEBUG);
 
     // Don't try to access it if it is not a valid URL
     if (filter_var($location, FILTER_VALIDATE_URL) === false) {
       return false;
     }
-    
+
     return true;
   }
 
