@@ -62,7 +62,7 @@ namespace Redaxo
       // could be done, in principle, if the cookie-path is set accordingly.
       foreach ($_COOKIE as $cookie => $value) {
         if (preg_match('/'.self::COOKIE_RE.'/', $cookie)) {
-          $this->authCookies[$cookie] = $value;
+          $this->authCookies[$cookie] = urlencode($value);
         }
       }
       */
