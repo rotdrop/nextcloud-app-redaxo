@@ -1,8 +1,9 @@
-/**Embed a Redaxo instance as app into ownCloud, intentionally with
- * single-sign-on.
- * 
+<?php
+/**
+ * Redaxo4Embedded -- Embed Redaxo4 into NextCloud with SSO.
+ *
  * @author Claus-Justus Heine
- * @copyright 2013 Claus-Justus Heine <himself@claus-justus-heine.de>
+ * @copyright 2020 Claus-Justus Heine <himself@claus-justus-heine.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU GENERAL PUBLIC LICENSE
@@ -18,23 +19,10 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+namespace OCA\Redaxo4Embedded\Service;
 
-#redaxo_container {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-}
-#redaxoFrame{
-  width: 100%;
-  height: 100%;
-}
-
-#redaxoLoader {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 128px;
-  height: 14px;
-  margin-top: -7px; /* Half the height */
-  margin-left: -64px; /* Half the width */
+class Constants
+{
+  const APP_PREFIX = 'redaxo4';
+  const APP_NAME = self::APP_PREFIX.'embedded';
 }

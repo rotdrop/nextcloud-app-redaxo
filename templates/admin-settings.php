@@ -1,15 +1,14 @@
 <?php
-
-/**Embed a Redaxo instance as app into ownCloud, intentionally with
- * single-sign-on.
- * 
+/*
+ * Redaxo4Embedded -- Embed Redaxo4 into NextCloud with SSO.
+ *
  * @author Claus-Justus Heine
- * @copyright 2013 Claus-Justus Heine <himself@claus-justus-heine.de>
+ * @copyright 2020 Claus-Justus Heine <himself@claus-justus-heine.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU GENERAL PUBLIC LICENSE
  * License as published by the Free Software Foundation; either
- * version 3 of the License, or any later version.
+ * version 3 of the License, or any later version.o
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,37 +19,41 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-use Redaxo\L;
-use Redaxo\App;
+namespace OCA\Redaxo4Embedded;
+
+use OCA\Redaxo4Embedded\Service\Constants;
+
+script($appName, 'admin-settings');
+
 ?>
 
 <div class="section">
-  <h2><?php echo L::t('Embedded Redaxo CMS');?></h2>
-  <form id="redaxosettings">
-    <!--
-    <img class="redaxologo" src="<?php echo OCP\Util::imagePath(App::APP_NAME, 'redaxo-logo.png'); ?>" >
-    -->
+  <h2><?php p($l->t('Embedded Redaxo4')) ?></h2>
+  <form id="<?php echo Constants::APP_PREFIX; ?>settings">
     <input type="text"
-           name="REX_Location"
-           id="REX_Location"
-           value="<?php echo $_['redaxolocation']; ?>"
-           placeholder="<?php echo L::t('Location');?>"
-           title="<?php echo L::t('Please enter the location of the already installed Redaxo
+           name="externalLocation"
+           id="externalLocation"
+           class="externalLocation"
+           value="<?php echo $externalLocation; ?>"
+           placeholder="<?php echo $l->t('Location');?>"
+           title="<?php echo $l->t('Please enter the location of the already installed Redaxo4
 instance. This should either be an abolute path relative to the
-root of the owncloud instance, or a complete URL which points to the
-web-location of the Redaxo CMS.'); ?>"
+root of the web-browser, or a complete URL which points to the
+web-location of the Redaxo4. In order to make things work your
+have to enable the XMLRPC protocol in your Redaxo4.'); ?>"
     />
-    <label for="REX_Location"><?php echo L::t('Redaxo Location');?></label>
+    <label for="externalLocation"><?php echo $l->t('Redaxo4 Location');?></label>
     <br/>
-    <input type="text"
-           name="REX_RefreshInterval"
-           id="REX_RefreshInterval"
-           value="<?php echo $_['redaxoRefreshInterval']; ?>"
-           placeholder="<?php echo L::t('RefreshTime [s]'); ?>"
-           title="<?php echo L::t('Please enter the desired session-refresh interval here. The interval is measured in seconds and should be somewhat smaller than the configured session life-time for the Redaxo instance in use.'); ?>"
+    <input type="number"
+           name="authenticationRefreshInterval"
+           id="authenticationRefreshInterval"
+           class="authenticationRefreshInterval"
+           value="<?php echo $authenticationRefreshInterval; ?>"
+           placeholder="<?php echo $l->t('Refresh Time [s]'); ?>"
+           title="<?php echo $l->t('Please enter the desired session-refresh interval here. The interval is measured in seconds and should be somewhat smaller than the configured session life-time for the Redaxo4 instance in use.'); ?>"
     />
-    <label for="REX_RefreshInterval"><?php echo L::t('Redaxo Session Refresh Interval [s]'); ?></label>
-    <br/>        
+    <label for="authenticationRefreshInterval"><?php echo $l->t('Redaxo4 Session Refresh Interval [s]'); ?></label>
+    <br/>
     <span class="msg"></span>
   </form>
 </div>

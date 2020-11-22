@@ -1,36 +1,52 @@
-ocapp-embeddedredaxo
-====================
+# Doku Wiki Embedded
+Place this app in **nextcloud/apps/**
 
-OwnCloud "app" which embeds an existing Redaxo instance into
-OwnCloud. Intended for SSO (but that needs further Redaxo hacks not
-published yet). Inspired by RoundCube-app, but does not store any
-paswords :)
+## Building the app
 
-This is an "old fashioned" OC-app which does not yet use the newer
-controller etc. stuff. In fact, this is a "clone" of my dokuwikiembed
-app which does a similar thing with Dokuwiki.
+The app can be built by using the provided Makefile by running:
 
-After installation the admin has to set the URL to the Redaxo
-instance, which should reside on the same server (iframe cross-domain
-restrictions). Without SSO any user has to configure its Redaxo
-credentials in the user-settings page.
+    make
 
-Theory of operation:
+This requires the following things to be present:
+* make
+* which
+* tar: for building the archive
+* curl: used if phpunit and composer are not installed to fetch them from the web
+* npm: for building and testing everything JS, only required if a package.json is placed inside the **js/** folder
 
-- on login in Owncloud a login-hook runs which authenticated with
-  Redaxo and obtains its session cookie. This cookie is then echoed
-  back (with a modified path) to the users web-browser.
+The make command will install or update Composer dependencies if a composer.json is present and also **npm run build** if a package.json is present in the **js/** folder. The npm **build** script should use local paths for build systems and package managers, so people that simply want to build the app won't need to install npm libraries globally, e.g.:
 
-- in order to do so without a hacked version of Redaxo which uses
-  Owncloud in order to validate passwords, the user must have the same
-  password in Redaxo as in Owncloud. This application does not store
-  foreign auth credentials.
+**package.json**:
+```json
+"scripts": {
+    "test": "node node_modules/gulp-cli/bin/gulp.js karma",
+    "prebuild": "npm install && node_modules/bower/bin/bower install && node_modules/bower/bin/bower update",
+    "build": "node node_modules/gulp-cli/bin/gulp.js"
+}
+```
 
-- after successful login into Redaxo the Redaxo session is kept open
-  by periodically pinging it with a page fetch (this causes traffic,
-  but primarily on the server side to the same server or a server on
-  the same host)
 
-- the ping interval should be adjusted to be somewhat smaller than the
-  session life-time of Redaxo. This can be configured on the admin
-  page.
+## Publish to App Store
+
+First get an account for the [App Store](http://apps.nextcloud.com/) then run:
+
+    make && make appstore
+
+The archive is located in build/artifacts/appstore and can then be uploaded to the App Store.
+
+## Running tests
+You can use the provided Makefile to run all tests by using:
+
+    make test
+
+This will run the PHP unit and integration tests and if a package.json is present in the **js/** folder will execute **npm run test**
+
+Of course you can also install [PHPUnit](http://phpunit.de/getting-started.html) and use the configurations directly:
+
+    phpunit -c phpunit.xml
+
+or:
+
+    phpunit -c phpunit.integration.xml
+
+for integration tests

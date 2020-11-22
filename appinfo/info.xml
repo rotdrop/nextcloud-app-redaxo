@@ -1,11 +1,30 @@
 <?xml version="1.0"?>
-<info>
-	<id>redaxo</id>
-	<name>Embedded Redaxo CMS</name>
-	<description>Integrates existing an Redaxo CMS into OwnCloud. Inspired by RoundCube app.</description>
-	<version>1.0.0</version>
-	<licence>AGPL</licence>
-	<author>Claus-Justus Heine</author>
-	<rememberlogin>false</rememberlogin>
-	<require>7</require>
+<info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <id>redaxo4embedded</id>
+    <name>Redaxo V4 Embedded</name>
+    <summary>Support embedding an external Redaxo4 instance with SSO</summary>
+    <description><![CDATA[Redxao4 users and Nextcloud users have to coincide, e.g. by using a common authentication backend lik LDAP, or with an appropriate auth plugin on either side of the integration.]]></description>
+    <version>0.0.2</version>
+    <licence>agpl</licence>
+    <author mail="himself@claus-justus-heine.de" homepage="https://www.claus-justus-heine.de">Claus-Justus Heine</author>
+    <namespace>Redaxo4Embedded</namespace>
+    <category>integration</category>
+    <types>
+      <filesystem/><!-- required for catching dav events, otherwise app is not loaded -->
+    </types>
+    <bugs>https://github.com/rotdrop/ocapp-embeddedredaxo.git</bugs>
+    <dependencies>
+        <nextcloud min-version="20" max-version="20"/>
+    </dependencies>
+    <navigations>
+        <navigation>
+            <name>Redaxo4</name>
+            <route>redaxo4embedded.page.index</route>
+        </navigation>
+    </navigations>
+    <settings>
+      <admin>OCA\Redaxo4Embedded\Settings\Admin</admin>
+      <admin-section>OCA\Redaxo4Embedded\Settings\AdminSection</admin-section>
+    </settings>
 </info>

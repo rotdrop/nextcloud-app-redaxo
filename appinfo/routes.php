@@ -1,16 +1,33 @@
 <?php
-
-$this->create('redaxo_root', '/')
-  ->actionInclude('redaxo/index.php');
-
-$this->create('redaxo_index', 'index.php')
-  ->actionInclude('redaxo/index.php');
-
-$this->create('redaxo_ajax_admin_settings', 'ajax/admin-settings.php')
-  ->actionInclude('redaxo/ajax/admin-settings.php');
-
-OC::$CLASSPATH['Redaxo\AuthHooks'] = OC_App::getAppPath("redaxo") . '/lib/auth.php';
-
-$this->create('redaxorefresh', '/refresh')->post()->action('Redaxo\AuthHooks', 'refresh');
-
-?>
+/**
+ * Create your routes in here. The name is the lowercase name of the controller
+ * without the controller part, the stuff after the hash is the method.
+ * e.g. page#index -> OCA\Redaxo4Embedded\Controller\PageController->index()
+ *
+ * The controller class has to be registered in the application.php file since
+ * it's instantiated in there
+ */
+return [
+  'routes' => [
+    [
+      'name' => 'page#index',
+      'url' => '/page/index',
+      'verb' => 'GET',
+    ],
+    [
+      'name' => 'page#frame',
+      'url' => '/page/frame',
+      'verb' => 'POST',
+    ],
+    [
+      'name' => 'admin_settings#set',
+      'url' => '/settings/admin/set',
+      'verb' => 'POST',
+    ],
+    [
+      'name' => 'authentication#refresh',
+      'url' => '/authentication/refresh',
+      'verb' => 'POST',
+    ],
+  ],
+];

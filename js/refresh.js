@@ -1,8 +1,9 @@
-/**Embed a Redaxo CMS instance as app into ownCloud, intentionally
- * with single-sign-on.
- *
+/**
+ * Embed a DokuWiki instance as app into ownCloud, intentionally with
+ * single-sign-on.
+ * 
  * @author Claus-Justus Heine
- * @copyright 2013 Claus-Justus Heine <himself@claus-justus-heine.de>
+ * @copyright 2013-2020 Claus-Justus Heine <himself@claus-justus-heine.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU GENERAL PUBLIC LICENSE
@@ -18,21 +19,26 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Redaxo = Redaxo || {
-    appName: 'redaxo',
-    refreshInterval: 300,
-    refreshTimer: false
-};
+var DokuWikiEmbedded = DokuWikiEmbedded || {};
+if (!DokuWikiEmbedded.appName) {
+    const state = OCP.InitialState.loadState('dokuwikiembedded', 'initial');
+    DokuWikiEmbedded = $.extend({}, state);
+    DokuWikiEmbedded.refreshTimer = false;
+}
 
-(function(window, $, Redaxo) {
+(function(window, $, DokuWikiEmbedded) {
 
-    Redaxo.routes = function() {
-        var self = this;
+    DokuWikiEmbedded.refresh = function() {
+        const self = this;
+        if (!(DokuWikiEmbedded.refreshInterval >= 30)) {
+            console.error("Refresh interval too short", DokuWikiEmbedded.refreshInterval);
+            DokuWikiEmbedded.refreshInterval = 30;
+        }
         if (OC.currentUser) {
-            var url = OC.generateUrl('apps/'+this.appName+'/refresh');
+            const url = OC.generateUrl('apps/'+this.appName+'/authentication/refresh');
             this.refresh = function(){
                 if (OC.currentUser) {
-                    $.post(url, {}).always(function() {
+                    $.post(url, {}).always(function () {
                         self.refreshTimer = setTimeout(self.refresh, self.refreshInterval*1000);
                     });
                 } else if (self.refreshTimer !== false) {
@@ -47,12 +53,8 @@ var Redaxo = Redaxo || {
         }
     };
 
-})(window, jQuery, Redaxo);
+})(window, jQuery, DokuWikiEmbedded);
 
-$(document).ready(function() {
-    Redaxo.routes();
+$(function() {
+    DokuWikiEmbedded.refresh();
 });
-
-// Local Variables: ***
-// js3-indent-level: 4 ***
-// End: ***

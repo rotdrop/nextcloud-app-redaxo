@@ -1,8 +1,9 @@
-/**Embed a Redaxo CMS instance as app into ownCloud, intentionally
- * with single-sign-on.
- * 
+/**
+ * Embed a Redaxo4 instance as app into NextCloud, intentionally with
+ * single-sign-on.
+ *
  * @author Claus-Justus Heine
- * @copyright 2013 Claus-Justus Heine <himself@claus-justus-heine.de>
+ * @copyright 2013-2020 Claus-Justus Heine <himself@claus-justus-heine.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU GENERAL PUBLIC LICENSE
@@ -18,46 +19,94 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var Redaxo = Redaxo || {
-    appName: 'redaxo',
-    refreshInterval: 300,
-};
+var Redaxo4Embedded = Redaxo4Embedded || {};
+if (!Redaxo4Embedded.appName) {
+    const state = OCP.InitialState.loadState('redaxo4embedded', 'initial');
+    console.info("State", state);
+    Redaxo4Embedded = $.extend({}, state);
+    Redaxo4Embedded.refreshTimer = false;
+}
 
-Redaxo.Settings = Redaxo.Settings || {},
+Redaxo4Embedded.Settings = Redaxo4Embedded.Settings || {};
 
-(function(window, $, Redaxo) {
-    Redaxo.Settings.storeSettings = function(event, id) {
-	event.preventDefault();
-        if ($.trim($('#redaxosettings .msg').html()) == '') {
-            $('#redaxosettings .msg').hide();
+(function(window, $, Redaxo4Embedded) {
+
+    /**
+     * Fetch data from an error response.
+     *
+     * @param xhr jqXHR, see fail() method of jQuery ajax.
+     *
+     * @param status from jQuery, see fail() method of jQuery ajax.
+     *
+     * @param errorThrown, see fail() method of jQuery ajax.
+     */
+    Redaxo4Embedded.ajaxFailData = function(xhr, status, errorThrown) {
+        const ct = xhr.getResponseHeader("content-type") || "";
+        var data = {
+            'error': errorThrown,
+            'status': status,
+            'message': t(Redaxo4Embedded.appName, 'Unknown JSON error response to AJAX call: {status} / {error}')
+  };
+        if (ct.indexOf('html') > -1) {
+            console.debug('html response', xhr, status, errorThrown);
+            console.debug(xhr.status);
+            data.message = t(Redaxo4Embedded.appName, 'HTTP error response to AJAX call: {code} / {error}',
+                             {'code': xhr.status, 'error': errorThrown});
+        } else if (ct.indexOf('json') > -1) {
+            const response = JSON.parse(xhr.responseText);
+            //console.info('XHR response text', xhr.responseText);
+            //console.log('JSON response', response);
+            data = {...data, ...response };
+        } else {
+            console.log('unknown response');
         }
-	var post = $(id).serialize();
-	$.post(OC.filePath(Redaxo.appName, 'ajax', 'admin-settings.php'),
-               post,
-               function(data){
-                   if (data.status == 'success') {
-	               $('#redaxosettings .msg').html(data.data.message);
-                   } else {
-	               $('#redaxosettings .msg').html(data.data.message);
-                   }
-                   $('#redaxosettings .msg').show();
-	       }, 'json');
+        //console.info(data);
+        return data;
     };
 
-})(window, jQuery, Redaxo);
+    Redaxo4Embedded.Settings.storeSettings = function(event, id) {
+        const webPrefix = Redaxo4Embedded.webPrefix;
+        const msg = $('#'+webPrefix+'settings .msg');
+        if ($.trim(msg.html()) == '') {
+            msg.hide();
+        }
+	const post = $(id).serialize();
+	$.post(OC.generateUrl('/apps/'+Redaxo4Embedded.appName+'/settings/admin/set'), post)
+            .done(function(data) {
+                console.info("Got response data", data);
+                if (data.value) {
+                    $(id).val(data.value);
+                }
+		if (data.message) {
+	            msg.html(data.message);
+		    msg.show();
+		}
+	    })
+            .fail(function(xhr, status, errorThrown) {
+                const response = Redaxo4Embedded.ajaxFailData(xhr, status, errorThrown);
+                console.error(response);
+                if (response.message) {
+	            msg.html(response.message);
+                    msg.show();
+                }
+            });
+        return false;
+    };
+
+})(window, jQuery, Redaxo4Embedded);
 
 
-$(document).ready(function(){
+$(function(){
 
-    $('#REX_Location').blur(function (event) {
+    $('#externalLocation').blur(function (event) {
         event.preventDefault();
-        Redaxo.Settings.storeSettings(event, '#REX_Location');
+        Redaxo4Embedded.Settings.storeSettings(event, '#externalLocation');
         return false;
     });
 
-    $('#REX_RefreshInterval').blur(function (event) {
+    $('#authenticationRefreshInterval').blur(function (event) {
         event.preventDefault();
-        Redaxo.Settings.storeSettings(event, '#REX_RefreshInterval');
+        Redaxo4Embedded.Settings.storeSettings(event, '#authenticationRefreshInterval');
         return false;
     });
 });
