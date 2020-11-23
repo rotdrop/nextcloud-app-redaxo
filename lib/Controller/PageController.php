@@ -101,6 +101,7 @@ class PageController extends Controller
       $cssClass     = $this->request->getParam('cssClass', 'fullscreen');
 
       if (empty($externalURL)) {
+        // @TODO wrap into a nicer error page.
         throw new \Exception($this->l->t('Please tell a system administrator to configure the URL for the Redaxo4 instance'));
       }
 
