@@ -45,7 +45,8 @@ class RPC
     $this->l = $l10n;
   }
 
-  /**Return the URL for use with an iframe or object tag. Also
+  /**
+   * Return the URL for use with an iframe or object tag. Also
    * provide means to access single articles.
    */
   public function redaxoURL($articleId = false, $editMode = false)
@@ -61,7 +62,8 @@ class RPC
     return $url;
   }
 
-  /**Move an article to a different category.
+  /**
+   * Move an article to a different category.
    */
   public function moveArticle($articleId, $destCat)
   {
@@ -83,7 +85,8 @@ class RPC
       return false;
     }
 
-    /**Seemingly there is some potential for race-conditions: moving
+    /**
+     * Seemingly there is some potential for race-conditions: moving
      * an article and retrieving the category view directly
      * afterwards display, unfortunately, potentially wrong
      * results. However, Redaxo answers with a status message in the
@@ -119,7 +122,8 @@ class RPC
     return false;
   }
 
-  /**Delete an article, given its id. To delete all article matching
+  /**
+   * Delete an article, given its id. To delete all article matching
    * a name, one first has to obtain a list via articlesByName and
    * then delete each one in turn. Seemingly this can be done by a
    * GET, no need for a post. Mmmh.
@@ -149,7 +153,8 @@ class RPC
     return is_array($articles) && count($articles) == 0;
   }
 
-  /**Add a new empty article
+  /**
+   * Add a new empty article
    *
    * @param $name The name of the article.
    *
@@ -182,7 +187,9 @@ class RPC
     return $this->filterArticlesByIdAndName('.*', $name, $html);
   }
 
-  /**Add a block to an existing article */
+  /**
+   * Add a block to an existing article
+   */
   public function addArticleBlock($articleId, $blockId, $sliceId = 0)
   {
     $result = $this->authenticator->sendRequest(
@@ -270,7 +277,8 @@ class RPC
     return true;
   }
 
-  /**Change name, base-template and display priority. This command
+  /**
+   * Change name, base-template and display priority. This command
    * does not alter the written contents of the articel. Compare
    * also addArticel():
    *
@@ -301,7 +309,8 @@ class RPC
     return $this->filterArticlesByIdAndName($articleId, '.*', $html);
   }
 
-  /**Set the article's name to a new value without changing anything
+  /**
+   * Set the article's name to a new value without changing anything
    * else.
    */
   public function setArticleName($articleId, $name)
@@ -355,7 +364,8 @@ class RPC
     return true;
   }
 
-  /**Fetch all matching articles by name. Still, the category has to
+  /**
+   * Fetch all matching articles by name. Still, the category has to
    * be given as id.
    */
   public function articlesByName($name, $category)
@@ -370,7 +380,8 @@ class RPC
     return $this->filterArticlesByIdAndName('.*', $name, $html);
   }
 
-  /**Fetch articles by matching an array of ids
+  /**
+   * Fetch articles by matching an array of ids
    *
    * @param $idList Flat array with id to search for. Use the empty
    * array or '.*' to match all articles. Otherwise the elements of
@@ -395,7 +406,8 @@ class RPC
     return $this->filterArticlesByIdAndName($idList, '.*', $html);
   }
 
-  /**If the request was successful the response should contain some
+  /**
+   * If the request was successful the response should contain some
    * elements matching the category ID and providing the article
    * ID. The article name is not unique, so we simply check for all
    * lines with the matching article and return an array of ids in
