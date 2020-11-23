@@ -493,11 +493,13 @@ class RPC
 
     $result = [];
     for ($i = 0; $i < $cnt; ++$i) {
-      $article = [ 'ArticleId' => $matches[1][$i],
-                   'CategoryId' => $matches[2][$i],
-                   'ArticleName' => $matches[3][$i],
-                   'Priority' => $matches[8][$i],
-                   'TemplateName' => trim($matches[9][$i] ]);
+      $article = [
+        'ArticleId' => $matches[1][$i],
+        'CategoryId' => $matches[2][$i],
+        'ArticleName' => $matches[3][$i],
+        'Priority' => $matches[8][$i],
+        'TemplateName' => trim($matches[9][$i]),
+      ];
       $result[] = $article;
       $this->logDebug("Got article: ".print_r($article, true));
     }
