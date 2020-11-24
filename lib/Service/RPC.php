@@ -51,7 +51,7 @@ class RPC
    */
   public function redaxoURL($articleId = false, $editMode = false)
   {
-    $url = $this->authenticator->redaxoURL();
+    $url = $this->authenticator->externalURL();
     if ($articleId !== false) {
       if ($editMode !== false) {
         $url .= 'index.php?page=content&article_id='.$articleId.'&mode=edit&clang=0';
