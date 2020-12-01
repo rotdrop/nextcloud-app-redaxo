@@ -33,6 +33,10 @@ class AuthRedaxo4
 
   const COOKIE_RE = 'PHPSESSID|redaxo_sessid|KEY_PHPSESSID|KEY_redaxo_sessid';
 
+  const STATUS_UNKNOWN = 0;
+  const STATUS_LOGGED_OUT = -1;
+  const STATUS_LOGGED_IN = 1;
+
   private $appName;
 
   private $config;
@@ -85,7 +89,7 @@ class AuthRedaxo4
     $this->path  = $urlParts['path'];
 
     $this->location = "index.php";
-    $this->loginStatus = 0;
+    $this->loginStatus = self::STATUS_UNKNOWN;
 
     $this->authCookies = [];
     $this->authHeaders = [];
@@ -137,8 +141,20 @@ class AuthRedaxo4
    */
   public function login($username, $password)
   {
-    $this->cleanCookies();
-    return false;
+    $this->updateLoginStatus();
+
+    if ($this->isLoggedIn()) {
+      $this->logout();
+    }
+
+    $response = $this->doSendRequest($this->location,
+                                     array('javascript' => 1,
+                                           'rex_user_login' => $username,
+                                           'rex_user_psw' => $password));
+
+    $this->updateLoginStatus($response, true);
+
+    return $this->loginStatus == self::STATUS_LOGGED_IN;
   }
 
   /**
@@ -146,13 +162,17 @@ class AuthRedaxo4
    */
   public function logout()
   {
+    $response = $this->doSendRequest($this->location.'?rex_logout=1');
+    $this->updateLoginStatus($response);
+    $this->cleanCookies();
+    return $this->loginStatus == self::STATUS_LOGGED_OUT;
   }
 
   public function isLoggedIn()
   {
     $this->updateLoginStatus();
 
-    return $this->loginStatus == 1;
+    return $this->loginStatus == self::STATUS_LOGGED_IN;
   }
 
   /**
@@ -164,9 +184,9 @@ class AuthRedaxo4
     return $this->isLoggedIn();
   }
 
-  public function updateLoginStatus()
+  public function updateLoginStatus($response = false, $forceUpdate = false)
   {
-    if ($response === false && $this->loginStatus != 0 && count($this->authHeaders) > 0 && !$forceUpdate) {
+    if ($response === false && $this->loginStatus != self::STATUS_UNKNOWN && count($this->authHeaders) > 0 && !$forceUpdate) {
       return;
     }
 
@@ -186,15 +206,16 @@ class AuthRedaxo4
     // LOGGED OFF:
     //<div id="rex-navi-logout"><p class="rex-logout">nicht angemeldet</p></div>
 
-    $this->loginStatus = 0;
+    $this->loginStatus = self::STATUS_UNKNOWN;
     if ($response !== false) {
+      //$this->logInfo(print_r($response['content'], true));
       if (preg_match('/<form.+loginformular/mi', $response['content'])) {
-        $this->loginStatus = -1;
+        $this->loginStatus = self::STATUS_LOGGED_OUT;
       } else if (preg_match('/index.php[?]page=profile/m', $response['content'])) {
-        $this->loginStatus = 1;
+        $this->loginStatus = self::STATUS_LOGGED_IN;
       }
     }
-    $this->logDebug("Login Status: ".$this->loginStatus);
+    $this->logInfo("Login Status: ".$this->loginStatus);
   }
 
   /**
@@ -210,8 +231,8 @@ class AuthRedaxo4
     return $this->doSendRequest($formPath, $postData);
   }
 
-  /**Send a post request corresponding to $postData as post
-   * values.
+  /**
+   * Send a post request corresponding to $postData as post values.
    */
   private function doSendRequest($formPath, $postData = false)
   {
@@ -242,7 +263,10 @@ class AuthRedaxo4
       'content' => $postData,
       'follow_location' => 0,
     )));
-    $url = $this->redaxoURL().$formPath;
+    if (!empty($formPath) && $formPath[0] != '/') {
+      $formPath = '/'.$formPath;
+    }
+    $url = $this->externalURL().$formPath;
 
     $logPostData = preg_replace('/rex_user_psw=[^&]*(&|$)/', 'rex_user_psw=XXXXXX$1', $postData);
     $this->logDebug("doSendRequest() to ".$url." data ".$logPostData);

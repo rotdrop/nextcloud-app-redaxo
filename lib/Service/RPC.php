@@ -97,7 +97,7 @@ class RPC
     //<div class=\"rex-message\"><div class=\"rex-info\"><p><span>Artikel wurde verschoben<\/span><\/p><\/div>
     // index.php?page=content&article_id=92&mode=functions&clang=0&ctype=1&info=Artikel+wurde+verschoben
 
-    $redirectReq = $result->getRequest();
+    $redirectReq = $result['request'];
 
     if (false) {
       $this->logDebug("sendRequest() latest request URI: ".$redirectReq);
@@ -145,7 +145,7 @@ class RPC
     // We could parse the request and have a look if the article is
     // still there ... do it.
 
-    $html = $result->getContents();
+    $html = $result['content'];
 
     $articles = $this->filterArticlesByIdAndName($articlId, '.*', $html);
 
@@ -182,7 +182,7 @@ class RPC
       return false;
     }
 
-    $html = $result->getContents();
+    $html = $result['content'];
 
     return $this->filterArticlesByIdAndName('.*', $name, $html);
   }
@@ -207,7 +207,7 @@ class RPC
       return false;
     }
 
-    $html = $result->getContents();
+    $html = $result['content'];
 
     //\OCP\Util::writeLog(App::APP_NAME, "AFTER BLOCK ADD: ".$html, \OC\Util::DEBUG);
 
@@ -263,7 +263,7 @@ class RPC
     // passed, send out another query
     $result = $this->authenticator->sendRequest($target, $requiredFields);
 
-    $html = $result->getContents();
+    $html = $result['content'];
 
     $dummy = [];
     $haveCntAfter = preg_match_all('/<div\s+class="rex-content-editmode-slice-output">/si',
@@ -302,7 +302,7 @@ class RPC
       return false;
     }
 
-    $html = $result->getContents();
+    $html = $result['content'];
 
     // Id should be unique, so the following should just return the
     // one article matching articleId.
@@ -330,7 +330,7 @@ class RPC
       return false;
     }
 
-    $html = $result->getContents();
+    $html = $result['content'];
 
     // Search for the updated meta_article_name with the new name,
     // and compare the article-id for safety.
@@ -375,7 +375,7 @@ class RPC
       return false;
     }
 
-    $html = $result->getContents();
+    $html = $result['content'];
 
     return $this->filterArticlesByIdAndName('.*', $name, $html);
   }
@@ -401,7 +401,7 @@ class RPC
       return false;
     }
 
-    $html = $result->getContents();
+    $html = $result['content'];
 
     return $this->filterArticlesByIdAndName($idList, '.*', $html);
   }
