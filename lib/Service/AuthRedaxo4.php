@@ -122,8 +122,21 @@ class AuthRedaxo4
   /**
    * Return the URL for use with an iframe or object tag
    */
-  public function externalURL()
+  public function externalURL($url = null)
   {
+    if (!empty($url)) {
+      if ($url[0] == '/') {
+        $url = $this->urlGenerator->getAbsoluteURL($url);
+      }
+
+      $urlParts = parse_url($url);
+
+      $this->proto = $urlParts['scheme'];
+      $this->host  = $urlParts['host'];
+      $this->port  = isset($urlParts['port']) ? ':'.$urlParts['port'] : '';
+      $this->path  = $urlParts['path'];
+    }
+
     if (empty($this->proto) || empty($this->host)) {
       return null;
     }
@@ -148,9 +161,9 @@ class AuthRedaxo4
     }
 
     $response = $this->doSendRequest($this->location,
-                                     array('javascript' => 1,
-                                           'rex_user_login' => $username,
-                                           'rex_user_psw' => $password));
+                                     [ 'javascript' => 1,
+                                       'rex_user_login' => $username,
+                                       'rex_user_psw' => $password ]);
 
     $this->updateLoginStatus($response, true);
 
@@ -168,11 +181,26 @@ class AuthRedaxo4
     return $this->loginStatus == self::STATUS_LOGGED_OUT;
   }
 
+  /**
+   * Return true if the current login status is "logged in".
+   */
   public function isLoggedIn()
   {
     $this->updateLoginStatus();
 
     return $this->loginStatus == self::STATUS_LOGGED_IN;
+  }
+
+  /**
+   * Return the current login status.
+   *
+   * @return string, one of self::STATUS_LOGGED_IN, self::STATUS_LOGGED_OUT or self::STATUS_UNKNOWN.
+   */
+  public function loginStatus()
+  {
+    $this->updateLoginStatus();
+
+    return $this->loginStatus;
   }
 
   /**
@@ -214,6 +242,8 @@ class AuthRedaxo4
       } else if (preg_match('/index.php[?]page=profile/m', $response['content'])) {
         $this->loginStatus = self::STATUS_LOGGED_IN;
       }
+    } else {
+      $this->logInfo("Empty response from login-form");
     }
     $this->logInfo("Login Status: ".$this->loginStatus);
   }
@@ -225,6 +255,7 @@ class AuthRedaxo4
   public function sendRequest($formPath, $postData = false)
   {
     if (!$this->isLoggedIn()) {
+      $this->logError("Not logged in");
       return false;
     }
 
@@ -267,6 +298,8 @@ class AuthRedaxo4
       $formPath = '/'.$formPath;
     }
     $url = $this->externalURL().$formPath;
+
+    $this->logInfo("Posting to ".$url);
 
     $logPostData = preg_replace('/rex_user_psw=[^&]*(&|$)/', 'rex_user_psw=XXXXXX$1', $postData);
     $this->logDebug("doSendRequest() to ".$url." data ".$logPostData);
@@ -316,6 +349,10 @@ class AuthRedaxo4
         return false;
       }
       return $this->doSendRequest($location);
+    }
+
+    if (empty($result)) {
+      $this->logInfo("Empty result");
     }
 
     return empty($result)

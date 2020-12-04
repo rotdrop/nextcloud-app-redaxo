@@ -45,6 +45,7 @@ have to enable the XMLRPC protocol in your Redaxo4.'); ?>"
     <label for="externalLocation"><?php echo $l->t('Redaxo4 Location');?></label>
     <br/>
     <input type="number"
+           min="0"
            name="authenticationRefreshInterval"
            id="authenticationRefreshInterval"
            class="authenticationRefreshInterval"

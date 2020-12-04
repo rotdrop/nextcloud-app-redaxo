@@ -63,6 +63,157 @@ class RPC
   }
 
   /**
+   * Fetch all categories for the Redaxo server.
+   */
+  public function getCategories()
+  {
+    $result = $this->authenticator->sendRequest('index.php?page=structure');
+
+    if ($result === false) {
+      $this->logError("Unable to retrieve categories");
+      return false;
+    }
+
+    $html = $result['content'];
+
+    $document = new \DOMDocument();
+    $document->loadHTML($html);
+
+    $categoriesId = 'rex-a256-category-id';
+    $query = "//select[@id='".$categoriesId."']/option";
+    $categoryOptions = (new \DOMXpath($document))->query($query);
+
+    $categories = [];
+    $prev = null;
+    foreach ($categoryOptions as $categoryOption) {
+      // option elements
+      $name = str_replace("\xc2\xa0", ' ', preg_replace('/\\s+[[][0-9]+]$/', '', $categoryOption->textContent));
+      $indent = strspn($name, " \t\r\n\0\x0B");
+
+      $category = [
+        'id' => $categoryOption->getAttribute('value'),
+        'name' => ltrim($name),
+        'level' => $indent / 3,
+        'index' => count($categories),
+      ];
+
+      if (empty($prev) || $prev['level'] < $category['level']) {
+        $category['parent'] = $prev;
+      } elseif ($prev['level'] > $category['level']) {
+        $category['parent'] = $prev['parent']['parent'];
+      } else /* if ($prev['level'] == $category['level']) */ {
+        $category['parent'] = $prev['parent'];
+      }
+      $prev = $category;
+
+      $categories[] = $category;
+    }
+    foreach ($categories as &$category) {
+      $category['parent'] = empty($category['parent']) ? -1 : $category['parent']['index'];
+    }
+    return $categories;
+  }
+
+  /**
+   * Fetch all templates
+   */
+  public function getTemplates($onlyActive = false)
+  {
+    $result = $this->authenticator->sendRequest('index.php?page=template');
+
+    if ($result === false) {
+      $this->logError("Unable to retrieve templates");
+      return false;
+    }
+
+    $html = $result['content'];
+
+    $document = new \DOMDocument();
+    $document->loadHTML($html);
+    $xPath = new \DOMXPath($document);
+    $rows = $xPath->query('//tbody/tr');
+    $templates = [];
+    foreach ($rows as $row) {
+      $cols = $xPath->query('td', $row);
+      // hard-coded: 1 is id, 2 is name, 3 is active or no
+      $id = null;
+      $name = null;
+      $active = false;
+      $index = 0;
+      foreach ($cols as $col) {
+        $text = $col->textContent;
+        switch ($index) {
+          case 1:
+            $id = (int)$text;
+            break;
+          case 2:
+            $name = $text;
+            break;
+          case 3:
+            $active = $text[0] != 'n';
+            break;
+        }
+        $index++;
+      }
+      if (!empty($id)) {
+        $templates[] = [
+          'id' => $id,
+          'name' => $name,
+          'active' => $active,
+        ];
+      }
+    }
+    return $templates;
+  }
+
+  /**
+   * Fetch all modules
+   */
+  public function getModules()
+  {
+    $result = $this->authenticator->sendRequest('index.php?page=module');
+
+    if ($result === false) {
+      $this->logError("Unable to retrieve modules");
+      return false;
+    }
+
+    $html = $result['content'];
+
+    $document = new \DOMDocument();
+    $document->loadHTML($html);
+    $xPath = new \DOMXPath($document);
+    $rows = $xPath->query('//tbody/tr');
+    $modules = [];
+    foreach ($rows as $row) {
+      $cols = $xPath->query('td', $row);
+      // hard-coded: 1 is id, 2 is name
+      $id = null;
+      $name = null;
+      $index = 0;
+      foreach ($cols as $col) {
+        $text = $col->textContent;
+        switch ($index) {
+          case 1:
+            $id = (int)$text;
+            break;
+          case 2:
+            $name = $text;
+            break;
+        }
+        $index++;
+      }
+      if (!empty($id)) {
+        $modules[] = [
+          'id' => $id,
+          'name' => $name,
+        ];
+      }
+    }
+    return $modules;
+  }
+
+  /**
    * Move an article to a different category.
    */
   public function moveArticle($articleId, $destCat)
