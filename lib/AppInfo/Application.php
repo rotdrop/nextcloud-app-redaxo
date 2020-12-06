@@ -55,7 +55,7 @@ class Application extends App implements IBootstrap
 
     /* @var OCP\IConfig */
     $config = $container->query(IConfig::class);
-    $refreshInterval = $config->getAppValue(Constants::APP_NAME, 'refreshInterval', 600);
+    $refreshInterval = $config->getAppValue(Constants::APP_NAME, 'authenticationRefreshInterval', 600);
 
     /* @var OCP\IInitialStateService */
     $initialState = $container->query(IInitialStateService::class);

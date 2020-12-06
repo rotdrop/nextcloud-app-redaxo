@@ -1,7 +1,7 @@
 /**
- * Embed a DokuWiki instance as app into ownCloud, intentionally with
+ * Embed a Redaxo4 instance as app into ownCloud, intentionally with
  * single-sign-on.
- * 
+ *
  * @author Claus-Justus Heine
  * @copyright 2013-2020 Claus-Justus Heine <himself@claus-justus-heine.de>
  *
@@ -19,26 +19,28 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var DokuWikiEmbedded = DokuWikiEmbedded || {};
-if (!DokuWikiEmbedded.appName) {
-    const state = OCP.InitialState.loadState('dokuwikiembedded', 'initial');
-    DokuWikiEmbedded = $.extend({}, state);
-    DokuWikiEmbedded.refreshTimer = false;
+var Redaxo4Embedded = Redaxo4Embedded || {};
+if (!Redaxo4Embedded.appName) {
+    const state = OCP.InitialState.loadState('redaxo4embedded', 'initial');
+    Redaxo4Embedded = $.extend({}, state);
+    Redaxo4Embedded.refreshTimer = false;
+    console.info("Redaxo4Embedded", Redaxo4Embedded);
 }
 
-(function(window, $, DokuWikiEmbedded) {
+(function(window, $, Redaxo4Embedded) {
 
-    DokuWikiEmbedded.refresh = function() {
+    Redaxo4Embedded.refresh = function() {
         const self = this;
-        if (!(DokuWikiEmbedded.refreshInterval >= 30)) {
-            console.error("Refresh interval too short", DokuWikiEmbedded.refreshInterval);
-            DokuWikiEmbedded.refreshInterval = 30;
+        if (!(Redaxo4Embedded.refreshInterval >= 30)) {
+            console.error("Refresh interval too short", Redaxo4Embedded.refreshInterval);
+            Redaxo4Embedded.refreshInterval = 30;
         }
         if (OC.currentUser) {
             const url = OC.generateUrl('apps/'+this.appName+'/authentication/refresh');
             this.refresh = function(){
                 if (OC.currentUser) {
                     $.post(url, {}).always(function () {
+                        console.info('Redaxo4 refresh scheduled', self.refreshInterval * 1000);
                         self.refreshTimer = setTimeout(self.refresh, self.refreshInterval*1000);
                     });
                 } else if (self.refreshTimer !== false) {
@@ -46,15 +48,18 @@ if (!DokuWikiEmbedded.appName) {
                     self.refreshTimer = false;
                 }
             };
+            console.info('Redaxo4 refresh scheduled', this.refreshInterval * 1000);
             this.refreshTimer = setTimeout(this.refresh, this.refreshInterval*1000);
         } else if (this.refreshTimer !== false) {
+            console.info('OC.currentUser appears unset');
             clearTimeout(this.refreshTimer);
             self.refreshTimer = false;
         }
     };
 
-})(window, jQuery, DokuWikiEmbedded);
+})(window, jQuery, Redaxo4Embedded);
 
 $(function() {
-    DokuWikiEmbedded.refresh();
+    console.info('Starting Redaxo4 refresh');
+    Redaxo4Embedded.refresh();
 });

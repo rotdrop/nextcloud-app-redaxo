@@ -30,12 +30,12 @@ use OCP\ILogger;
 use OCP\IL10N;
 
 use OCA\Redaxo4Embedded\Service\AuthRedaxo4;
+use OCA\Redaxo4Embedded\Service\Constants;
 
 class UserLoggedInEventListener implements IEventListener
 {
   use \OCA\Redaxo4Embedded\Traits\LoggerTrait;
 
-  const APP_NAME = 'dokuwikiembedded';
   const EVENT = [ Event1::class, Event2::class ];
 
   /** @var string */
@@ -53,7 +53,7 @@ class UserLoggedInEventListener implements IEventListener
     , ILogger $logger
     , IL10N $l10n
   ) {
-    $this->appName = self::APP_NAME;
+    $this->appName = Constants::APP_NAME;
     $this->authenticator = $authenticator;
     $this->request = $request;
     $this->logger = $logger;

@@ -28,12 +28,12 @@ use OCP\ILogger;
 use OCP\IL10N;
 
 use OCA\Redaxo4Embedded\Service\AuthRedaxo4;
+use OCA\Redaxo4Embedded\Service\Constants;
 
 class UserLoggedOutEventListener implements IEventListener
 {
   use \OCA\Redaxo4Embedded\Traits\LoggerTrait;
 
-  const APP_NAME = 'dokuwikiembedded';
   const EVENT = HandledEvent::class;
 
   /** @var string */
@@ -47,7 +47,7 @@ class UserLoggedOutEventListener implements IEventListener
     , ILogger $logger
     , IL10N $l10n
   ) {
-    $this->appName = self::APP_NAME;
+    $this->appName = Constants::APP_NAME;
     $this->authenticator = $authenticator;
     $this->logger = $logger;
     $this->l = $l10n;

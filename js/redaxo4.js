@@ -76,7 +76,7 @@ if (!Redaxo4Embedded.appName) {
 $(function() {
 
   const webPrefix = Redaxo4Embedded.webPrefix;
-  console.info('webPrefix', webPrefix);
+  console.info('Redaxo4 webPrefix', webPrefix);
   const container = $('#'+webPrefix+'_container');
   const frameWrapper = $('#'+webPrefix+'FrameWrapper');
   const frame = $('#'+webPrefix+'Frame');

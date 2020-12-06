@@ -45,8 +45,6 @@ class AuthRedaxo4
 
   private $urlGenerator;
 
-  private $userId;
-  private $password;
   private $proto;
   private $host;
   private $port;
@@ -62,11 +60,9 @@ class AuthRedaxo4
     IConfig $config
     , IURLGenerator $urlGenerator
     , ISession $session
-    , $userId
     , ILogger $logger
     , IL10N $l10n
   ) {
-    $this->userId = $userId;
     $this->appName = Constants::APP_NAME;
     $this->config = $config;
     $this->urlGenerator = $urlGenerator;
@@ -103,7 +99,7 @@ class AuthRedaxo4
     }
 
     // If we have auth-cookies stored in the session, fill the
-    // authHeaders and -Cokies array with those. Will be replaced on
+    // authHeaders and -Cookies array with those. Will be replaced on
     // successful login. This is only for the OC internal
     // communication. The cookies for the iframe-embedded redaxo
     // web-pages will be send by the user's web-browser.
@@ -188,7 +184,7 @@ class AuthRedaxo4
   {
     $this->updateLoginStatus();
 
-    return $this->loginStatus == self::STATUS_LOGGED_IN;
+    return $this->loginStatus() == self::STATUS_LOGGED_IN;
   }
 
   /**
@@ -317,7 +313,7 @@ class AuthRedaxo4
     // Store and duplicate set cookies for forwarding to the users web client
     $redirect = false;
     $location = false;
-    $newAuthHeaders = array();
+    $newAuthHeaders = [];
     foreach ($responseHdr as $header) {
       if (preg_match('/^Set-Cookie:\s*('.self::COOKIE_RE.')=([^;]+);/i', $header, $match)) {
         if (true || $match[2] !== 'deleted') {
@@ -364,8 +360,8 @@ class AuthRedaxo4
 
   private function cleanCookies()
   {
-    $this->authHeaders = array();
-    $this->reqHeaders = array();
+    $this->authHeaders = [];
+    $this->reqHeaders = [];
     foreach ($_COOKIE as $cookie => $value) {
       if (preg_match('/^(Redaxo4|DW).*/', $cookie)) {
         unset($_COOKIE[$cookie]);

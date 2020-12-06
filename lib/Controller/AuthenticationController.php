@@ -34,16 +34,22 @@ class AuthenticationController extends Controller
 {
   use \OCA\Redaxo4Embedded\Traits\LoggerTrait;
 
+  /** @var \OCA\Redaxo4Embedded\Service\AuthRedaxo4 */
   private $authenticator;
+
+  /** @var string */
+  private $userId;
 
   public function __construct(
     $appName
     , IRequest $request
+    , $userId
     , Authenticator $authenticator
     , ILogger $logger
     , IL10N $l10n
   ) {
     parent::__construct($appName, $request);
+    $this->userId = $userId;
     $this->authenticator = $authenticator;
     $this->logger = $logger;
     $this->l = $l10n;
@@ -55,9 +61,9 @@ class AuthenticationController extends Controller
   public function refresh()
   {
     if (false === $this->authenticator->refresh()) {
-      $this->logError("Redaxo4 refresh failed.");
+      $this->logError("Redaxo4 refresh for user ".($this->userId)." failed.");
     } else {
-      $this->logInfo("Redaxo4 refresh probably succeeded.");
+      $this->logInfo("Redaxo4 refresh for user ".($this->userId)." probably succeeded.");
     }
   }
 }
