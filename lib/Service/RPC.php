@@ -33,6 +33,10 @@ class RPC
 {
   use \OCA\Redaxo4Embedded\Traits\LoggerTrait;
 
+  const ON_ERROR_THROW = AuthRedaxo4::ON_ERROR_THROW;
+  const ON_ERROR_RETURN = AuthRedaxo4::ON_ERROR_RETURN;
+
+  /** @var AuthRedaxo4 */
   private $authenticator;
 
   public function __construct(
@@ -546,8 +550,9 @@ class RPC
    *
    * @param $categoryId Id of the category (folder) the article belongs to.
    *
-   * @return The list of matching articles of false in case of an
-   * error. It is no error if no articles match, the returned array
+   * @return array
+   * The list of matching articles of false in case of
+   * an error. It is no error if no articles match, the returned array
    * is empty in this case.
    */
   public function articlesById($idList, $categoryId)
@@ -590,7 +595,8 @@ class RPC
    * @param $nameRe Regular expression for matching the names. Use
    * '.*' to match all articles.
    *
-   * @return list of articles matching the given criteria (both at
+   * @return array
+   * List of articles matching the given criteria (both at
    * the same time).
    *
    */

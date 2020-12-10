@@ -193,9 +193,9 @@ class AuthRedaxo4
   /**
    * Log  into the external application.
    *
-   * @param[in] $username Login name
+   * @param $username Login name
    *
-   * @param[in] $password credentials
+   * @param $password credentials
    *
    * @return true if successful, false otherwise.
    */
