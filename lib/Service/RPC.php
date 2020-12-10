@@ -45,6 +45,16 @@ class RPC
     $this->l = $l10n;
   }
 
+  public function errorReporting($how = null)
+  {
+    return $this->authenticator->errorReporting($how);
+  }
+
+  private function handleError(string $msg)
+  {
+    return $this->authenticator->handleError($msg);
+  }
+
   /**
    * Return the URL for use with an iframe or object tag. Also
    * provide means to access single articles.
@@ -70,8 +80,7 @@ class RPC
     $result = $this->authenticator->sendRequest('index.php?page=structure');
 
     if ($result === false) {
-      $this->logError("Unable to retrieve categories");
-      return false;
+      return $this->handleError("Unable to retrieve categories");
     }
 
     $html = $result['content'];
@@ -122,8 +131,7 @@ class RPC
     $result = $this->authenticator->sendRequest('index.php?page=template');
 
     if ($result === false) {
-      $this->logError("Unable to retrieve templates");
-      return false;
+      return $this->handleError("Unable to retrieve templates");
     }
 
     $html = $result['content'];
@@ -174,8 +182,7 @@ class RPC
     $result = $this->authenticator->sendRequest('index.php?page=module');
 
     if ($result === false) {
-      $this->logError("Unable to retrieve modules");
-      return false;
+      return $this->handleError("Unable to retrieve modules");
     }
 
     $html = $result['content'];
@@ -232,8 +239,7 @@ class RPC
       ]);
 
     if ($result === false) {
-      $this->logDebug("sendRequest() failed.");
-      return false;
+      return $this->handleError("sendRequest() failed.");
     }
 
     /**
@@ -268,9 +274,7 @@ class RPC
       }
     }
 
-    $this->logDebug("rename failed, latest redirect request: ".$redirectReq);
-
-    return false;
+    return $this->handleError("rename failed, latest redirect request: ".$redirectReq);
   }
 
   /**
@@ -290,7 +294,7 @@ class RPC
         'clang' => 0 ]);
 
     if ($result === false) {
-      return false;
+      return $this->handleError("Delete article failed");
     }
 
     // We could parse the request and have a look if the article is
@@ -301,7 +305,10 @@ class RPC
     $articles = $this->filterArticlesByIdAndName($articlId, '.*', $html);
 
     // Successful delete: return should be an empty array
-    return is_array($articles) && count($articles) == 0;
+    if (!is_array($articles) || count($articles) > 0) {
+      return $this->handleError("Delete article failed");
+    }
+    return true;
   }
 
   /**
@@ -330,7 +337,7 @@ class RPC
       ]);
 
     if ($result === false) {
-      return false;
+      return $this->handleError("Adding empty article failed");
     }
 
     $html = $result['content'];
@@ -355,7 +362,7 @@ class RPC
         'module_id' => $blockId ]);
 
     if ($result === false) {
-      return false;
+      return $this->handleError("Adding article block failed");
     }
 
     $html = $result['content'];
@@ -421,8 +428,7 @@ class RPC
                                    $html, $dummy);
 
     if ($haveCntAfter != $haveCnt + 1) {
-      $this->logDebug("AFTER BLOCK ADD: ".$html);
-      return false;
+      return $this->handleError("AFTER BLOCK ADD: ".$html);
     }
 
     return true;
@@ -449,8 +455,9 @@ class RPC
         'template_id' => $templateId,
         'Position_Article' => $position,
         'clang' => 0 ]);
+
     if ($result === false) {
-      return false;
+      return $this->handleError("Cannot load form");
     }
 
     $html = $result['content'];
@@ -478,7 +485,7 @@ class RPC
     $result = $this->authenticator->sendRequest('index.php', $post);
 
     if ($result === false) {
-      return false;
+      return $this->handleError("Unable to set article name");
     }
 
     $html = $result['content'];
@@ -499,8 +506,7 @@ class RPC
     }
 
     if ($currentId != $articleId) {
-      $this->logDebug("Changing the article name failed, mis-matched article ids");
-      return false;
+      return $this->handleError("Changing the article name failed, mis-matched article ids");
     }
 
     $input = $document->getElementById("rex-form-meta-article-name");
@@ -508,8 +514,7 @@ class RPC
     $valueValue = $input->getAttribute("value");
 
     if ($valueName != "meta_article_name" || $valueValue != $name) {
-      $this->logDebug("Changing the article name failed, got ".$valueName.'="'.$valueValue.'"');
-      return false;
+      return $this->handleError("Changing the article name failed, got ".$valueName.'="'.$valueValue.'"');
     }
 
     return true;
@@ -523,7 +528,7 @@ class RPC
   {
     $result = $this->authenticator->sendRequest('index.php?page=structure&category_id='.$category.'&clang=0');
     if ($result === false) {
-      return false;
+      return $this->handleError("Unable to retrieve article by name");
     }
 
     $html = $result['content'];
@@ -549,7 +554,7 @@ class RPC
   {
     $result = $this->authenticator->sendRequest('index.php?page=structure&category_id='.$categoryId.'&clang=0');
     if ($result === false) {
-      return false;
+      return $this->handleError("Unable to retrieve articles by id");
     }
 
     $html = $result['content'];
@@ -606,7 +611,7 @@ class RPC
       }
     }
 
-    $matches = array();
+    $matches = [];
     $cnt = preg_match_all('|<td\s+class="rex-icon">\s*'.
                           '<a\s+class="rex-i-element\s+rex-i-article"\s+'.
                           'href="index.php\?page=content[^"]*'.

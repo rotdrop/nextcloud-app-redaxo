@@ -32,6 +32,8 @@ class AuthRedaxo4
   use \OCA\Redaxo4Embedded\Traits\LoggerTrait;
 
   const COOKIE_RE = 'PHPSESSID|redaxo_sessid|KEY_PHPSESSID|KEY_redaxo_sessid';
+  const ON_ERROR_THROW = 'throw'; ///< Throw an exception on error
+  const ON_ERROR_RETURN = 'return'; ///< Return boolean on error
 
   const STATUS_UNKNOWN = 0;
   const STATUS_LOGGED_OUT = -1;
@@ -56,6 +58,9 @@ class AuthRedaxo4
 
   private $loginStatus;  // 0 unknown, -1 logged off, 1 logged on
 
+  /** @var string */
+  private $errorReporting;
+
   /** @var bool */
   private $enableSSLVerify;
 
@@ -72,6 +77,8 @@ class AuthRedaxo4
     $this->session = $session;
     $this->logger = $logger;
     $this->l = $l10n;
+
+    $this->errorReporting = self::ON_ERROR_RETURN;
 
     $this->enableSSLVerify = $this->config->getAppValue('enableSSLVerfiy', true);
 
@@ -118,6 +125,45 @@ class AuthRedaxo4
       }
     }
 
+  }
+
+  /**
+   * Modify how errors are handled.
+   *
+   * @param string $how One of self::ON_ERROR_THROW or
+   * self::ON_ERROR_RETURN or null (just return the current
+   * reporting).1
+   *
+   * @return string Currently active error handling policy.
+   */
+  public function errorReporting($how = null)
+  {
+    $reporting = $this->errorReporting;
+    switch ($how) {
+      case null:
+        break;
+      case self::ON_ERROR_THROW:
+      case self::ON_ERROR_RETURN:
+        $this->errorReporting = $how;
+        break;
+      default:
+        throw new \Exception('Unknown error-reporting method: '.$how);
+    }
+    return $reporting;
+  }
+
+  private function handleError($msg)
+  {
+    switch ($this->errorReporting) {
+      case self::ON_ERROR_THROW:
+        throw new \Exception($msg);
+      case self::ON_ERROR_RETURN:
+        $this->logError($msg);
+        return false;
+      default:
+        throw new \Exception("Invalid error handling method: ".$this->errorReporting);
+    }
+    return false;
   }
 
   /**
@@ -213,6 +259,9 @@ class AuthRedaxo4
     return $this->isLoggedIn();
   }
 
+  /**
+   * Update the internal login status.
+   */
   public function updateLoginStatus($response = false, $forceUpdate = false)
   {
     if ($response === false && $this->loginStatus != self::STATUS_UNKNOWN && count($this->authHeaders) > 0 && !$forceUpdate) {
@@ -256,8 +305,7 @@ class AuthRedaxo4
   public function sendRequest($formPath, $postData = false)
   {
     if (!$this->isLoggedIn()) {
-      $this->logError("Not logged in");
-      return false;
+      return $this->handleError("Not logged in");
     }
 
     return $this->doSendRequest($formPath, $postData);
@@ -360,21 +408,20 @@ class AuthRedaxo4
     if ($redirect && $location !== false) {
       // Follow the redirection
       if (substr($location, 0, 4) == 'http') {
-        $this->logError("Refusing to follow absolute location header: ".$location);
-        return false;
+        return $this->handleError("Refusing to follow absolute location header: ".$location);
       }
       return $this->doSendRequest($location);
     }
 
     if (empty($result)) {
-      $this->logInfo("Empty result");
+      return $this->handleError("Empty result");
     }
 
-    return empty($result)
-      ? false
-      : [ 'request' => $formPath,
-          'responseHeaders' => $responseHdr,
-          'content' => $result, ];
+    return [
+      'request' => $formPath,
+      'responseHeaders' => $responseHdr,
+      'content' => $result,
+    ];
   }
 
   private function cleanCookies()
