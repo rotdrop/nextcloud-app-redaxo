@@ -56,6 +56,9 @@ class AuthRedaxo4
 
   private $loginStatus;  // 0 unknown, -1 logged off, 1 logged on
 
+  /** @var bool */
+  private $enableSSLVerify;
+
   public function __construct(
     IConfig $config
     , IURLGenerator $urlGenerator
@@ -69,6 +72,8 @@ class AuthRedaxo4
     $this->session = $session;
     $this->logger = $logger;
     $this->l = $l10n;
+
+    $this->enableSSLVerify = $this->config->getAppValue('enableSSLVerfiy', true);
 
     $location = $this->config->getAppValue($this->appName, 'externalLocation');
     if ($location[0] == '/') {
@@ -284,12 +289,18 @@ class AuthRedaxo4
      * code ATM will only work when Redaxo is the only in-between
      * thingy issuing redirection headers.
      */
-    $context = stream_context_create(array('http' => array(
-      'method' => $method,
-      'header' => $httpHeader,
-      'content' => $postData,
-      'follow_location' => 0,
-    )));
+    $context = stream_context_create([
+      'http' => [
+        'method' => $method,
+        'header' => $httpHeader,
+        'content' => $postData,
+        'follow_location' => 0,
+      ],
+      'ssl' => [
+        'verify_peer' => $this->enableSSLVerify,
+        'verify_peer_name' => $this->enableSSLVerify,
+      ],
+    ]);
     if (!empty($formPath) && $formPath[0] != '/') {
       $formPath = '/'.$formPath;
     }
@@ -302,12 +313,20 @@ class AuthRedaxo4
 
     $fp = fopen($url, 'rb', false, $context);
     $result = '';
-    $responseHdr = array();
+    $responseHdr = [];
 
     if ($fp !== false) {
       $result = stream_get_contents($fp);
       $responseHdr = $http_response_header;
       fclose($fp);
+    } else {
+      $error = error_get_last();
+      $headers = $http_response_header;
+      return $this->handleError(
+        "URL fopen to $url failed: "
+        .print_r($error, true)
+        .$headers[0]
+      );
     }
 
     // Store and duplicate set cookies for forwarding to the users web client

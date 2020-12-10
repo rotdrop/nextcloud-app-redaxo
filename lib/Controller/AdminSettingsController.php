@@ -68,7 +68,7 @@ class AdminSettingsController extends Controller
 
   public function set()
   {
-    foreach (Admin::SETTINGS as $setting) {
+    foreach (array_keys(Admin::SETTINGS) as $setting) {
       if (!isset($this->request[$setting])) {
         continue;
       }
@@ -101,11 +101,22 @@ class AdminSettingsController extends Controller
           }
           $value = $realValue;
           break;
+        case 'enableSSLVerify':
+          $realValue = filter_var($value, FILTER_VALIDATE_BOOLEAN, ['flags' => FILTER_NULL_ON_FAILURE]);
+          if ($realValue === null) {
+            return self::grumble($this->l->t('Value "%1$s" for set "%2$s" is not convertible to boolean.', [$value, $setting]));
+          }
+          $value = $realValue;
+          $strValue = $value ? 'on' : 'off';
+          break;
       }
       $this->config->setAppValue($this->appName, $setting, $value);
+      if (empty($strValue)) {
+        $strValue = $value;
+      }
       return new DataResponse([
         'value' => $value,
-        'message' => $this->l->t("Parameter %s set to %s", [ $setting, $value ]),
+        'message' => $this->l->t("Parameter %s set to %s", [ $setting, $strValue ]),
       ]);
     }
     return new DataResponse([ 'message' => $this->l->t('Unknown Request') ], Http::STATUS_BAD_REQUEST);
