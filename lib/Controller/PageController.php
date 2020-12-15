@@ -65,6 +65,7 @@ class PageController extends Controller
   ) {
     parent::__construct($appName, $request);
     $this->authenticator = $authenticator;
+    $this->authenticator->errorReporting(Authenticator::ON_ERROR_THROW);
     $this->config = $config;
     $this->urlGenerator = $urlGenerator;
     $this->initialStateService = $initialStateService;
@@ -104,8 +105,8 @@ class PageController extends Controller
         // @TODO wrap into a nicer error page.
         throw new \Exception($this->l->t('Please tell a system administrator to configure the URL for the Redaxo4 instance'));
       }
-
-      $this->authenticator->emitAuthHeaders(); // @todo: should be attached to template
+      $this->authenticator->sendRequest('');   // update login
+      $this->authenticator->emitAuthHeaders(); // send cookies
 
       $templateParameters = [
         'appName'          => $this->appName,

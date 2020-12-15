@@ -21,6 +21,8 @@
 
 namespace OCA\Redaxo4Embedded\Service;
 
+use OCP\Authentication\LoginCredentials\IStore as ICredentialsStore;
+use OCP\Authentication\LoginCredentials\ICredentials;
 use OCP\IConfig;
 use OCP\IURLGenerator;
 use OCP\ILogger;
@@ -41,10 +43,16 @@ class AuthRedaxo4
 
   private $appName;
 
+  /** @var \OCP\IConfig */
   private $config;
 
+  /** @var \OCP\ISession */
   private $session;
 
+  /** @var \OCP\Authentication\LoginCredentials\IStore */
+  private $credentialsStore;
+
+  /** @var \OCP\IURLGeneator */
   private $urlGenerator;
 
   private $proto;
@@ -66,15 +74,17 @@ class AuthRedaxo4
 
   public function __construct(
     IConfig $config
-    , IURLGenerator $urlGenerator
     , ISession $session
+    , ICredentialsStore $credentialsStore
+    , IURLGenerator $urlGenerator
     , ILogger $logger
     , IL10N $l10n
   ) {
     $this->appName = Constants::APP_NAME;
     $this->config = $config;
-    $this->urlGenerator = $urlGenerator;
     $this->session = $session;
+    $this->credentialsStore = $credentialsStore;
+    $this->urlGenerator = $urlGenerator;
     $this->logger = $logger;
     $this->l = $l10n;
 
@@ -152,11 +162,15 @@ class AuthRedaxo4
     return $reporting;
   }
 
-  private function handleError($msg)
+  private function handleError($msg, $thowable = null)
   {
     switch ($this->errorReporting) {
       case self::ON_ERROR_THROW:
-        throw new \Exception($msg);
+        if (!empty($t = $throwable)) {
+          throw new \Exception($msg, $t->getCode(), $t);
+        } else {
+          throw new \Exception($msg);
+        }
       case self::ON_ERROR_RETURN:
         $this->logError($msg);
         return false;
@@ -188,6 +202,30 @@ class AuthRedaxo4
       return null;
     }
     return $this->proto.'://'.$this->host.$this->port.$this->path;
+  }
+
+  /**
+   * Try to obtain login-credentials from Nextcloud credentials store.
+   *
+   * @return array|bool
+   * ```
+   * [
+   *   'userId' => USER_ID,
+   *   'password' => PASSWORD,
+   * ]
+   * ```
+   */
+  private function loginCredentials()
+  {
+    try {
+      $credentials = $this->credentialsStore->getLoginCredentials();
+      return [
+        'userId' => $credentials->getUID(),
+        'password' => $credentials->getPassword(),
+      ];
+    } catch (\Throwable $t) {
+      return $this->handleError("Unable to obtain login-credentials", $t);
+    }
   }
 
   /**
@@ -295,7 +333,7 @@ class AuthRedaxo4
     } else {
       $this->logInfo("Empty response from login-form");
     }
-    $this->logInfo("Login Status: ".$this->loginStatus);
+    $this->logDebug("Login Status: ".$this->loginStatus);
   }
 
   /**
@@ -305,7 +343,14 @@ class AuthRedaxo4
   public function sendRequest($formPath, $postData = false)
   {
     if (!$this->isLoggedIn()) {
-      return $this->handleError("Not logged in");
+      try {
+        $credentials = $this->loginCredentials();
+        if (!$this->login($credentials['userId'], $credentials['password'])) {
+          return $this->handleError("Not logged in and re-login failed.");
+        }
+      } catch (\Throwable $t) {
+        return $this->handleError("Not logged in and re-login failed", $t);
+      }
     }
 
     return $this->doSendRequest($formPath, $postData);
@@ -353,8 +398,6 @@ class AuthRedaxo4
       $formPath = '/'.$formPath;
     }
     $url = $this->externalURL().$formPath;
-
-    $this->logInfo("Posting to ".$url);
 
     $logPostData = preg_replace('/rex_user_psw=[^&]*(&|$)/', 'rex_user_psw=XXXXXX$1', $postData);
     $this->logDebug("doSendRequest() to ".$url." data ".$logPostData);
