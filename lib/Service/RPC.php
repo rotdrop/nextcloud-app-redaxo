@@ -49,6 +49,12 @@ class RPC
     $this->l = $l10n;
   }
 
+  public function refreshCookies()
+  {
+    $this->authenticator->sendRequest('');
+    $this->authenticator->emitAuthHeaders();
+  }
+
   public function errorReporting($how = null)
   {
     return $this->authenticator->errorReporting($how);

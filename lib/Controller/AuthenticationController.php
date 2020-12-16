@@ -63,7 +63,8 @@ class AuthenticationController extends Controller
     if (false === $this->authenticator->refresh()) {
       $this->logError("Redaxo4 refresh for user ".($this->userId)." failed.");
     } else {
-      $this->logInfo("Redaxo4 refresh for user ".($this->userId)." probably succeeded.");
+      $this->authenticator->emitAuthHeaders();
+      $this->logDebug("Redaxo4 refresh for user ".($this->userId)." probably succeeded.");
     }
   }
 }
