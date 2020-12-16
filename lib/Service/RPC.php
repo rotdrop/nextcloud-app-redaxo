@@ -68,7 +68,7 @@ class RPC
     $url = $this->authenticator->externalURL();
     if ($articleId !== false) {
       if ($editMode !== false) {
-        $url .= 'index.php?page=content&article_id='.$articleId.'&mode=edit&clang=0';
+        $url .= '/index.php?page=content&article_id='.$articleId.'&mode=edit&clang=0';
       } else {
         $url .= '../?article_id='.$articleId;
       }
