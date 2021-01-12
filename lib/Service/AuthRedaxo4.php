@@ -34,6 +34,7 @@ class AuthRedaxo4
   use \OCA\Redaxo4Embedded\Traits\LoggerTrait;
 
   const COOKIE_RE = 'PHPSESSID|redaxo_sessid|KEY_PHPSESSID|KEY_redaxo_sessid';
+  const SESSION_KEY = 'Redaxo\\authHeaders';
   const ON_ERROR_THROW = 'throw'; ///< Throw an exception on error
   const ON_ERROR_RETURN = 'return'; ///< Return boolean on error
 
@@ -125,7 +126,7 @@ class AuthRedaxo4
     // successful login. This is only for the OC internal
     // communication. The cookies for the iframe-embedded redaxo
     // web-pages will be send by the user's web-browser.
-    $sessionAuth = $session->get('Redaxo\\authHeaders');
+    $sessionAuth = $session->get(self::SESSION_KEY);
     if (is_array($sessionAuth)) {
       $this->authHeaders = $sessionAuth;
       foreach ($this->authHeaders as $header) {
@@ -243,6 +244,8 @@ class AuthRedaxo4
 
     if ($this->isLoggedIn()) {
       $this->logout();
+    } else {
+      $this->cleanCookies();
     }
 
     $response = $this->doSendRequest($this->location,
@@ -444,7 +447,7 @@ class AuthRedaxo4
     }
     if (count($newAuthHeaders) > 0) {
       $this->authHeaders = $newAuthHeaders;
-      $this->session->set('Redaxo\\authHeaders', $this->authHeaders);
+      $this->session->set(self::SESSION_KEY, $this->authHeaders);
     }
     //$this->logDebug("Data Response: ".$result);
 
@@ -470,12 +473,12 @@ class AuthRedaxo4
   private function cleanCookies()
   {
     $this->authHeaders = [];
-    $this->reqHeaders = [];
-    foreach ($_COOKIE as $cookie => $value) {
-      if (preg_match('/^(Redaxo4|DW).*/', $cookie)) {
-        unset($_COOKIE[$cookie]);
-      }
-    }
+    $this->authCookies = [];
+    // foreach ($_COOKIE as $cookie => $value) {
+    //   if (preg_match('/^(Redaxo4|DW).*/', $cookie)) {
+    //     unset($_COOKIE[$cookie]);
+    //   }
+    // }
   }
 
   /**
