@@ -21,15 +21,13 @@
 
 namespace OCA\Redaxo4Embedded;
 
-use OCA\Redaxo4Embedded\Service\Constants;
-
 script($appName, 'admin-settings');
 
 ?>
 
 <div class="section">
   <h2><?php p($l->t('Embedded Redaxo4')) ?></h2>
-  <form id="<?php echo Constants::APP_PREFIX; ?>settings">
+  <form id="<?php p($webPrefix); ?>settings">
     <input type="text"
            name="externalLocation"
            id="externalLocation"

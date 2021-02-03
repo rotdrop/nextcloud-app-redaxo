@@ -1,9 +1,10 @@
-<?php
 /**
- * Redaxo4Embedded -- Embed Redaxo4 into NextCloud with SSO.
+ * Orchestra member, musicion and project management application.
+ *
+ * CAFEVDB -- Camerata Academica Freiburg e.V. DataBase.
  *
  * @author Claus-Justus Heine
- * @copyright 2020 Claus-Justus Heine <himself@claus-justus-heine.de>
+ * @copyright 2011-2016, 2020, 2021 Claus-Justus Heine <himself@claus-justus-heine.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU GENERAL PUBLIC LICENSE
@@ -19,10 +20,15 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OCA\Redaxo4Embedded\Service;
+import { appName } from './config.js';
 
-class Constants
-{
-  const APP_PREFIX = 'redaxo4';
-  const APP_NAME = self::APP_PREFIX.'embedded';
-}
+const generateUrl = function(postFix) {
+  return OC.generateUrl('/apps/' + appName + '/' + postFix);
+};
+
+export default generateUrl;
+
+// Local Variables: ***
+// js-indent-level: 2 ***
+// indent-tabs-mode: nil ***
+// End: ***

@@ -34,7 +34,6 @@ use OCP\IInitialStateService;
 
 use OCA\Redaxo4Embedded\Traits;
 use OCA\Redaxo4Embedded\Service\AuthRedaxo4 as Authenticator;
-use OCA\Redaxo4Embedded\Service\Constants;
 
 class PageController extends Controller
 {
@@ -110,7 +109,6 @@ class PageController extends Controller
 
       $templateParameters = [
         'appName'          => $this->appName,
-        'webPrefix'        => Constants::APP_PREFIX,
         'externalURL'      => $externalURL,
         'externalPath'     => $externalPath,
         'cssClass'         => $cssClass,

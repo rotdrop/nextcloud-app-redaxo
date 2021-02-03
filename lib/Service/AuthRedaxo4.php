@@ -29,6 +29,8 @@ use OCP\ILogger;
 use OCP\ISession;
 use OCP\IL10N;
 
+use OCA\Redaxo4Embedded\AppInfo\Application;
+
 class AuthRedaxo4
 {
   use \OCA\Redaxo4Embedded\Traits\LoggerTrait;
@@ -74,14 +76,15 @@ class AuthRedaxo4
   private $enableSSLVerify;
 
   public function __construct(
-    IConfig $config
+    Application $app
+    , IConfig $config
     , ISession $session
     , ICredentialsStore $credentialsStore
     , IURLGenerator $urlGenerator
     , ILogger $logger
     , IL10N $l10n
   ) {
-    $this->appName = Constants::APP_NAME;
+    $this->appName = $app->getAppName();
     $this->config = $config;
     $this->session = $session;
     $this->credentialsStore = $credentialsStore;
@@ -136,6 +139,14 @@ class AuthRedaxo4
       }
     }
 
+  }
+
+  /**
+   * Return the name of the app.
+   */
+  public function getAppName(): string
+  {
+    return $this->appName;
   }
 
   /**

@@ -19,17 +19,17 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-style($appName, $webPrefix);
-script($appName, $webPrefix);
+style($appName, 'app');
+script($appName, 'app');
 
 ?>
 
-<div id="<?php echo $webPrefix; ?>_container" class="<?php echo $cssClass; ?>">
-  <img src="<?php echo $urlGenerator->imagePath($appName, 'loader.gif'); ?>" id="<?php echo $webPrefix; ?>Loader" class="<?php echo $cssClass; ?>">
-  <div id="<?php echo $webPrefix; ?>FrameWrapper" class="<?php echo $cssClass; ?>">
+<div id="<?php echo $appName; ?>_container" class="<?php echo $cssClass; ?>">
+  <img src="<?php echo $urlGenerator->imagePath($appName, 'loader.gif'); ?>" id="<?php echo $appName; ?>Loader" class="<?php echo $cssClass; ?>">
+  <div id="<?php echo $appName; ?>FrameWrapper" class="<?php echo $cssClass; ?>">
     <iframe style="overflow:auto"
             src="<?php echo $externalURL.$externalPath;?>"
-            id="<?php echo $webPrefix; ?>Frame"
+            id="<?php echo $appName; ?>Frame"
             name="<?php echo $appName; ?>"
             width="100%"
             <?php echo $iframeAttributes; ?>>
