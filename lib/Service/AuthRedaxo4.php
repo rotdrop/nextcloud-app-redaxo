@@ -174,7 +174,7 @@ class AuthRedaxo4
     return $reporting;
   }
 
-  private function handleError($msg, $thowable = null)
+  public function handleError($msg, $thowable = null)
   {
     switch ($this->errorReporting) {
       case self::ON_ERROR_THROW:
