@@ -360,6 +360,10 @@ class RPC
    */
   public function addArticleBlock($articleId, $blockId, $sliceId = 0)
   {
+    if (empty($articleId) || empty($blockId)) {
+      return $this->handleError($this->l->t('Empty article: / block-id: (%d / %d).', [ $articleId, $blockId ]));
+    }
+
     $result = $this->authenticator->sendRequest(
       'index.php',
       [ 'article_id' => $articleId,
@@ -662,11 +666,11 @@ class RPC
     $result = [];
     for ($i = 0; $i < $cnt; ++$i) {
       $article = [
-        'ArticleId' => $matches[1][$i],
-        'CategoryId' => $matches[2][$i],
-        'ArticleName' => $matches[3][$i],
-        'Priority' => $matches[8][$i],
-        'TemplateName' => trim($matches[9][$i]),
+        'articleId' => $matches[1][$i],
+        'categoryId' => $matches[2][$i],
+        'articleName' => $matches[3][$i],
+        'priority' => $matches[8][$i],
+        'templateName' => trim($matches[9][$i]),
       ];
       $result[] = $article;
       $this->logDebug("Got article: ".print_r($article, true));
@@ -674,7 +678,7 @@ class RPC
 
     // sort ascending w.r.t. to article id
     usort($result, function($a, $b) {
-      return $a['ArticleId'] < $b['ArticleId'] ? -1 : 1;
+      return $a['articleId'] < $b['articleId'] ? -1 : 1;
     });
 
     return $result;
