@@ -1,17 +1,20 @@
-SRCDIR=.
-ABSSRCDIR=$(CURDIR)
-ABSBUILDDIR=$(CURDIR)/build
-DOC_BUILD_DIR=$(ABSBUILDDIR)/artifacts/doc
+SRCDIR = .
+ABSSRCDIR = $(CURDIR)
+ABSBUILDDIR = $(CURDIR)/build
+DOC_BUILD_DIR = $(ABSBUILDDIR)/artifacts/doc
 
-PHPDOC=/opt/phpDocumentor/bin/phpdoc
-PHPDOC_TEMPLATE=--template=default
+COMPOSER = composer
+COMPOSER_OPTIONS = --no-dev --prefer-dist
 
+PHPDOC = /opt/phpDocumentor/bin/phpdoc
+PHPDOC_TEMPLATE = --template=default
 #--template=clean --template=xml
 #--template=responsive-twig
 
 all: build
 
-build: npm
+.PHONY: build
+build: npm composer
 
 .PHONY: npm-update
 npm-update:
@@ -25,6 +28,10 @@ npm-init:
 .PHONY: npm
 npm: npm-init
 	npm run dev
+
+.PHONY: composer
+composer:
+	$(COMPOSER) install $(COMPOSER_OPTIONS)
 
 .PHONY: doc
 doc: $(PHPDOC) $(DOC_BUILD_DIR)

@@ -1,0 +1,17 @@
+{
+  "name": "rotdrop/redaxo4embedded",
+  "description": "Support embedding an external Redaxo4 instance with SSO",
+  "licence": "AGPL",
+  "authors": [
+    {
+      "name": "Claus-Justus Heine",
+      "email": "himself@claus-justus-heine.de"
+    }
+  ],
+  "require": {
+    "php": "^7.4 || ^8.0",
+    "myclabs/php-enum": "^1.7"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}
