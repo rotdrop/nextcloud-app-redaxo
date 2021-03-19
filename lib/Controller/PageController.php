@@ -3,7 +3,7 @@
  * Redaxo4Embedded -- Embed DokuWik into NextCloud with SSO.
  *
  * @author Claus-Justus Heine
- * @copyright 2020 Claus-Justus Heine <himself@claus-justus-heine.de>
+ * @copyright 2020, 2021 Claus-Justus Heine <himself@claus-justus-heine.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU GENERAL PUBLIC LICENSE
@@ -27,6 +27,7 @@ use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Controller;
 use OCP\IURLGenerator;
+use OCP\ISession;
 use OCP\ILogger;
 use OCP\IL10N;
 use OCP\IConfig;
@@ -42,19 +43,28 @@ class PageController extends Controller
 
   const TEMPLATE = 'redaxo4';
 
+  /** @var string */
   private $userId;
 
+  /** @var Authenticator */
   private $authenticator;
 
+  /** @var IConfig */
   private $config;
 
+  /** @var IURLGenerator */
   private $urlGenerator;
 
+  /** @var IInitialStateService */
   private $initialStateService;
+
+  /** @var ISession */
+  private $session;
 
   public function __construct(
     $appName
     , IRequest $request
+    , ISession $session
     , Authenticator $authenticator
     , IConfig $config
     , IURLGenerator $urlGenerator
@@ -63,6 +73,7 @@ class PageController extends Controller
     , IL10N $l10n
   ) {
     parent::__construct($appName, $request);
+    $this->session = $session;
     $this->authenticator = $authenticator;
     $this->authenticator->errorReporting(Authenticator::ON_ERROR_THROW);
     $this->config = $config;
@@ -75,6 +86,7 @@ class PageController extends Controller
   /**
    * @NoAdminRequired
    * @NoCSRFRequired
+   * @UseSession
    */
   public function index()
   {
@@ -83,6 +95,7 @@ class PageController extends Controller
 
   /**
    * @NoAdminRequired
+   * @UseSession
    */
   public function frame($renderAs = 'blank')
   {
@@ -106,6 +119,8 @@ class PageController extends Controller
       }
       $this->authenticator->sendRequest('');   // update login
       $this->authenticator->emitAuthHeaders(); // send cookies
+
+      $this->session->close(); // flush session to disk
 
       $templateParameters = [
         'appName'          => $this->appName,
