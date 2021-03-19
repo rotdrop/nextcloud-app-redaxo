@@ -3,7 +3,7 @@
  * Redaxo4Embedded -- Embed Redaxo4 into NextCloud with SSO.
  *
  * @author Claus-Justus Heine
- * @copyright 2020 Claus-Justus Heine <himself@claus-justus-heine.de>
+ * @copyright 2020, 2021 Claus-Justus Heine <himself@claus-justus-heine.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU GENERAL PUBLIC LICENSE
@@ -29,20 +29,17 @@ use OCP\ILogger;
 use OCP\ISession;
 use OCP\IL10N;
 
-use OCA\Redaxo4Embedded\AppInfo\Application;
+use OCA\Redaxo4Embedded\Exceptions\LoginException;
+use OCA\Redaxo4Embedded\Enums\LoginStatusEnum as LoginStatus;
 
 class AuthRedaxo4
 {
   use \OCA\Redaxo4Embedded\Traits\LoggerTrait;
 
-  const COOKIE_RE = 'PHPSESSID|redaxo_sessid|KEY_PHPSESSID|KEY_redaxo_sessid';
+  const COOKIE_RE = 'REX[0-9]+|PHPSESSID|redaxo_sessid|KEY_PHPSESSID|KEY_redaxo_sessid';
   const SESSION_KEY = 'Redaxo\\authHeaders';
   const ON_ERROR_THROW = 'throw'; ///< Throw an exception on error
   const ON_ERROR_RETURN = 'return'; ///< Return boolean on error
-
-  const STATUS_UNKNOWN = 0;
-  const STATUS_LOGGED_OUT = -1;
-  const STATUS_LOGGED_IN = 1;
 
   private $appName;
 
@@ -67,7 +64,8 @@ class AuthRedaxo4
   private $authHeaders;  //!< Authentication headers echoed back to the user
   private $authCookies;  //!< $key -> $value array of relevant cookies
 
-  private $loginStatus;  // 0 unknown, -1 logged off, 1 logged on
+  /** @var LoginStatus */
+  private LoginStatus $loginStatus;
 
   /** @var string */
   private $errorReporting;
@@ -76,7 +74,7 @@ class AuthRedaxo4
   private $enableSSLVerify;
 
   public function __construct(
-    Application $app
+    string $appName
     , IConfig $config
     , ISession $session
     , ICredentialsStore $credentialsStore
@@ -84,7 +82,7 @@ class AuthRedaxo4
     , ILogger $logger
     , IL10N $l10n
   ) {
-    $this->appName = $app->getAppName();
+    $this->appName = $appName;
     $this->config = $config;
     $this->session = $session;
     $this->credentialsStore = $credentialsStore;
@@ -111,7 +109,7 @@ class AuthRedaxo4
     $this->path  = $urlParts['path'];
 
     $this->location = "index.php";
-    $this->loginStatus = self::STATUS_UNKNOWN;
+    $this->loginStatus = LoginStatus::UNKNOWN();
 
     $this->authCookies = [];
     $this->authHeaders = [];
@@ -138,7 +136,6 @@ class AuthRedaxo4
         }
       }
     }
-
   }
 
   /**
@@ -174,17 +171,21 @@ class AuthRedaxo4
     return $reporting;
   }
 
-  public function handleError($msg, $thowable = null)
+  public function handleError($msg, $throwable = null)
   {
     switch ($this->errorReporting) {
       case self::ON_ERROR_THROW:
         if (!empty($t = $throwable)) {
-          throw new \Exception($msg, $t->getCode(), $t);
+          throw empty($msg) ? $t : new \Exception($msg, $t->getCode(), $t);
         } else {
           throw new \Exception($msg);
         }
       case self::ON_ERROR_RETURN:
-        $this->logError($msg);
+        if (!empty($throwable)) {
+          $this->logException($throwable, $msg);
+        } else {
+          $this->logError($msg);
+        }
         return false;
       default:
         throw new \Exception("Invalid error handling method: ".$this->errorReporting);
@@ -266,7 +267,7 @@ class AuthRedaxo4
 
     $this->updateLoginStatus($response, true);
 
-    return $this->loginStatus == self::STATUS_LOGGED_IN;
+    return $this->loginStatus->equals(LoginStatus::LOGGED_IN());
   }
 
   /**
@@ -277,7 +278,7 @@ class AuthRedaxo4
     $response = $this->doSendRequest($this->location.'?rex_logout=1');
     $this->updateLoginStatus($response);
     $this->cleanCookies();
-    return $this->loginStatus == self::STATUS_LOGGED_OUT;
+    return $this->loginStatus->equals(LoginStatus::LOGGED_OUT());
   }
 
   /**
@@ -287,13 +288,13 @@ class AuthRedaxo4
   {
     $this->updateLoginStatus();
 
-    return $this->loginStatus() == self::STATUS_LOGGED_IN;
+    return $this->loginStatus()->equals(LoginStatus::LOGGED_IN());
   }
 
   /**
    * Return the current login status.
    *
-   * @return string, one of self::STATUS_LOGGED_IN, self::STATUS_LOGGED_OUT or self::STATUS_UNKNOWN.
+   * @return LoginStatus
    */
   public function loginStatus()
   {
@@ -316,7 +317,10 @@ class AuthRedaxo4
    */
   public function updateLoginStatus($response = false, $forceUpdate = false)
   {
-    if ($response === false && $this->loginStatus != self::STATUS_UNKNOWN && count($this->authHeaders) > 0 && !$forceUpdate) {
+    if ($response === false
+        && !$this->loginStatus->equals(LoginStatus::UNKNOWN())
+        && count($this->authHeaders) > 0
+        && !$forceUpdate) {
       return;
     }
 
@@ -336,18 +340,17 @@ class AuthRedaxo4
     // LOGGED OFF:
     //<div id="rex-navi-logout"><p class="rex-logout">nicht angemeldet</p></div>
 
-    $this->loginStatus = self::STATUS_UNKNOWN;
+    $this->loginStatus = LoginStatus::UNKNOWN();
     if ($response !== false) {
       //$this->logInfo(print_r($response['content'], true));
       if (preg_match('/<form.+loginformular/mi', $response['content'])) {
-        $this->loginStatus = self::STATUS_LOGGED_OUT;
+        $this->loginStatus = LoginStatus::LOGGED_OUT();
       } else if (preg_match('/index.php[?]page=profile/m', $response['content'])) {
-        $this->loginStatus = self::STATUS_LOGGED_IN;
+        $this->loginStatus = LoginStatus::LOGGED_IN();
       }
     } else {
       $this->logInfo("Empty response from login-form");
     }
-    $this->logDebug("Login Status: ".$this->loginStatus);
   }
 
   /**
@@ -360,10 +363,15 @@ class AuthRedaxo4
       try {
         $credentials = $this->loginCredentials();
         if (!$this->login($credentials['userId'], $credentials['password'])) {
-          return $this->handleError("Not logged in and re-login failed.");
+          $exception = new LoginException(
+            'Not logged in and re-login failed', 0, null,
+            $credentials['userId'], $this->loginStatus);
+          return $this->handleError(null, $exception);
         }
+      } catch (LoginException $e) {
+        return $this->handleError(null, $e);
       } catch (\Throwable $t) {
-        return $this->handleError("Not logged in and re-login failed", $t);
+        return $this->handleError(new LoginException("Caught non-login-exception", $t->getCode(), $t));
       }
     }
 
