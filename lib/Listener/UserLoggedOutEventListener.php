@@ -1,9 +1,9 @@
 <?php
-/*
+/**
  * Redaxo4Embedded -- Embed Redaxo4 into NextCloud with SSO.
  *
  * @author Claus-Justus Heine
- * @copyright 2020 Claus-Justus Heine <himself@claus-justus-heine.de>
+ * @copyright 2020, 2021 Claus-Justus Heine <himself@claus-justus-heine.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU GENERAL PUBLIC LICENSE
@@ -38,7 +38,7 @@ class UserLoggedOutEventListener implements IEventListener
   /** @var string */
   private $appName;
 
-  /** @var OCA\Redaxo4Embedded\Service\AuthRedaxo4 */
+  /** @var AuthRedaxo4 */
   private $authenticator;
 
   public function __construct(
@@ -61,6 +61,7 @@ class UserLoggedOutEventListener implements IEventListener
       $this->authenticator->emitAuthHeaders();
       $this->logInfo("Redaxo4 logoff probably succeeded.");
     }
+    $this->authenticator->persistLoginStatus();
   }
 }
 

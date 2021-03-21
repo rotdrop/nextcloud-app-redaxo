@@ -3,7 +3,7 @@
  * Redaxo4Embedded -- Embed Redaxo4 into NextCloud with SSO.
  *
  * @author Claus-Justus Heine
- * @copyright 2020 Claus-Justus Heine <himself@claus-justus-heine.de>
+ * @copyright 2020, 2021 Claus-Justus Heine <himself@claus-justus-heine.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU GENERAL PUBLIC LICENSE
@@ -68,12 +68,12 @@ class AuthenticationController extends Controller
   public function refresh()
   {
     if (false === $this->authenticator->refresh()) {
-      $this->logError("Redaxo4 refresh for user ".($this->userId)." failed.");
+      $this->logDebug("Redaxo4 refresh for user ".($this->userId)." failed.");
+      $this->authenticator->persistLoginStatus(); // record in session
     } else {
       $this->authenticator->emitAuthHeaders();
       $this->logDebug("Redaxo4 refresh for user ".($this->userId)." probably succeeded.");
     }
-    // close the session now in order to capture session-already-closed errors
     $this->session->close();
   }
 }

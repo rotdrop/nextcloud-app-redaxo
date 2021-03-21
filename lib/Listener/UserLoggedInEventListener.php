@@ -43,7 +43,7 @@ class UserLoggedInEventListener implements IEventListener
   /** @var OCP\IRequest */
   private $request;
 
-  /** @var OCA\Redaxo4Embedded\Service\AuthRedaxo4 */
+  /** @var AuthRedaxo4 */
   private $authenticator;
 
   public function __construct(
@@ -77,6 +77,7 @@ class UserLoggedInEventListener implements IEventListener
     } else {
       $this->logDebug("Redaxo4 login of user $userName failed.");
     }
+    $this->authenticator->persistLoginStatus();
   }
 
   /**

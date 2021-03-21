@@ -3,7 +3,7 @@
  * Redaxo4Embedded -- Embed Redaxo4 into NextCloud with SSO.
  *
  * @author Claus-Justus Heine
- * @copyright 2020 Claus-Justus Heine <himself@claus-justus-heine.de>
+ * @copyright 2020, 2021 Claus-Justus Heine <himself@claus-justus-heine.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU GENERAL PUBLIC LICENSE
@@ -47,12 +47,12 @@ class RPC
     $this->authenticator = $authenticator;
     $this->logger = $logger;
     $this->l = $l10n;
-  }
 
-  public function refreshCookies()
-  {
-    $this->authenticator->sendRequest('');
-    $this->authenticator->emitAuthHeaders();
+    // login now and reuse the obtained credentials for all subsequent
+    // requests. Do not record those credentials in the session.
+    if (!$this->authenticator->ensureLoggedIn()) {
+      $this->logError('Not logged in.');
+    }
   }
 
   public function errorReporting($how = null)
@@ -60,9 +60,9 @@ class RPC
     return $this->authenticator->errorReporting($how);
   }
 
-  private function handleError(string $msg)
+  private function handleError(string $msg, ?\Throwable $t = null)
   {
-    return $this->authenticator->handleError($msg);
+    return $this->authenticator->handleError($msg, $t);
   }
 
   /**
@@ -82,12 +82,20 @@ class RPC
     return $url;
   }
 
+  private function sendRequest($formPath, $postData = false)
+  {
+    if (!$this->authenticator->isLoggedIn()) {
+      return $this->authenticator->handleError($this->l->t('Not logged in.'));
+    }
+    return $this->authenticator->sendRequest($formPath, $postData);
+  }
+
   /**
    * Fetch all categories for the Redaxo server.
    */
   public function getCategories()
   {
-    $result = $this->authenticator->sendRequest('index.php?page=structure');
+    $result = $this->sendRequest('index.php?page=structure');
 
     if ($result === false) {
       return $this->handleError("Unable to retrieve categories");
@@ -138,7 +146,7 @@ class RPC
    */
   public function getTemplates($onlyActive = false)
   {
-    $result = $this->authenticator->sendRequest('index.php?page=template');
+    $result = $this->sendRequest('index.php?page=template');
 
     if ($result === false) {
       return $this->handleError("Unable to retrieve templates");
@@ -189,7 +197,7 @@ class RPC
    */
   public function getModules()
   {
-    $result = $this->authenticator->sendRequest('index.php?page=module');
+    $result = $this->sendRequest('index.php?page=module');
 
     if ($result === false) {
       return $this->handleError("Unable to retrieve modules");
@@ -235,7 +243,7 @@ class RPC
    */
   public function moveArticle($articleId, $destCat)
   {
-    $result = $this->authenticator->sendRequest(
+    $result = $this->sendRequest(
       'index.php',
       [ 'article_id' => $articleId,
         'page' => 'content', // needed?
@@ -295,7 +303,7 @@ class RPC
    */
   public function deleteArticle($articleId, $category)
   {
-    $result = $this->authenticator->sendRequest(
+    $result = $this->sendRequest(
       'index.php',
       [ 'page' => 'structure',
         'article_id' => $articleId,
@@ -334,7 +342,7 @@ class RPC
    */
   public function addArticle($name, $category, $template, $position = 10000)
   {
-    $result = $this->authenticator->sendRequest(
+    $result = $this->sendRequest(
       'index.php',
       [  // populate all form fields
         'page' => 'structure',
@@ -364,7 +372,7 @@ class RPC
       return $this->handleError($this->l->t('Empty article: / block-id: (%d / %d).', [ $articleId, $blockId ]));
     }
 
-    $result = $this->authenticator->sendRequest(
+    $result = $this->sendRequest(
       'index.php',
       [ 'article_id' => $articleId,
         'page' => 'content',
@@ -433,7 +441,7 @@ class RPC
     $target = 'index.php'.'#slice'.$sliceId;
 
     // passed, send out another query
-    $result = $this->authenticator->sendRequest($target, $requiredFields);
+    $result = $this->sendRequest($target, $requiredFields);
 
     $html = $result['content'];
 
@@ -458,7 +466,7 @@ class RPC
    */
   public function editArticle($articleId, $categoryId, $name, $templateId, $position = 10000)
   {
-    $result = $this->authenticator->sendRequest(
+    $result = $this->sendRequest(
       'index.php',
       [ 'page' => 'structure',
         'category_id' => $categoryId,
@@ -496,7 +504,7 @@ class RPC
               "meta_article_name" => $name,
               "savemeta" => "blahsubmit" ];
 
-    $result = $this->authenticator->sendRequest('index.php', $post);
+    $result = $this->sendRequest('index.php', $post);
 
     if ($result === false) {
       return $this->handleError("Unable to set article name");
@@ -540,7 +548,7 @@ class RPC
    */
   public function articlesByName($name, $category)
   {
-    $result = $this->authenticator->sendRequest('index.php?page=structure&category_id='.$category.'&clang=0');
+    $result = $this->sendRequest('index.php?page=structure&category_id='.$category.'&clang=0');
     if ($result === false) {
       return $this->handleError("Unable to retrieve article by name");
     }
@@ -567,7 +575,7 @@ class RPC
    */
   public function articlesById($idList, $categoryId)
   {
-    $result = $this->authenticator->sendRequest('index.php?page=structure&category_id='.$categoryId.'&clang=0');
+    $result = $this->sendRequest('index.php?page=structure&category_id='.$categoryId.'&clang=0');
     if ($result === false) {
       return $this->handleError("Unable to retrieve articles by id");
     }

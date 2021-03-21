@@ -37,7 +37,6 @@ class AuthRedaxo4
   use \OCA\Redaxo4Embedded\Traits\LoggerTrait;
 
   const COOKIE_RE = 'REX[0-9]+|PHPSESSID|redaxo_sessid|KEY_PHPSESSID|KEY_redaxo_sessid';
-  const SESSION_KEY = 'Redaxo\\authHeaders';
   const ON_ERROR_THROW = 'throw'; ///< Throw an exception on error
   const ON_ERROR_RETURN = 'return'; ///< Return boolean on error
 
@@ -109,33 +108,8 @@ class AuthRedaxo4
     $this->path  = $urlParts['path'];
 
     $this->location = "index.php";
-    $this->loginStatus = LoginStatus::UNKNOWN();
 
-    $this->authCookies = [];
-    $this->authHeaders = [];
-
-    // could be done, in principle, if the cookie-path is set
-    // accordingly, instead of storing things in the session.
-    if (false) foreach ($_COOKIE as $cookie => $value) {
-      if (preg_match('/'.self::COOKIE_RE.'/', $cookie)) {
-        $this->authCookies[$cookie] = urlencode($value);
-      }
-    }
-
-    // If we have auth-cookies stored in the session, fill the
-    // authHeaders and -Cookies array with those. Will be replaced on
-    // successful login. This is only for the OC internal
-    // communication. The cookies for the iframe-embedded redaxo
-    // web-pages will be send by the user's web-browser.
-    $sessionAuth = $session->get(self::SESSION_KEY);
-    if (is_array($sessionAuth)) {
-      $this->authHeaders = $sessionAuth;
-      foreach ($this->authHeaders as $header) {
-        if (preg_match('/^Set-Cookie:\s*('.self::COOKIE_RE.')=([^;]+);/i', $header, $match)) {
-          $this->authCookies[$match[1]] = $match[2];
-        }
-      }
-    }
+    $this->restoreLoginStatus(); // initialize and optionally restore from session data.
   }
 
   /**
@@ -250,7 +224,7 @@ class AuthRedaxo4
    *
    * @return true if successful, false otherwise.
    */
-  public function login($username, $password)
+  public function login(string $userName, string $password)
   {
     $this->updateLoginStatus();
 
@@ -260,10 +234,10 @@ class AuthRedaxo4
       $this->cleanCookies();
     }
 
-    $response = $this->doSendRequest($this->location,
-                                     [ 'javascript' => 1,
-                                       'rex_user_login' => $username,
-                                       'rex_user_psw' => $password ]);
+    $response = $this->sendRequest($this->location,
+                                   [ 'javascript' => 1,
+                                     'rex_user_login' => $userName,
+                                     'rex_user_psw' => $password ]);
 
     $this->updateLoginStatus($response, true);
 
@@ -271,11 +245,70 @@ class AuthRedaxo4
   }
 
   /**
+   * Ensure we are logged in.
+   *
+   * @return bool true on success, false on error
+   * @throws LoginException if error reporting is set to exceptions.
+   */
+  public function ensureLoggedIn()
+  {
+    $this->updateLoginStatus();
+    if (!$this->isLoggedIn()) {
+      $credentials = $this->loginCredentials();
+      $userName = $credentials['userId'];
+      $password = $credentials['password'];
+      if (!$this->login($userName, $password)) {
+        $e = new LoginException(
+          $this->l->t('Unable to log into Redaxo backend'), 0, null,
+          $userName, $this->loginStatus
+        );
+        return $this->handleError(null, $e);
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Persist authentication status and headers to the session.
+   */
+  public function persistLoginStatus()
+  {
+    $this->session->set($this->appName, [
+      'authHeaders' => $this->authHeaders,
+      'loginStatus' => (string)$this->loginStatus,
+    ]);
+  }
+
+  /**
+   * Restores the authentication status and headers from the session.
+   */
+  private function restoreLoginStatus()
+  {
+    $this->authHeaders = [];
+    $this->loginStatus = LoginStatus::UNKNOWN();
+    $sessionData = $this->session->get($this->appName);
+    if (!empty($sessionData)) {
+      $this->logDebug('SESSION DATA: '.print_r($sessionData, true));
+      if (!LoginStatus::isValid($sessionData['loginStatus'])) {
+        $this->logError('Unable to load login status from session data');
+        return;
+      }
+      $this->loginStatus = LoginStatus::from($sessionData['loginStatus']);
+      $this->authHeaders = $sessionData['authHeaders'];
+      foreach ($this->authHeaders as $header) {
+        if (preg_match('/^Set-Cookie:\s*('.self::COOKIE_RE.')=([^;]+);/i', $header, $match)) {
+          $this->authCookies[$match[1]] = $match[2];
+        }
+      }
+    }
+  }
+
+  /**
    * Logoff from the external application.
    */
   public function logout()
   {
-    $response = $this->doSendRequest($this->location.'?rex_logout=1');
+    $response = $this->sendRequest($this->location.'?rex_logout=1');
     $this->updateLoginStatus($response);
     $this->cleanCookies();
     return $this->loginStatus->equals(LoginStatus::LOGGED_OUT());
@@ -288,7 +321,7 @@ class AuthRedaxo4
   {
     $this->updateLoginStatus();
 
-    return $this->loginStatus()->equals(LoginStatus::LOGGED_IN());
+    return $this->loginStatus->equals(LoginStatus::LOGGED_IN());
   }
 
   /**
@@ -305,11 +338,17 @@ class AuthRedaxo4
 
   /**
    * Ping the external application in order to extend its login
-   * session.
+   * session, but only if we are logged in. This is just to prevent
+   * session starvation while the Nextcloud-app is open.
    */
   public function refresh():bool
   {
-    return $this->isLoggedIn();
+    if ($this->loginStatus->equals(LoginStatus::LOGGED_IN())) {
+      $this->logDebug('Refreshing login for user '.$this->loginCredentials()['userId']);
+      return $this->isLoggedIn();
+    }
+    $this->logDebug('Not refreshing, user '.$this->loginCredentials()['userId'].' not logged in');
+    return false;
   }
 
   /**
@@ -325,7 +364,7 @@ class AuthRedaxo4
     }
 
     if ($response === false) {
-      $response = $this->doSendRequest($this->location);
+      $response = $this->sendRequest($this->location);
     }
 
     //LOGGED IN:
@@ -355,33 +394,9 @@ class AuthRedaxo4
 
   /**
    * Send a post request corresponding to $postData as post
-   * values. Like doSendRequest but only allow if already logged in.
+   * values.
    */
   public function sendRequest($formPath, $postData = false)
-  {
-    if (!$this->isLoggedIn()) {
-      try {
-        $credentials = $this->loginCredentials();
-        if (!$this->login($credentials['userId'], $credentials['password'])) {
-          $exception = new LoginException(
-            'Not logged in and re-login failed', 0, null,
-            $credentials['userId'], $this->loginStatus);
-          return $this->handleError(null, $exception);
-        }
-      } catch (LoginException $e) {
-        return $this->handleError(null, $e);
-      } catch (\Throwable $t) {
-        return $this->handleError(new LoginException("Caught non-login-exception", $t->getCode(), $t));
-      }
-    }
-
-    return $this->doSendRequest($formPath, $postData);
-  }
-
-  /**
-   * Send a post request corresponding to $postData as post values.
-   */
-  private function doSendRequest($formPath, $postData = false)
   {
     if (is_array($postData)) {
       $postData = http_build_query($postData, '', '&');
@@ -422,7 +437,7 @@ class AuthRedaxo4
     $url = $this->externalURL().$formPath;
 
     $logPostData = preg_replace('/rex_user_psw=[^&]*(&|$)/', 'rex_user_psw=XXXXXX$1', $postData);
-    $this->logDebug("doSendRequest() to ".$url." data ".$logPostData);
+    $this->logDebug("... to ".$url." data ".$logPostData);
 
     $fp = fopen($url, 'rb', false, $context);
     $result = '';
@@ -446,12 +461,14 @@ class AuthRedaxo4
     $redirect = false;
     $location = false;
     $newAuthHeaders = [];
+    $newAuthCookies = [];
+    //$this->logInfo('HEADERS '.print_r($responseHdr, true));
     foreach ($responseHdr as $header) {
+      // only the last cookie counts.
       if (preg_match('/^Set-Cookie:\s*('.self::COOKIE_RE.')=([^;]+);/i', $header, $match)) {
         if (true || $match[2] !== 'deleted') {
-          $newAuthHeaders[] = $header;
-          //$newAuthHeaders[] = preg_replace('|path=([^;]+);?|i', 'path='.\OC::$WEBROOT.'/;', $header);
-          $this->authCookies[$match[1]] = $match[2];
+          $newAuthHeaders = [ $header ];
+          $newAuthCookies[$match[1]] = $match[2];
           $this->logDebug("Auth Header: ".$header);
           $this->logDebug("Rex Cookie: ".$match[1]."=".$match[2]);
           $this->logDebug("AuthHeaders: ".print_r($newAuthHeaders, true));
@@ -466,7 +483,7 @@ class AuthRedaxo4
     }
     if (count($newAuthHeaders) > 0) {
       $this->authHeaders = $newAuthHeaders;
-      $this->session->set(self::SESSION_KEY, $this->authHeaders);
+      $this->authCookies = $newAuthCookies;
     }
     //$this->logDebug("Data Response: ".$result);
 
@@ -475,7 +492,7 @@ class AuthRedaxo4
       if (substr($location, 0, 4) == 'http') {
         return $this->handleError("Refusing to follow absolute location header: ".$location);
       }
-      return $this->doSendRequest($location);
+      return $this->sendRequest($location);
     }
 
     if (empty($result)) {

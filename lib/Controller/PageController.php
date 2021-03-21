@@ -35,6 +35,7 @@ use OCP\IInitialStateService;
 
 use OCA\Redaxo4Embedded\Traits;
 use OCA\Redaxo4Embedded\Service\AuthRedaxo4 as Authenticator;
+use OCA\Redaxo4Embedded\Exceptions\LoginException;
 
 class PageController extends Controller
 {
@@ -117,9 +118,14 @@ class PageController extends Controller
         // @TODO wrap into a nicer error page.
         throw new \Exception($this->l->t('Please tell a system administrator to configure the URL for the Redaxo4 instance'));
       }
-      $this->authenticator->sendRequest('');   // update login
-      $this->authenticator->emitAuthHeaders(); // send cookies
-
+      try {
+        $this->authenticator->ensureLoggedIn();
+        $this->authenticator->persistLoginStatus(); // store in session
+        $this->authenticator->emitAuthHeaders(); // send cookies
+      } catch (\Throwable $t) {
+        $this->logException($t, 'Unable to log into Redaxo4');
+        $this->authenticator->persistLoginStatus(); // store in session
+      }
       $this->session->close(); // flush session to disk
 
       $templateParameters = [
