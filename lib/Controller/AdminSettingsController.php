@@ -3,7 +3,7 @@
  * Redaxo4Embedded -- Embed DokuWik into NextCloud with SSO.
  *
  * @author Claus-Justus Heine
- * @copyright 2020 Claus-Justus Heine <himself@claus-justus-heine.de>
+ * @copyright 2020, 2021 Claus-Justus Heine <himself@claus-justus-heine.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU GENERAL PUBLIC LICENSE
@@ -73,7 +73,7 @@ class AdminSettingsController extends Controller
         continue;
       }
       $value = trim($this->request[$setting]);
-      $this->logInfo("Got setting ".$setting.": ".$value);
+      $this->logDebug("Got setting ".$setting.": ".$value);
       switch ($setting) {
         case 'externalLocation':
           if ($value === '') { // ok, reset
