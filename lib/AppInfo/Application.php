@@ -1,6 +1,6 @@
 <?php
 /**
- * Nextcloud - Redaxo4Embedded
+ * Redaxo4Embedded -- a Nextcloud App for embedding Redaxo4.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
  * @copyright Claus-Justus Heine 2020, 2021
