@@ -48,12 +48,6 @@ class RPC
     $this->authenticator = $authenticator;
     $this->logger = $logger;
     $this->l = $l10n;
-
-    // login now and reuse the obtained credentials for all subsequent
-    // requests. Do not record those credentials in the session.
-    if (!$this->authenticator->ensureLoggedIn()) {
-      $this->logError('Not logged in.');
-    }
   }
 
   public function errorReporting($how = null)
@@ -85,7 +79,8 @@ class RPC
 
   private function sendRequest($formPath, $postData = false)
   {
-    if (!$this->authenticator->isLoggedIn()) {
+    // try to login if necessary ...
+    if (!$this->authenticator->ensureLoggedIn()) {
       return $this->authenticator->handleError($this->l->t('Not logged in.'));
     }
     return $this->authenticator->sendRequest($formPath, $postData);
