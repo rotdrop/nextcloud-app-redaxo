@@ -86,6 +86,17 @@ class RPC
     return $this->authenticator->sendRequest($formPath, $postData);
   }
 
+
+  public function ping()
+  {
+    if ($this->sendRequest('index.php') !== false) {
+      // $this->authenticator->persistLoginStatus(); // store in session
+      $this->authenticator->emitAuthHeaders(); // send cookies
+      return true;
+    }
+    return false;
+  }
+
   /**
    * Fetch all categories for the Redaxo server.
    */
