@@ -60,6 +60,7 @@ class Admin implements ISettings
   public function getForm() {
     $templateParameters = [
       'appName' => $this->appName,
+      'webPrefix' => $this->appName,
       'urlGenerator' => $this->urlGenerator,
     ];
     foreach (self::SETTINGS as $setting => $default) {

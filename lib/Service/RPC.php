@@ -80,7 +80,7 @@ class RPC
   private function sendRequest($formPath, $postData = false)
   {
     // try to login if necessary ...
-    if (!$this->authenticator->ensureLoggedIn()) {
+    if (!$this->authenticator->ensureLoggedIn(true)) {
       return $this->authenticator->handleError($this->l->t('Not logged in.'));
     }
     return $this->authenticator->sendRequest($formPath, $postData);

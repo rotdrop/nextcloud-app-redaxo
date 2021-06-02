@@ -35,7 +35,6 @@ const storeSettings = function(event, $id) {
   let post = $id.serialize();
   const cbSelector = 'input:checkbox:not(:checked)';
   $id.find(cbSelector).addBack(cbSelector).each(function(index) {
-    console.info('unchecked?', index, $(this));
     if (post !== '') {
       post += '&';
     }
@@ -43,7 +42,6 @@ const storeSettings = function(event, $id) {
   });
   $.post(generateUrl('settings/admin/set'), post)
     .done(function(data) {
-      console.info('Got response data', data);
       if (data.value) {
         $id.val(data.value);
       }
@@ -74,8 +72,6 @@ $(function() {
   for (const input in inputs) {
     const $id = $('#' + input);
     const event = inputs[input];
-
-    console.info(input, event);
 
     $id.on(event, function(event) {
       event.preventDefault();

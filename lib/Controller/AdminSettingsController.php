@@ -33,6 +33,7 @@ use OCP\IL10N;
 
 use OCA\Redaxo4Embedded\Settings\Admin;
 use OCA\Redaxo4Embedded\Service\AuthRedaxo4 as Authenticator;
+use OCA\Redaxo4Embedded\Enums\LoginStatusEnum as LoginStatus;
 
 class AdminSettingsController extends Controller
 {
@@ -91,7 +92,7 @@ class AdminSettingsController extends Controller
             return self::grumble($this->l->t("Host-part of external URL seems to be empty"));
           }
           $this->authenticator->externalURL($value);
-          if ($this->authenticator->loginStatus() == Authenticator::STATUS_UNKNOWN) {
+          if ($this->authenticator->loginStatus() == LoginStatus::UNKNOWN()) {
             return self::grumble($this->l->t("Redaxo4 instance does not seem to be reachable at %s", [ $value ]));
           }
           break;
@@ -101,6 +102,7 @@ class AdminSettingsController extends Controller
             return self::grumble($this->l->t('Value "%1$s" for set "%2$s" is not in the allowed range.', [$value, $setting]));
           }
           $value = $realValue;
+          $strValue = $this->l->n('%n second', '%n seconds', $value);
           break;
         case 'enableSSLVerify':
           $realValue = filter_var($value, FILTER_VALIDATE_BOOLEAN, ['flags' => FILTER_NULL_ON_FAILURE]);
@@ -117,7 +119,7 @@ class AdminSettingsController extends Controller
       }
       return new DataResponse([
         'value' => $value,
-        'message' => $this->l->t("Parameter %s set to %s", [ $setting, $strValue ]),
+        'message' => $this->l->t('Parameter "%s" set to %s.', [ $setting, $strValue ]),
       ]);
     }
     return new DataResponse([ 'message' => $this->l->t('Unknown Request') ], Http::STATUS_BAD_REQUEST);

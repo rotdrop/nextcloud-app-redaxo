@@ -28,6 +28,7 @@ use OCP\IConfig;
 use OCP\IURLGenerator;
 use OCP\ILogger;
 use OCP\ISession;
+use OCP\IUserSession;
 use OCP\IL10N;
 
 use OCA\Redaxo4Embedded\Exceptions\LoginException;
@@ -41,18 +42,25 @@ class AuthRedaxo4
   const ON_ERROR_THROW = 'throw'; ///< Throw an exception on error
   const ON_ERROR_RETURN = 'return'; ///< Return boolean on error
 
+  /** @var string */
   private $appName;
 
-  /** @var \OCP\IConfig */
+  /** @var string */
+  private $userId;
+
+  /** @var IConfig */
   private $config;
 
-  /** @var \OCP\ISession */
+  /** @var ISession */
   private $session;
 
-  /** @var \OCP\Authentication\LoginCredentials\IStore */
+  /** @var IUserSession */
+  private $userSession;
+
+  /** @var ICredentialsStore */
   private $credentialsStore;
 
-  /** @var \OCP\IURLGeneator */
+  /** @var IURLGenerator */
   private $urlGenerator;
 
   private $proto;
@@ -77,6 +85,7 @@ class AuthRedaxo4
     string $appName
     , IConfig $config
     , ISession $session
+    , IUserSession $userSession
     , ICredentialsStore $credentialsStore
     , IURLGenerator $urlGenerator
     , ILogger $logger
@@ -85,6 +94,7 @@ class AuthRedaxo4
     $this->appName = $appName;
     $this->config = $config;
     $this->session = $session;
+    $this->userSession = $userSession;
     $this->credentialsStore = $credentialsStore;
     $this->urlGenerator = $urlGenerator;
     $this->logger = $logger;
@@ -109,6 +119,12 @@ class AuthRedaxo4
     $this->path  = $urlParts['path'];
 
     $this->location = "index.php";
+
+    if (!empty($this->userSession->getUser())) {
+      $this->userId = $this->userSession->getUser()->getUID();
+    } else {
+      $this->userId = null;
+    }
 
     $this->restoreLoginStatus(); // initialize and optionally restore from session data.
   }
@@ -251,9 +267,9 @@ class AuthRedaxo4
    * @return bool true on success, false on error
    * @throws LoginException if error reporting is set to exceptions.
    */
-  public function ensureLoggedIn()
+  public function ensureLoggedIn($forceUpdate = false)
   {
-    $this->updateLoginStatus();
+    $this->updateLoginStatus(false, $forceUpdate);
     if (!$this->isLoggedIn()) {
       $credentials = $this->loginCredentials();
       $userName = $credentials['userId'];
@@ -318,9 +334,9 @@ class AuthRedaxo4
   /**
    * Return true if the current login status is "logged in".
    */
-  public function isLoggedIn()
+  public function isLoggedIn($forceUpdate = false)
   {
-    $this->updateLoginStatus();
+    $this->updateLoginStatus(false, $forceUpdate);
 
     return $this->loginStatus->equals(LoginStatus::LOGGED_IN());
   }
@@ -345,8 +361,8 @@ class AuthRedaxo4
   public function refresh():bool
   {
     if ($this->loginStatus->equals(LoginStatus::LOGGED_IN())) {
-      $this->logDebug('Refreshing login for user '.$this->loginCredentials()['userId']);
-      return $this->isLoggedIn();
+      $this->logDebug('Refreshing login for user '.$this->userId);
+      return $this->isLoggedIn(true);
     }
     $this->logDebug('Not refreshing, user '.$this->loginCredentials()['userId'].' not logged in');
     return false;
@@ -382,7 +398,7 @@ class AuthRedaxo4
 
     $this->loginStatus = LoginStatus::UNKNOWN();
     if ($response !== false) {
-      //$this->logInfo(print_r($response['content'], true));
+      //$this->logDebug(print_r($response['content'], true));
       if (preg_match('/<form.+loginformular/mi', $response['content'])) {
         $this->loginStatus = LoginStatus::LOGGED_OUT();
       } else if (preg_match('/index.php[?]page=profile/m', $response['content'])) {
@@ -463,7 +479,7 @@ class AuthRedaxo4
     $location = false;
     $newAuthHeaders = [];
     $newAuthCookies = [];
-    //$this->logInfo('HEADERS '.print_r($responseHdr, true));
+    //$this->logDebug('HEADERS '.print_r($responseHdr, true));
     foreach ($responseHdr as $header) {
       // only the last cookie counts.
       if (preg_match('/^Set-Cookie:\s*('.self::COOKIE_RE.')=([^;]+);/i', $header, $match)) {

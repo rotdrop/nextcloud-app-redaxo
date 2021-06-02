@@ -120,7 +120,7 @@ class PageController extends Controller
         throw new \Exception($this->l->t('Please tell a system administrator to configure the URL for the Redaxo4 instance'));
       }
       try {
-        $this->authenticator->ensureLoggedIn();
+        $this->authenticator->ensureLoggedIn(true);
         $this->authenticator->persistLoginStatus(); // store in session
         $this->authenticator->emitAuthHeaders(); // send cookies
       } catch (\Throwable $t) {
