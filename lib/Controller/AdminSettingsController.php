@@ -104,6 +104,14 @@ class AdminSettingsController extends Controller
           $value = $realValue;
           $strValue = $this->l->n('%n second', '%n seconds', $value);
           break;
+        case 'reloginDelay':
+          $realValue = filter_var($value, FILTER_VALIDATE_INT, ['min_range' => 0]);
+          if ($realValue === false) {
+            return self::grumble($this->l->t('Value "%1$s" for set "%2$s" is not in the allowed range.', [$value, $setting]));
+          }
+          $value = $realValue;
+          $strValue = $this->l->n('%n second', '%n seconds', $value);
+          break;
         case 'enableSSLVerify':
           $realValue = filter_var($value, FILTER_VALIDATE_BOOLEAN, ['flags' => FILTER_NULL_ON_FAILURE]);
           if ($realValue === null) {

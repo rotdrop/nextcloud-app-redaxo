@@ -37,6 +37,7 @@ class Admin implements ISettings
   const SETTINGS = [
     'externalLocation' => '',
     'authenticationRefreshInterval' => 600,
+    'reloginDelay' => 5,
     'enableSSLVerify' => true,
   ];
 

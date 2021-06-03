@@ -54,6 +54,17 @@ have to enable the XMLRPC protocol in your Redaxo4.'); ?>"
     />
     <label for="authenticationRefreshInterval"><?php echo $l->t('Redaxo4 Session Refresh Interval [s]'); ?></label>
     <br/>
+    <input type="number"
+           min="0"
+           name="reloginDelay"
+           id="reloginDelay"
+           class="reloginDelay"
+           value="<?php echo $reloginDelay; ?>"
+           placeholder="<?php echo $l->t('delay [s]'); ?>"
+           title="<?php echo $l->t('Please enter the relogin delay. The delay is measured in seconds and must be somewhat larger than the configured relogin delay of the Redaxo4 instance in use.'); ?>"
+    />
+    <label for="reloginDelay"><?php echo $l->t('Redaxo4 Relogin Delay [s]'); ?></label>
+    <br/>
     <input type="checkbox"
            name="enableSSLVerify"
            id="enableSSLVerify"

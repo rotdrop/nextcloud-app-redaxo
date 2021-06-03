@@ -66,6 +66,7 @@ $(function() {
   const inputs = {
     externalLocation: 'blur',
     authenticationRefreshInterval: 'blur',
+    reloginDelay: 'blur',
     enableSSLVerify: 'change',
   };
 

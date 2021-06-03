@@ -81,6 +81,9 @@ class AuthRedaxo4
   /** @var bool */
   private $enableSSLVerify;
 
+  /** @var int */
+  private $loginTimeStamp;
+
   public function __construct(
     string $appName
     , IConfig $config
@@ -103,6 +106,8 @@ class AuthRedaxo4
     $this->errorReporting = self::ON_ERROR_RETURN;
 
     $this->enableSSLVerify = $this->config->getAppValue('enableSSLVerfiy', true);
+
+    $this->reloginDelay = $this->config->getAppValue('reloginDelay', 5);
 
     $location = $this->config->getAppValue($this->appName, 'externalLocation');
     if ($location[0] == '/') {
@@ -251,6 +256,7 @@ class AuthRedaxo4
       $this->cleanCookies();
     }
 
+    $this->logInfo('RELOGIN DISTANCE '.($this->loginTimeStamp - time()));
     $response = $this->sendRequest($this->location,
                                    [ 'javascript' => 1,
                                      'rex_user_login' => $userName,
@@ -269,6 +275,7 @@ class AuthRedaxo4
    */
   public function ensureLoggedIn($forceUpdate = false)
   {
+    $this->logInfo('BLAH');
     $this->updateLoginStatus(false, $forceUpdate);
     if (!$this->isLoggedIn()) {
       $credentials = $this->loginCredentials();
@@ -281,6 +288,9 @@ class AuthRedaxo4
         );
         return $this->handleError(null, $e);
       }
+      $this->logInfo('DID LOGIN');
+      $this->persistLoginStatus();
+      $this->emitAuthHeaders(); // send cookies
     }
     return true;
   }
@@ -290,9 +300,11 @@ class AuthRedaxo4
    */
   public function persistLoginStatus()
   {
+    $this->logInfo('PERSIST');
     $this->session->set($this->appName, [
       'authHeaders' => $this->authHeaders,
       'loginStatus' => (string)$this->loginStatus,
+      'loginTimeStamp' => time(),
     ]);
   }
 
@@ -310,6 +322,7 @@ class AuthRedaxo4
         $this->logError('Unable to load login status from session data');
         return;
       }
+      $this->loginTimeStamp = (int)$sessionData['loginTimeStamp'];
       $this->loginStatus = LoginStatus::from($sessionData['loginStatus']);
       $this->authHeaders = $sessionData['authHeaders'];
       foreach ($this->authHeaders as $header) {
@@ -376,7 +389,9 @@ class AuthRedaxo4
     if ($response === false
         && !$this->loginStatus->equals(LoginStatus::UNKNOWN())
         && count($this->authHeaders) > 0
+        && (time() - $this->loginTimeStamp <= $this->reloginDelay)
         && !$forceUpdate) {
+      $this->logInfo('OOPS '.(time() - $this->loginTimeStamp));
       return;
     }
 
@@ -403,6 +418,7 @@ class AuthRedaxo4
         $this->loginStatus = LoginStatus::LOGGED_OUT();
       } else if (preg_match('/index.php[?]page=profile/m', $response['content'])) {
         $this->loginStatus = LoginStatus::LOGGED_IN();
+        $this->logInfo('REALLY LOGGED IN');
       }
     } else {
       $this->logInfo("Empty response from login-form");
