@@ -121,9 +121,7 @@ class PageController extends Controller
       }
       try {
         $this->authenticator->ensureLoggedIn(true);
-        $this->logInfo('DID LOG IN? NOW PERSIST');
         $this->authenticator->persistLoginStatus(); // store in session
-        $this->logInfo('DID LOG IN? AFTER PERSIST');
         $this->authenticator->emitAuthHeaders(); // send cookies
       } catch (\Throwable $t) {
         $this->logException($t, 'Unable to log into Redaxo4');
