@@ -63,11 +63,11 @@ class AuthRedaxo4
   /** @var IURLGenerator */
   private $urlGenerator;
 
-  private $proto;
-  private $host;
-  private $port;
-  private $path;
-  private $location;
+  private $proto = null;
+  private $host = null;
+  private $port = null;
+  private $path = null;
+  private $location = null;
 
   private $authHeaders;  //!< Authentication headers echoed back to the user
   private $authCookies;  //!< $key -> $value array of relevant cookies
@@ -110,18 +110,22 @@ class AuthRedaxo4
     $this->reloginDelay = $this->config->getAppValue('reloginDelay', 5);
 
     $location = $this->config->getAppValue($this->appName, 'externalLocation');
-    if ($location[0] == '/') {
-      $url = $this->urlGenerator->getAbsoluteURL($location);
-    } else {
-      $url = $location;
+
+    if (!empty($location)) {
+
+      if ($location[0] == '/') {
+        $url = $this->urlGenerator->getAbsoluteURL($location);
+      } else {
+        $url = $location;
+      }
+
+      $urlParts = parse_url($url);
+        
+      $this->proto = $urlParts['scheme'];
+      $this->host  = $urlParts['host'];
+      $this->port  = isset($urlParts['port']) ? ':'.$urlParts['port'] : '';
+      $this->path  = $urlParts['path'];
     }
-
-    $urlParts = parse_url($url);
-
-    $this->proto = $urlParts['scheme'];
-    $this->host  = $urlParts['host'];
-    $this->port  = isset($urlParts['port']) ? ':'.$urlParts['port'] : '';
-    $this->path  = $urlParts['path'];
 
     $this->location = "index.php";
 
