@@ -120,7 +120,7 @@ class AuthRedaxo4
       }
 
       $urlParts = parse_url($url);
-        
+
       $this->proto = $urlParts['scheme'];
       $this->host  = $urlParts['host'];
       $this->port  = isset($urlParts['port']) ? ':'.$urlParts['port'] : '';
@@ -313,7 +313,7 @@ class AuthRedaxo4
    */
   private function restoreLoginStatus()
   {
-    $this->authHeaders = [];
+    $this->cleanCookies();
     $this->loginStatus = LoginStatus::UNKNOWN();
     $sessionData = $this->session->get($this->appName);
     if (!empty($sessionData)) {
