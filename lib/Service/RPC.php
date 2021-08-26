@@ -71,7 +71,7 @@ class RPC
       if ($editMode !== false) {
         $url .= '/index.php?page=content&article_id='.$articleId.'&mode=edit&clang=0';
       } else {
-        $url .= '../?article_id='.$articleId;
+        $url .= '/../?article_id='.$articleId;
       }
     }
     return $url;
