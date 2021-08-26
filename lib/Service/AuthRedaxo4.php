@@ -28,6 +28,7 @@ use OCP\IConfig;
 use OCP\IURLGenerator;
 use OCP\ILogger;
 use OCP\ISession;
+use OCP\Session\Exceptions\SessionNotAvailableException;
 use OCP\IUserSession;
 use OCP\IL10N;
 
@@ -301,11 +302,16 @@ class AuthRedaxo4
    */
   public function persistLoginStatus()
   {
-    $this->session->set($this->appName, [
-      'authHeaders' => $this->authHeaders,
-      'loginStatus' => (string)$this->loginStatus,
-      'loginTimeStamp' => time(),
-    ]);
+    try {
+      $this->session->set($this->appName, [
+        'authHeaders' => $this->authHeaders,
+        'loginStatus' => (string)$this->loginStatus,
+        'loginTimeStamp' => time(),
+      ]);
+    } catch (SessionNotAvailableException $e) {
+      // The Nextcloud log-reader does not handle custom messages :(
+      $this->logException(new \RuntimeException('Unable to persist login credentials to the session, session is already closed.', $e->getCode(), $e));
+    }
   }
 
   /**

@@ -57,7 +57,7 @@ trait LoggerTrait
 
     $prefix = $file.':'.$line.': '.$class.'::'.$method.': ';
 
-    empty($message) && ($message = "Caught an Exception");
+    $message = $message ?? "Caught an Exception";
     $this->logger->logException($exception, [ 'message' => $prefix.$message ]);
   }
 
