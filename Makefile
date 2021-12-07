@@ -67,6 +67,6 @@ distclean: clean
 .PHONY: realclean
 realclean: distclean
 	rm -f composer.lock
-	rm -f composer.json
+	rm -f package-lock.json
 	rm -f stamp.composer-core-versions
 	rm -f *.html
