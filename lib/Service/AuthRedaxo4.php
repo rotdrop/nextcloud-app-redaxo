@@ -43,6 +43,8 @@ class AuthRedaxo4
   const ON_ERROR_THROW = 'throw'; ///< Throw an exception on error
   const ON_ERROR_RETURN = 'return'; ///< Return boolean on error
 
+  private $loginResponse;
+
   /** @var string */
   private $appName;
 
@@ -286,7 +288,7 @@ class AuthRedaxo4
       $password = $credentials['password'];
       if (!$this->login($userName, $password)) {
         $e = new LoginException(
-          $this->l->t('Unable to log into Redaxo backend'), 0, null,
+          $this->l->t('Unable to log into Redaxo backend') . ' ' . $this->loginResponse, 0, null,
           $userName, $this->loginStatus
         );
         return $this->handleError(null, $e);
@@ -420,6 +422,7 @@ class AuthRedaxo4
     if ($response !== false) {
       //$this->logDebug(print_r($response['content'], true));
       if (preg_match('/<form.+loginformular/mi', $response['content'])) {
+        $this->loginResponse = $response['content'];
         $this->loginStatus = LoginStatus::LOGGED_OUT();
       } else if (preg_match('/index.php[?]page=profile/m', $response['content'])) {
         $this->loginStatus = LoginStatus::LOGGED_IN();
