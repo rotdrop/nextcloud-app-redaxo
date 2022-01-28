@@ -10,9 +10,12 @@
     <author mail="himself@claus-justus-heine.de" homepage="https://www.claus-justus-heine.de">Claus-Justus Heine</author>
     <namespace>Redaxo4Embedded</namespace>
     <category>integration</category>
-    <types>
-      <filesystem/><!-- required for catching dav events, otherwise app is not loaded -->
-    </types>
+    <category>tools</category>
+    <!-- Should no longer be necessary
+      <types>
+        <filesystem/>
+      </types>
+    -->
     <bugs>https://github.com/rotdrop/ocapp-embeddedredaxo.git</bugs>
     <dependencies>
         <nextcloud min-version="20" max-version="23"/>
