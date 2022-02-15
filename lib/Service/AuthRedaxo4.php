@@ -304,6 +304,10 @@ class AuthRedaxo4
    */
   public function persistLoginStatus()
   {
+    if ($this->session->isClosed()) {
+      $this->logWarn('Session is already closed, unable to persist login credentials.');
+      return;
+    }
     try {
       $this->session->set($this->appName, [
         'authHeaders' => $this->authHeaders,
