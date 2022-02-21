@@ -3,7 +3,7 @@
  * Redaxo4Embedded -- a Nextcloud App for embedding Redaxo4.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2022
  *
  * Redaxo4Embedded is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -26,12 +26,14 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 class Registration
 {
-  public static function register(IRegistrationContext $context) {
+  public static function register(IRegistrationContext $context)
+  {
     self::registerListener($context, UserLoggedInEventListener::class);
     self::registerListener($context, UserLoggedOutEventListener::class);
   }
 
-  private static function registerListener(IRegistrationContext $context, $class) {
+  private static function registerListener(IRegistrationContext $context, $class)
+  {
     $events = $class::EVENT;
     if (!is_array($events)) {
       $events = [ $events ];

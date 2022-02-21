@@ -26,7 +26,6 @@ use OCP\User\Events\BeforeUserLoggedOutEvent as HandledEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\ILogger;
-use OCP\IL10N;
 
 use OCA\Redaxo4Embedded\Service\AuthRedaxo4;
 
@@ -36,21 +35,16 @@ class UserLoggedOutEventListener implements IEventListener
 
   const EVENT = HandledEvent::class;
 
-  /** @var string */
-  private $appName;
-
   /** @var AuthRedaxo4 */
   private $authenticator;
 
   public function __construct(
     AuthRedaxo4 $authenticator
     , ILogger $logger
-    , IL10N $l10n
   ) {
     $this->authenticator = $authenticator;
     $this->appName = $this->authenticator->getAppName();
     $this->logger = $logger;
-    $this->l = $l10n;
   }
 
   public function handle(Event $event): void {

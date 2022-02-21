@@ -3,7 +3,7 @@
  * Redaxo4Embedded -- a Nextcloud App for embedding Redaxo4.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2022
  *
  * Redaxo4Embedded is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -26,9 +26,9 @@ use OCP\User\Events\UserLoggedInEvent as Event1;
 use OCP\User\Events\UserLoggedInWithCookieEvent as Event2;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\AppFramework\IAppContainer;
 use OCP\IRequest;
 use OCP\ILogger;
-use OCP\IL10N;
 
 use OCA\Redaxo4Embedded\Service\AuthRedaxo4;
 
@@ -38,29 +38,24 @@ class UserLoggedInEventListener implements IEventListener
 
   const EVENT = [ Event1::class, Event2::class ];
 
-  /** @var string */
-  private $appName;
-
   /** @var OCP\IRequest */
   private $request;
 
-  /** @var AuthRedaxo4 */
-  private $authenticator;
+  /** @var IAppContainer */
+  private $appContainer;
 
   public function __construct(
-    AuthRedaxo4 $authenticator
-    , IRequest $request
-    , ILogger $logger
-    , IL10N $l10n
+    IRequest $request,
+    ILogger $logger,
+    IAppContainer $appContiner
   ) {
-    $this->authenticator = $authenticator;
-    $this->appName = $this->authenticator->getAppName();
     $this->request = $request;
     $this->logger = $logger;
-    $this->l = $l10n;
+    $this->appContainer = $appContiner;
   }
 
-  public function handle(Event $event): void {
+  public function handle(Event $event): void
+  {
     if (!($event instanceOf Event1 && !($event instanceOf Event2))) {
       return;
     }
@@ -69,16 +64,19 @@ class UserLoggedInEventListener implements IEventListener
       return;
     }
 
+    /** @var AuthRedaxo4 $authenticator */
+    $authenticator = $this->appContainer->get(AuthRedaxo4::class);
+
     $userName = $event->getUser()->getUID();
     $password = $event->getPassword();
-    if ($this->authenticator->login($userName, $password)) {
+    if ($authenticator->login($userName, $password)) {
       // TODO: perhaps store in session and emit in middleware
-      $this->authenticator->emitAuthHeaders();
+      $authenticator->emitAuthHeaders();
       $this->logDebug("Redaxo4 login of user $userName probably succeeded.");
     } else {
       $this->logDebug("Redaxo4 login of user $userName failed.");
     }
-    $this->authenticator->persistLoginStatus();
+    $authenticator->persistLoginStatus();
   }
 
   /**
@@ -96,7 +94,7 @@ class UserLoggedInEventListener implements IEventListener
       $this->logDebug('Ignoring API login');
       return true;
     }
-    if (strpos($this->request->getHeader('Authorization'), 'Bearer ') === 0) {
+    if (strpos($request->getHeader('Authorization'), 'Bearer ') === 0) {
       $this->logDebug('Ignoring API "bearer" auth');
       return true;
     }
