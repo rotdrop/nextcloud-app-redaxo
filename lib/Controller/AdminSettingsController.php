@@ -68,6 +68,9 @@ class AdminSettingsController extends Controller
     $this->l = $l10n;
   }
 
+  /**
+   * @AuthorizedAdminSetting(settings=OCA\Redaxo4Embedded\Settings\Admin)
+   */
   public function set()
   {
     foreach (array_keys(Admin::SETTINGS) as $setting) {

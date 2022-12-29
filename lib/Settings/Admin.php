@@ -24,12 +24,12 @@ namespace OCA\Redaxo4Embedded\Settings;
 
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IURLGenerator;
-use OCP\Settings\ISettings;
+use OCP\Settings\IDelegatedSettings;
 use OCP\IConfig;
 use OCP\ILogger;
 use OCP\IL10N;
 
-class Admin implements ISettings
+class Admin implements IDelegatedSettings
 {
   use \OCA\Redaxo4Embedded\Traits\LoggerTrait;
 
@@ -92,6 +92,14 @@ class Admin implements ISettings
   public function getPriority() {
     // @@TODO could be made a configure option.
     return 50;
+  }
+
+  public function getName(): ?string {
+    return null;
+  }
+
+  public function getAuthorizedAppConfig(): array {
+    return [];
   }
 }
 
