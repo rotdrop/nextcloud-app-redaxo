@@ -4,7 +4,7 @@ ABSBUILDDIR = $(CURDIR)/build
 DOC_BUILD_DIR = $(ABSBUILDDIR)/artifacts/doc
 
 COMPOSER = composer
-COMPOSER_OPTIONS = --no-dev --prefer-dist
+COMPOSER_OPTIONS = --prefer-dist
 
 PHPDOC = /opt/phpDocumentor/bin/phpdoc
 PHPDOC_TEMPLATE = --template=default
