@@ -3,7 +3,7 @@
  * Redaxo4Embedded -- a Nextcloud App for embedding Redaxo4.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2022
+ * @copyright Claus-Justus Heine 2020, 2021, 2022, 2023
  *
  * Redaxo4Embedded is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -47,11 +47,11 @@ class UserLoggedInEventListener implements IEventListener
   public function __construct(
     IRequest $request,
     ILogger $logger,
-    IAppContainer $appContiner
+    IAppContainer $appContainer,
   ) {
     $this->request = $request;
     $this->logger = $logger;
-    $this->appContainer = $appContiner;
+    $this->appContainer = $appContainer;
   }
 
   public function handle(Event $event): void

@@ -3,7 +3,7 @@
  * Redaxo4Embedded -- a Nextcloud App for embedding Redaxo4.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2023
  *
  * Redaxo4Embedded is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -25,6 +25,8 @@ namespace OCA\Redaxo4Embedded\Listener;
 use OCP\User\Events\BeforeUserLoggedOutEvent as HandledEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\AppFramework\IAppContainer;
+use OCP\IRequest;
 use OCP\ILogger;
 
 use OCA\Redaxo4Embedded\Service\AuthRedaxo4;
@@ -35,16 +37,20 @@ class UserLoggedOutEventListener implements IEventListener
 
   const EVENT = HandledEvent::class;
 
-  /** @var AuthRedaxo4 */
-  private $authenticator;
+  /** @var OCP\IRequest */
+  private $request;
+
+  /** @var IAppContainer */
+  private $appContainer;
 
   public function __construct(
-    AuthRedaxo4 $authenticator
-    , ILogger $logger
+    IRequest $request,
+    ILogger $logger,
+    IAppContainer $appContainer,
   ) {
-    $this->authenticator = $authenticator;
-    $this->appName = $this->authenticator->getAppName();
+    $this->request = $request;
     $this->logger = $logger;
+    $this->appContainer = $appContainer;
   }
 
   public function handle(Event $event): void {
@@ -52,15 +58,39 @@ class UserLoggedOutEventListener implements IEventListener
       return;
     }
 
-    if ($this->authenticator->logout()) {
-      $this->authenticator->emitAuthHeaders();
-      $this->logInfo("Redaxo4 logoff probably succeeded.");
+    if ($this->ignoreRequest($this->request)) {
+      return;
     }
-    $this->authenticator->persistLoginStatus();
+
+    /** @var AuthRedaxo4 $authenticator */
+    $authenticator = $this->appContainer->get(AuthRedaxo4::class);
+
+    if ($authenticator->logout()) {
+      $authenticator->emitAuthHeaders();
+      // $this->logInfo("Redaxo4 logoff probably succeeded.");
+    }
+    $authenticator->persistLoginStatus();
+  }
+
+  /**
+   * In order to avoid request ping-pong the auto-login should only be
+   * attempted for UI logins.
+   */
+  private function ignoreRequest(IRequest $request):bool
+  {
+    $method = $request->getMethod();
+    if ($method != 'GET' && $method != 'POST') {
+      $this->logDebug('Ignoring request with method '.$method);
+      return true;
+    }
+    if ($request->getHeader('OCS-APIREQUEST') === 'true') {
+      $this->logDebug('Ignoring API login');
+      return true;
+    }
+    if (strpos($request->getHeader('Authorization'), 'Bearer ') === 0) {
+      $this->logDebug('Ignoring API "bearer" auth');
+      return true;
+    }
+    return false;
   }
 }
-
-// Local Variables: ***
-// c-basic-offset: 2 ***
-// indent-tabs-mode: nil ***
-// End: ***
