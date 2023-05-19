@@ -2,7 +2,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2023
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -50,13 +50,8 @@ $(function() {
       resizeTimer = setTimeout(setHeightCallback);
     });
   }
-  if (contents.find('ul.rex-logout').length > 0) {
+  if (contents.find('a.rex-logout').length > 0) {
     loadHandler(frame, frameWrapper, setHeightCallback);
   }
 
 });
-
-// Local Variables: ***
-// js-indent-level: 2 ***
-// indent-tabs-mode: nil ***
-// End: ***

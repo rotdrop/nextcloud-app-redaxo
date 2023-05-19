@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2023
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -78,7 +78,7 @@ class AdminSettingsController extends Controller
         continue;
       }
       $value = trim($this->request[$setting]);
-      $this->logDebug("Got setting ".$setting.": ".$value);
+      $this->logDebug("Got setting " . $setting . ": " . $value);
       switch ($setting) {
         case 'externalLocation':
           if ($value === '') { // ok, reset

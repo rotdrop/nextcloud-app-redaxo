@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2023
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -42,6 +42,7 @@ class AuthRedaxo
   const COOKIE_RE = 'REX[0-9]+|PHPSESSID|redaxo_sessid|KEY_PHPSESSID|KEY_redaxo_sessid';
   const ON_ERROR_THROW = 'throw'; ///< Throw an exception on error
   const ON_ERROR_RETURN = 'return'; ///< Return boolean on error
+  const CSRF_TOKEN_KEY = '_csrf_token';
 
   private $loginResponse;
 
@@ -87,15 +88,18 @@ class AuthRedaxo
   /** @var int */
   private $loginTimeStamp;
 
+  /** @var string */
+  private $csrfToken;
+
   public function __construct(
-    string $appName
-    , IConfig $config
-    , ISession $session
-    , IUserSession $userSession
-    , ICredentialsStore $credentialsStore
-    , IURLGenerator $urlGenerator
-    , ILogger $logger
-    , IL10N $l10n
+    string $appName,
+    IConfig $config,
+    ISession $session,
+    IUserSession $userSession,
+    ICredentialsStore $credentialsStore,
+    IURLGenerator $urlGenerator,
+    ILogger $logger,
+    IL10N $l10n,
   ) {
     $this->appName = $appName;
     $this->config = $config;
@@ -105,6 +109,8 @@ class AuthRedaxo
     $this->urlGenerator = $urlGenerator;
     $this->logger = $logger;
     $this->l = $l10n;
+
+    $this->csrfToken = null;
 
     $this->errorReporting = self::ON_ERROR_RETURN;
 
@@ -264,7 +270,7 @@ class AuthRedaxo
     }
 
     $response = $this->sendRequest($this->location,
-                                   [ 'javascript' => 1,
+                                   [ 'javascript' => 0,
                                      'rex_user_login' => $userName,
                                      'rex_user_psw' => $password ]);
 
@@ -288,7 +294,7 @@ class AuthRedaxo
       $password = $credentials['password'];
       if (!$this->login($userName, $password)) {
         $e = new LoginException(
-          $this->l->t('Unable to log into Redaxo backend') . ' ' . $this->loginResponse, 0, null,
+          $this->l->t('Unable to log into Redaxo backend') . ' ' /* . $this->loginResponse */, 0, null,
           $userName, $this->loginStatus
         );
         return $this->handleError(null, $e);
@@ -410,6 +416,8 @@ class AuthRedaxo
       $response = $this->sendRequest($this->location);
     }
 
+    // $this->logInfo('RESPONSE ' . print_r($response, true));
+
     //LOGGED IN:
     //<div id="rex-navi-logout">
     //  <ul class="rex-logout">
@@ -425,10 +433,10 @@ class AuthRedaxo
     $this->loginStatus = LoginStatus::UNKNOWN();
     if ($response !== false) {
       //$this->logDebug(print_r($response['content'], true));
-      if (preg_match('/<form.+loginformular/mi', $response['content'])) {
+      if (preg_match('/<form.+rex-form-login/mi', $response['content'])) {
         $this->loginResponse = $response['content'];
         $this->loginStatus = LoginStatus::LOGGED_OUT();
-      } else if (preg_match('/index.php[?]page=profile/m', $response['content'])) {
+      } elseif (preg_match('/index.php[?]page=profile/m', $response['content'])) {
         $this->loginStatus = LoginStatus::LOGGED_IN();
       }
     } else {
@@ -443,6 +451,9 @@ class AuthRedaxo
   public function sendRequest($formPath, $postData = false)
   {
     if (is_array($postData)) {
+      if (!empty($this->csrfToken)) {
+        $postData[self::CSRF_TOKEN_KEY] = $this->csrfToken;
+      }
       $postData = http_build_query($postData, '', '&');
     }
     $method = (!$postData) ? "GET" : "POST";
@@ -454,9 +465,13 @@ class AuthRedaxo
     $cookies = (count($cookies) > 0) ? "Cookie: " . join("; ", $cookies) . "\r\n" : '';
 
     // Construct the header with any relevant cookies
-    $httpHeader = 'Content-Type: application/x-www-form-urlencoded'."\r\n"
-                .'Content-Length: '.strlen($postData)."\r\n"
-                .$cookies;
+    $httpHeader = $cookies;
+    if ($method == 'POST') {
+      $httpHeader .= 'Content-Type: application/x-www-form-urlencoded' . "\r\n"
+        . 'Content-Length: ' . strlen($postData) . "\r\n";
+    }
+
+    // $httpHeader .= 'Accept-Encoding: gzip, deflate, br' . "\r\n"; // gzip seems to be necessary
 
     /* Do not follow redirects, because we need the PHP session
      * cookie generated after the first successful login. Thus this
@@ -478,7 +493,7 @@ class AuthRedaxo
     if (!empty($formPath) && $formPath[0] != '/') {
       $formPath = '/'.$formPath;
     }
-    $url = $this->externalURL().$formPath;
+    $url = $this->externalURL() . $formPath;
 
     $logPostData = preg_replace('/rex_user_psw=[^&]*(&|$)/', 'rex_user_psw=XXXXXX$1', $postData);
     $this->logDebug("... to ".$url." data ".$logPostData);
@@ -506,7 +521,7 @@ class AuthRedaxo
     $location = false;
     $newAuthHeaders = [];
     $newAuthCookies = [];
-    //$this->logDebug('HEADERS '.print_r($responseHdr, true));
+    $this->logDebug('HEADERS ' . print_r($responseHdr, true));
     foreach ($responseHdr as $header) {
       // only the last cookie counts.
       if (preg_match('/^Set-Cookie:\s*('.self::COOKIE_RE.')=([^;]+);/i', $header, $match)) {
@@ -517,10 +532,10 @@ class AuthRedaxo
           $this->logDebug("Rex Cookie: ".$match[1]."=".$match[2]);
           $this->logDebug("AuthHeaders: ".print_r($newAuthHeaders, true));
         }
-      } else if (preg_match('|^HTTP/1.[0-9]\s+(30[23])|', $header, $match)) {
+      } elseif (preg_match('|^HTTP/1.[0-9]\s+(30[23])|', $header, $match)) {
         $redirect = true;
         $this->logDebug("Redirect status: ".$match[1]);
-      } else if (preg_match('/^Location:\s*(\S+)$/', $header, $match)) {
+      } elseif (preg_match('/^Location:\s*(\S+)$/', $header, $match)) {
         $location = $match[1];
         $this->logDebug("Redirect location: ".$location);
       }
@@ -543,6 +558,15 @@ class AuthRedaxo
       return $this->handleError("Empty result");
     }
 
+    // update the CSRF token if there is one
+    // <input type="hidden" name="_csrf_token" value="A5AJ7s6T71vhVSsoD5sJxJYtD7D0Sb_XenaBncRH200"/>
+
+    $matches = null;
+    if (preg_match('@<input[^/]+name="' . self::CSRF_TOKEN_KEY . '"[^/]+value="([^"]+)"[^/]*/>@i', $result, $matches) ||
+        preg_match('@<input[^/]+value="([^"]+)"[^/]+name="' . self::CSRF_TOKEN_KEY . '"[^/]*/>@i', $result, $matches)) {
+      $this->csrfToken = $matches[1];
+    }
+
     return [
       'request' => $formPath,
       'responseHeaders' => $responseHdr,
@@ -552,13 +576,8 @@ class AuthRedaxo
 
   private function cleanCookies()
   {
-    $this->authHeaders = [];
-    $this->authCookies = [];
-    // foreach ($_COOKIE as $cookie => $value) {
-    //   if (preg_match('/^(Redaxo|DW).*/', $cookie)) {
-    //     unset($_COOKIE[$cookie]);
-    //   }
-    // }
+    $this->authHeaders = array_filter($this->authHeaders ?? [], fn($value) => str_contains($value, 'PHPSESSID'));
+    $this->authCookies = array_filter($this->authCookies ?? [], fn($value, $key) => $key == 'PHPSESSID', ARRAY_FILTER_USE_BOTH);
   }
 
   /**

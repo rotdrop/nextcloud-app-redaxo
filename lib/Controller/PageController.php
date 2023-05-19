@@ -3,7 +3,8 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @license LGPL
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -21,6 +22,8 @@
  */
 
 namespace OCA\Redaxo\Controller;
+
+use Exception;
 
 use OCP\IRequest;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
@@ -117,7 +120,7 @@ class PageController extends Controller
 
       if (empty($externalURL)) {
         // @TODO wrap into a nicer error page.
-        throw new \Exception($this->l->t('Please tell a system administrator to configure the URL for the Redaxo instance'));
+        throw new Exception($this->l->t('Please tell a system administrator to configure the URL for the Redaxo instance'));
       }
       try {
         $this->authenticator->ensureLoggedIn(true);
@@ -152,7 +155,7 @@ class PageController extends Controller
       return $response;
 
     } catch (\Throwable $t) {
-      if ($renderAS == 'blank') {
+      if ($renderAs == 'blank') {
         $this->logException($t);
         return self::grumble($this->exceptionChainData($t));
       } else {

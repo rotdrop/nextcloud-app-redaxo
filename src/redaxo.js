@@ -2,7 +2,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2023
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -28,12 +28,11 @@ const loadHandler = function(frame, frameWrapper, callback) {
   const contents = frame.contents();
 
   // Remove the logout stuff
-  contents.find('ul.rex-logout').remove();
+  contents.find('#rex-js-nav-top').remove();
 
   // shift the entire thing a little bit into the inside
-  contents.find('div#rex-website').css({
-    'margin-left': '50px',
-    'margin-top': '50px',
+  contents.find('#rex-js-page-container').find('.rex-nav-main, .rex-page-main').css({
+    'padding-top': 0,
   });
 
   // Make sure all external links are opened in another window
@@ -66,8 +65,3 @@ const loadHandler = function(frame, frameWrapper, callback) {
 };
 
 export { loadHandler };
-
-// Local Variables: ***
-// js-indent-level: 2 ***
-// indent-tabs-mode: nil ***
-// End: ***
