@@ -1,4 +1,4 @@
-# Doku Wiki Embedded
+# Embedded Redaxo CMS
 Place this app in **nextcloud/apps/**
 
 ## Building the app
