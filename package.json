@@ -1,9 +1,9 @@
 {
-  "name": "redaxo4embedded",
+  "name": "redaxo",
   "version": "0.0.3",
-  "description": "Support embedding an external Redaxo4 instance with SSO",
+  "description": "Support embedding an external Redaxo instance with SSO",
   "author": "Claus-Justus Heine <himself@claus-justus-heine.de>",
-  "main": "redaxo4.js",
+  "main": "redaxo.js",
   "scripts": {
     "build": "NODE_ENV=production webpack --progress --mode production --hide-modules --config webpack.config.js",
     "dev": "NODE_ENV=development webpack --progress --mode development --config webpack.config.js"

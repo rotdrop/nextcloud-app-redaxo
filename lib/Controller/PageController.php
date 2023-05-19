@@ -1,26 +1,26 @@
 <?php
 /**
- * Redaxo4Embedded -- a Nextcloud App for embedding Redaxo4.
+ * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
  * @copyright Claus-Justus Heine 2020, 2021
  *
- * Redaxo4Embedded is free software: you can redistribute it and/or
+ * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
  * License as published by the Free Software Foundation; either
  * version 3 of the License, or (at your option) any later version.
  *
- * Redaxo4Embedded is distributed in the hope that it will be useful,
+ * Redaxo is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU AFFERO GENERAL PUBLIC LICENSE for more details.
  *
  * You should have received a copy of the GNU Affero General Public
- * License along with Redaxo4Embedded.  If not, see
+ * License along with Redaxo.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
 
-namespace OCA\Redaxo4Embedded\Controller;
+namespace OCA\Redaxo\Controller;
 
 use OCP\IRequest;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
@@ -34,16 +34,16 @@ use OCP\IL10N;
 use OCP\IConfig;
 use OCP\IInitialStateService;
 
-use OCA\Redaxo4Embedded\Traits;
-use OCA\Redaxo4Embedded\Service\AuthRedaxo4 as Authenticator;
-use OCA\Redaxo4Embedded\Exceptions\LoginException;
+use OCA\Redaxo\Traits;
+use OCA\Redaxo\Service\AuthRedaxo as Authenticator;
+use OCA\Redaxo\Exceptions\LoginException;
 
 class PageController extends Controller
 {
   use Traits\LoggerTrait;
   use Traits\ResponseTrait;
 
-  const TEMPLATE = 'redaxo4';
+  const TEMPLATE = 'redaxo';
 
   /** @var string */
   private $userId;
@@ -117,14 +117,14 @@ class PageController extends Controller
 
       if (empty($externalURL)) {
         // @TODO wrap into a nicer error page.
-        throw new \Exception($this->l->t('Please tell a system administrator to configure the URL for the Redaxo4 instance'));
+        throw new \Exception($this->l->t('Please tell a system administrator to configure the URL for the Redaxo instance'));
       }
       try {
         $this->authenticator->ensureLoggedIn(true);
         $this->authenticator->persistLoginStatus(); // store in session
         $this->authenticator->emitAuthHeaders(); // send cookies
       } catch (\Throwable $t) {
-        $this->logException($t, 'Unable to log into Redaxo4');
+        $this->logException($t, 'Unable to log into Redaxo');
         $this->authenticator->persistLoginStatus(); // store in session
       }
       $this->session->close(); // flush session to disk

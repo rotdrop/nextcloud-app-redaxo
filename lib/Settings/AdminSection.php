@@ -1,26 +1,26 @@
 <?php
 /**
- * Redaxo4Embedded -- a Nextcloud App for embedding Redaxo4.
+ * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
  * @copyright Claus-Justus Heine 2020, 2021
  *
- * Redaxo4Embedded is free software: you can redistribute it and/or
+ * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
  * License as published by the Free Software Foundation; either
  * version 3 of the License, or (at your option) any later version.
  *
- * Redaxo4Embedded is distributed in the hope that it will be useful,
+ * Redaxo is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU AFFERO GENERAL PUBLIC LICENSE for more details.
  *
  * You should have received a copy of the GNU Affero General Public
- * License along with Redaxo4Embedded.  If not, see
+ * License along with Redaxo.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
 
-namespace OCA\Redaxo4Embedded\Settings;
+namespace OCA\Redaxo\Settings;
 
 use OCP\Settings\IIconSection;
 use OCP\IURLGenerator;
@@ -29,7 +29,7 @@ use OCP\IL10N;
 
 class AdminSection implements IIconSection
 {
-  use \OCA\Redaxo4Embedded\Traits\LoggerTrait;
+  use \OCA\Redaxo\Traits\LoggerTrait;
 
   /** @var string */
   private $appName;
@@ -66,7 +66,7 @@ class AdminSection implements IIconSection
    */
   public function getName() {
     // @@TODO make this configurable
-    return $this->l->t("Redaxo4 Integration");
+    return $this->l->t("Redaxo Integration");
   }
 
   /**

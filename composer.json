@@ -1,6 +1,6 @@
 {
-  "name": "rotdrop/redaxo4embedded",
-  "description": "Support embedding an external Redaxo4 instance with SSO",
+  "name": "rotdrop/redaxo",
+  "description": "Support embedding an external Redaxo instance with SSO",
   "licence": "AGPL",
   "authors": [
     {

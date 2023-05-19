@@ -1,26 +1,26 @@
 <?php
 /**
- * Redaxo4Embedded -- a Nextcloud App for embedding Redaxo4.
+ * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
  * @copyright Claus-Justus Heine 2020, 2021
  *
- * Redaxo4Embedded is free software: you can redistribute it and/or
+ * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
  * License as published by the Free Software Foundation; either
  * version 3 of the License, or (at your option) any later version.
  *
- * Redaxo4Embedded is distributed in the hope that it will be useful,
+ * Redaxo is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU AFFERO GENERAL PUBLIC LICENSE for more details.
  *
  * You should have received a copy of the GNU Affero General Public
- * License along with Redaxo4Embedded.  If not, see
+ * License along with Redaxo.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
 
-namespace OCA\Redaxo4Embedded\Service;
+namespace OCA\Redaxo\Service;
 
 use OCP\Authentication\LoginCredentials\IStore as ICredentialsStore;
 use OCP\Authentication\LoginCredentials\ICredentials;
@@ -32,12 +32,12 @@ use OCP\Session\Exceptions\SessionNotAvailableException;
 use OCP\IUserSession;
 use OCP\IL10N;
 
-use OCA\Redaxo4Embedded\Exceptions\LoginException;
-use OCA\Redaxo4Embedded\Enums\LoginStatusEnum as LoginStatus;
+use OCA\Redaxo\Exceptions\LoginException;
+use OCA\Redaxo\Enums\LoginStatusEnum as LoginStatus;
 
-class AuthRedaxo4
+class AuthRedaxo
 {
-  use \OCA\Redaxo4Embedded\Traits\LoggerTrait;
+  use \OCA\Redaxo\Traits\LoggerTrait;
 
   const COOKIE_RE = 'REX[0-9]+|PHPSESSID|redaxo_sessid|KEY_PHPSESSID|KEY_redaxo_sessid';
   const ON_ERROR_THROW = 'throw'; ///< Throw an exception on error
@@ -555,7 +555,7 @@ class AuthRedaxo4
     $this->authHeaders = [];
     $this->authCookies = [];
     // foreach ($_COOKIE as $cookie => $value) {
-    //   if (preg_match('/^(Redaxo4|DW).*/', $cookie)) {
+    //   if (preg_match('/^(Redaxo|DW).*/', $cookie)) {
     //     unset($_COOKIE[$cookie]);
     //   }
     // }

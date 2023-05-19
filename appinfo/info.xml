@@ -1,33 +1,28 @@
 <?xml version="1.0"?>
 <info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
-    <id>redaxo4embedded</id>
-    <name>Redaxo V4 Embedded</name>
-    <summary>Support embedding an external Redaxo4 instance with SSO</summary>
-    <description><![CDATA[Redxao4 users and Nextcloud users have to coincide, e.g. by using a common authentication backend lik LDAP, or with an appropriate auth plugin on either side of the integration.]]></description>
-    <version>0.0.3</version>
+    <id>redaxo</id>
+    <name>Redaxo CMS</name>
+    <summary>Support embedding an external Redaxo CMS instance with SSO</summary>
+    <description><![CDATA[Redxao users and Nextcloud users have to coincide, e.g. by using a common authentication backend lik LDAP, or with an appropriate auth plugin on either side of the integration.]]></description>
+    <version>0.0.1</version>
     <licence>agpl</licence>
     <author mail="himself@claus-justus-heine.de" homepage="https://www.claus-justus-heine.de">Claus-Justus Heine</author>
-    <namespace>Redaxo4Embedded</namespace>
+    <namespace>Redaxo</namespace>
     <category>integration</category>
     <category>tools</category>
-    <!-- Should no longer be necessary
-      <types>
-        <filesystem/>
-      </types>
-    -->
-    <bugs>https://github.com/rotdrop/ocapp-embeddedredaxo.git</bugs>
+    <bugs>https://github.com/rotdrop/nextcloud-app-redaxo</bugs>
     <dependencies>
-        <nextcloud min-version="24" max-version="25"/>
+        <nextcloud min-version="25" max-version="26"/>
     </dependencies>
     <navigations>
         <navigation>
-            <name>Redaxo4</name>
-            <route>redaxo4embedded.page.index</route>
+            <name>Redaxo</name>
+            <route>redaxo.page.index</route>
         </navigation>
     </navigations>
     <settings>
-      <admin>OCA\Redaxo4Embedded\Settings\Admin</admin>
-      <admin-section>OCA\Redaxo4Embedded\Settings\AdminSection</admin-section>
+      <admin>OCA\Redaxo\Settings\Admin</admin>
+      <admin-section>OCA\Redaxo\Settings\AdminSection</admin-section>
     </settings>
 </info>
