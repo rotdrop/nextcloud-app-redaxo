@@ -4,6 +4,7 @@
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
  * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -22,6 +23,10 @@
 
 namespace OCA\Redaxo\Service;
 
+use Exception;
+use RuntimeException;
+use Throwable;
+
 use OCP\Authentication\LoginCredentials\IStore as ICredentialsStore;
 use OCP\Authentication\LoginCredentials\ICredentials;
 use OCP\IConfig;
@@ -35,6 +40,10 @@ use OCP\IL10N;
 use OCA\Redaxo\Exceptions\LoginException;
 use OCA\Redaxo\Enums\LoginStatusEnum as LoginStatus;
 
+/**
+ * Handle authentication against a running redaxo instance and provide basic
+ * request sending to that instance.
+ */
 class AuthRedaxo
 {
   use \OCA\Redaxo\Traits\LoggerTrait;
@@ -91,6 +100,7 @@ class AuthRedaxo
   /** @var string */
   private $csrfToken;
 
+  // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
     string $appName,
     IConfig $config,
@@ -146,11 +156,14 @@ class AuthRedaxo
 
     $this->restoreLoginStatus(); // initialize and optionally restore from session data.
   }
+  // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 
   /**
    * Return the name of the app.
+   *
+   * @return string
    */
-  public function getAppName(): string
+  public function getAppName():string
   {
     return $this->appName;
   }
@@ -158,9 +171,9 @@ class AuthRedaxo
   /**
    * Modify how errors are handled.
    *
-   * @param string $how One of self::ON_ERROR_THROW or
+   * @param null|string $how One of self::ON_ERROR_THROW or
    * self::ON_ERROR_RETURN or null (just return the current
-   * reporting).1
+   * reporting).
    *
    * @return string Currently active error handling policy.
    */
@@ -175,19 +188,28 @@ class AuthRedaxo
         $this->errorReporting = $how;
         break;
       default:
-        throw new \Exception('Unknown error-reporting method: '.$how);
+        throw new Exception('Unknown error-reporting method: ' . $how);
     }
     return $reporting;
   }
 
-  public function handleError($msg, $throwable = null)
+  /**
+   * @param null|string $msg
+   *
+   * @param null|Throwable $throwable
+   *
+   * @param mixed $result What to return.
+   *
+   * @return mixed
+   */
+  public function handleError(?string $msg, Throwable $throwable = null, mixed $result = null):mixed
   {
     switch ($this->errorReporting) {
       case self::ON_ERROR_THROW:
-        if (!empty($t = $throwable)) {
-          throw empty($msg) ? $t : new \Exception($msg, $t->getCode(), $t);
+        if (!empty($throwable)) {
+          throw empty($msg) ? $throwable : new Exception($msg, $throwable->getCode(), $throwable);
         } else {
-          throw new \Exception($msg);
+          throw new Exception($msg);
         }
       case self::ON_ERROR_RETURN:
         if (!empty($throwable)) {
@@ -195,17 +217,21 @@ class AuthRedaxo
         } else {
           $this->logError($msg);
         }
-        return false;
+        return $result;
       default:
-        throw new \Exception("Invalid error handling method: ".$this->errorReporting);
+        throw new Exception("Invalid error handling method: " . $this->errorReporting);
     }
-    return false;
+    return $result;
   }
 
   /**
-   * Return the URL for use with an iframe or object tag
+   * Return the URL for use with an iframe or object tag.
+   *
+   * @param null|string $url
+   *
+   * @return string
    */
-  public function externalURL($url = null)
+  public function externalURL(?string $url = null):string
   {
     if (!empty($url)) {
       if ($url[0] == '/') {
@@ -229,7 +255,7 @@ class AuthRedaxo
   /**
    * Try to obtain login-credentials from Nextcloud credentials store.
    *
-   * @return array|bool
+   * @return null|array
    * ```
    * [
    *   'userId' => USER_ID,
@@ -237,7 +263,7 @@ class AuthRedaxo
    * ]
    * ```
    */
-  private function loginCredentials()
+  private function loginCredentials():?array
   {
     try {
       $credentials = $this->credentialsStore->getLoginCredentials();
@@ -253,13 +279,13 @@ class AuthRedaxo
   /**
    * Log  into the external application.
    *
-   * @param $username Login name
+   * @param string $userName Login name.
    *
-   * @param $password credentials
+   * @param string $password User credentials.
    *
    * @return true if successful, false otherwise.
    */
-  public function login(string $userName, string $password)
+  public function login(string $userName, string $password):bool
   {
     $this->updateLoginStatus();
 
@@ -269,10 +295,13 @@ class AuthRedaxo
       $this->cleanCookies();
     }
 
-    $response = $this->sendRequest($this->location,
-                                   [ 'javascript' => 0,
-                                     'rex_user_login' => $userName,
-                                     'rex_user_psw' => $password ]);
+    $response = $this->sendRequest(
+      $this->location,
+      [
+        'javascript' => 0,
+        'rex_user_login' => $userName,
+        'rex_user_psw' => $password,
+      ]);
 
     $this->updateLoginStatus($response, true);
 
@@ -282,12 +311,15 @@ class AuthRedaxo
   /**
    * Ensure we are logged in.
    *
+   * @param bool $forceUpdate
+   *
    * @return bool true on success, false on error
-   * @throws LoginException if error reporting is set to exceptions.
+   *
+   * @throws LoginException Thrown if error reporting is set to exceptions.
    */
-  public function ensureLoggedIn($forceUpdate = false)
+  public function ensureLoggedIn(bool $forceUpdate = false):bool
   {
-    $this->updateLoginStatus(false, $forceUpdate);
+    $this->updateLoginStatus(null, $forceUpdate);
     if (!$this->isLoggedIn()) {
       $credentials = $this->loginCredentials();
       $userName = $credentials['userId'];
@@ -297,7 +329,7 @@ class AuthRedaxo
           $this->l->t('Unable to log into Redaxo backend') . ' ' /* . $this->loginResponse */, 0, null,
           $userName, $this->loginStatus
         );
-        return $this->handleError(null, $e);
+        return $this->handleError(null, $e, result: false);
       }
       $this->persistLoginStatus();
       $this->emitAuthHeaders(); // send cookies
@@ -307,8 +339,10 @@ class AuthRedaxo
 
   /**
    * Persist authentication status and headers to the session.
+   *
+   * @return void
    */
-  public function persistLoginStatus()
+  public function persistLoginStatus():void
   {
     if ($this->session->isClosed()) {
       $this->logWarn('Session is already closed, unable to persist login credentials.');
@@ -322,14 +356,16 @@ class AuthRedaxo
       ]);
     } catch (SessionNotAvailableException $e) {
       // The Nextcloud log-reader does not handle custom messages :(
-      $this->logException(new \RuntimeException('Unable to persist login credentials to the session, session is already closed.', $e->getCode(), $e));
+      $this->logException(new RuntimeException('Unable to persist login credentials to the session, session is already closed.', $e->getCode(), $e));
     }
   }
 
   /**
    * Restores the authentication status and headers from the session.
+   *
+   * @return void
    */
-  private function restoreLoginStatus()
+  private function restoreLoginStatus():void
   {
     $this->cleanCookies();
     $this->loginStatus = LoginStatus::UNKNOWN();
@@ -353,8 +389,10 @@ class AuthRedaxo
 
   /**
    * Logoff from the external application.
+   *
+   * @return bool
    */
-  public function logout()
+  public function logout():bool
   {
     $response = $this->sendRequest($this->location.'?rex_logout=1');
     $this->updateLoginStatus($response);
@@ -364,10 +402,14 @@ class AuthRedaxo
 
   /**
    * Return true if the current login status is "logged in".
+   *
+   * @param bool $forceUpdate
+   *
+   * @return bool
    */
-  public function isLoggedIn($forceUpdate = false)
+  public function isLoggedIn(bool $forceUpdate = false):bool
   {
-    $this->updateLoginStatus(false, $forceUpdate);
+    $this->updateLoginStatus(null, $forceUpdate);
 
     return $this->loginStatus->equals(LoginStatus::LOGGED_IN());
   }
@@ -388,6 +430,8 @@ class AuthRedaxo
    * Ping the external application in order to extend its login
    * session, but only if we are logged in. This is just to prevent
    * session starvation while the Nextcloud-app is open.
+   *
+   * @return bool
    */
   public function refresh():bool
   {
@@ -401,10 +445,16 @@ class AuthRedaxo
 
   /**
    * Update the internal login status.
+   *
+   * @param null|array $response
+   *
+   * @param bool $forceUpdate
+   *
+   * @return void
    */
-  public function updateLoginStatus($response = false, $forceUpdate = false)
+  private function updateLoginStatus(?array $response = null, bool $forceUpdate = false):void
   {
-    if ($response === false
+    if ($response === null
         && !$this->loginStatus->equals(LoginStatus::UNKNOWN())
         && count($this->authHeaders) > 0
         && (time() - $this->loginTimeStamp <= $this->reloginDelay)
@@ -412,7 +462,7 @@ class AuthRedaxo
       return;
     }
 
-    if ($response === false) {
+    if ($response === null) {
       $response = $this->sendRequest($this->location);
     }
 
@@ -445,10 +495,22 @@ class AuthRedaxo
   }
 
   /**
-   * Send a post request corresponding to $postData as post
-   * values.
+   * Send a GET or POST request corresponding to $postData as post
+   * values. GET is used if $postData is not an array.
+   *
+   * @param string $formPath
+   *
+   * @param null|array $postData
+   *
+   * @return null|array
+   * ```
+   * [
+   *   'request' => REQUEST_URI,
+   *   'responseHeaders' => RESPONSE_HEADERS,
+   *   'content' => RESPONSE_BODY,
+   * ]
    */
-  public function sendRequest($formPath, $postData = false)
+  public function sendRequest(string $formPath, ?array $postData = null):?array
   {
     if (is_array($postData)) {
       if (!empty($this->csrfToken)) {
@@ -511,8 +573,8 @@ class AuthRedaxo
       $headers = $http_response_header;
       return $this->handleError(
         "URL fopen to $url failed: "
-        .print_r($error, true)
-        .$headers[0]
+        . print_r($error, true)
+        . $headers[0]
       );
     }
 
@@ -574,7 +636,13 @@ class AuthRedaxo
     ];
   }
 
-  private function cleanCookies()
+  /**
+   * Cleanout all cookies safe the PHPSESSID which is needed for the CSRF
+   * token check.
+   *
+   * @return void
+   */
+  private function cleanCookies():void
   {
     $this->authHeaders = array_filter($this->authHeaders ?? [], fn($value) => str_contains($value, 'PHPSESSID'));
     $this->authCookies = array_filter($this->authCookies ?? [], fn($value, $key) => $key == 'PHPSESSID', ARRAY_FILTER_USE_BOTH);
@@ -584,13 +652,12 @@ class AuthRedaxo
    * Parse a cookie header in order to obtain name, date of
    * expiry and path.
    *
-   * @parm cookieHeader Guess what
+   * @param string $header Guess what.
    *
-   * @return Array with name, value, expires and path fields, or
+   * @return array Array with name, value, expires and path fields, or
    * false if $cookie was not a Set-Cookie header.
-   *
    */
-  private function parseCookie($header)
+  private function parseCookie(string $header):array
   {
     $count = 0;
     $cookieString = preg_replace('/^Set-Cookie: /i', '', trim($header), -1, $count);
@@ -620,15 +687,16 @@ class AuthRedaxo
    * cookies with the same name and path, but adding a new
    * cookie if name or path differs.
    *
-   * @param cookieHeader The raw header holding the cookie.
+   * @param string $cookieHeader The raw header holding the cookie.
    *
    * @todo This probably should go into the Middleware as
    * afterController() and add the headers there.
+   *
+   * @return void
    */
-  private function addCookie($cookieHeader)
+  private function addCookie(string $cookieHeader):void
   {
     $thisCookie = $this->parseCookie($cookieHeader);
-    $found = false;
     foreach (headers_list() as $header) {
       $cookie = $this->parseCookie($header);
       if ($cookie === $thisCookie) {
@@ -641,17 +709,14 @@ class AuthRedaxo
 
   /**
    * Send authentication headers previously aquired
+   *
+   * @return void
    */
-  public function emitAuthHeaders()
+  public function emitAuthHeaders():void
   {
     foreach ($this->authHeaders as $header) {
       //header($header, false);
       $this->addCookie($header);
     }
   }
-};
-
-// Local Variables: ***
-// c-basic-offset: 2 ***
-// indent-tabs-mode: nil ***
-// End: ***
+}
