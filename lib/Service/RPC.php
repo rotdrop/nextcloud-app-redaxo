@@ -89,13 +89,15 @@ class RPC
    * Return the URL for use with an iframe or object tag. Also
    * provide means to access single articles.
    *
-   * @param null|int $articleId
+   * @param mixed $articleId Technically null or an integer. However, calling
+   * code may pass a string in order to form a template for later substitution
+   * or the like.
    *
    * @param bool $editMode
    *
    * @return string
    */
-  public function redaxoURL(?int $articleId = null, bool $editMode = false):string
+  public function redaxoURL(mixed $articleId = null, bool $editMode = false):string
   {
     $url = $this->authenticator->externalURL();
     if ($articleId !== null) {
@@ -145,13 +147,21 @@ class RPC
   }
 
   /**
-   * Fetch all categories for the Redaxo server.
+   * Fetch all categories for the Redaxo server. For this to work the
+   * "quick_navigation" addon must be installed.
    *
    * @return null|array
+   *
+   * @todo Replace this by a REST call. However, there is as of now no REST
+   * API for Redaxo.
    */
-  public function getCategories():?array
+  public function getCategories(int $parentId = -1, int $level = 0):?array
   {
-    $result = $this->sendRequest('index.php?page=structure');
+    $url = 'index.php?page=structure&clang=1';
+    if ($parentId != -1) {
+      $url .= '&category_id=' . $parentId;
+    }
+    $result = $this->sendRequest($url);
 
     if ($result === false) {
       return $this->handleError("Unable to retrieve categories");
@@ -160,42 +170,51 @@ class RPC
     $html = $result['content'];
 
     $document = new DOMDocument();
-    $document->loadHTML($html);
+    $document->loadHTML($html, LIBXML_NOERROR);
 
-    $categoriesId = 'rex-a256-category-id';
-    $query = "//select[@id='".$categoriesId."']/option";
-    $categoryOptions = (new DOMXpath($document))->query($query);
+    $xPath = new DOMXPath($document);
+    $rows = $xPath->query("//tr[contains(@class, 'rex-status')]");
+
+    if (empty($rows)) {
+      return [];
+    }
 
     $categories = [];
-    $prev = null;
-    foreach ($categoryOptions as $categoryOption) {
-      // option elements
-      $name = str_replace("\xc2\xa0", ' ', preg_replace('/\\s+[[][0-9]+]$/', '', $categoryOption->textContent));
-      $indent = strspn($name, " \t\r\n\0\x0B");
-
-      $category = [
-        'id' => $categoryOption->getAttribute('value'),
-        'name' => ltrim($name),
-        'level' => $indent / 3,
-        'index' => count($categories),
-      ];
-
-      if (empty($prev) || $prev['level'] < $category['level']) {
-        $category['parent'] = $prev;
-      } elseif ($prev['level'] > $category['level']) {
-        $category['parent'] = $prev['parent']['parent'];
-      } else /* if ($prev['level'] == $category['level']) */ {
-        $category['parent'] = $prev['parent'];
+    /** @var DOMElement $row */
+    foreach ($rows as $row) {
+      $articleId = $row->getAttribute('data-article-id');
+      if (!empty($articleId)) {
+        // skip table of articles in this category
+        continue;
       }
-      $prev = $category;
-
+      $category = [
+        'parentId' => $parentId,
+        'level' => $level,
+      ];
+      unset($categoryId);
+      /** @var DOMElement $col */
+      foreach ($row->getElementsByTagName('td') as $col) {
+        $class = $col->getAttribute('class');
+        switch (true) {
+          case strpos($class, 'rex-table-id') !== false:
+            $categoryId = +$col->textContent;
+            $category['id'] = $categoryId;
+            break;
+          case strpos($class, 'rex-table-category') !== false:
+            $category['name'] = $col->textContent;
+            break;
+          default:
+            break;
+        }
+      }
+      if (empty($categoryId)) {
+        continue;
+      }
+      $subCategories = $this->getCategories($categoryId, $level + 1);
+      $category['children'] = array_map(fn($child) => $child['id'], $subCategories);
       $categories[] = $category;
+      $categories = array_merge($categories, $subCategories);
     }
-    foreach ($categories as &$category) {
-      $category['parent'] = empty($category['parent']) ? -1 : $category['parent']['index'];
-    }
-
-    $this->logInfo('CATS ' . print-r($categories, true));
 
     return $categories;
   }
@@ -209,7 +228,7 @@ class RPC
    */
   public function getTemplates(bool $onlyActive = false):?array
   {
-    $result = $this->sendRequest('index.php?page=template');
+    $result = $this->sendRequest('index.php?page=templates');
 
     if ($result === false) {
       return $this->handleError("Unable to retrieve templates");
@@ -218,39 +237,54 @@ class RPC
     $html = $result['content'];
 
     $document = new DOMDocument();
-    $document->loadHTML($html);
+    $document->loadHTML($html, LIBXML_NOERROR);
     $xPath = new DOMXPath($document);
     $rows = $xPath->query('//tbody/tr');
     $templates = [];
     foreach ($rows as $row) {
       $cols = $xPath->query('td', $row);
-      // hard-coded: 1 is id, 2 is name, 3 is active or no
+      // hard-coded
+      // - 0 is icon
+      // - 1 is id
+      // - 2 is key
+      // - 3 is name
+      // - 4 is active or no
+      // further are action buttons
       $id = null;
       $name = null;
       $active = false;
       $index = 0;
+      /** @var DOMElement $col */
       foreach ($cols as $col) {
         $text = $col->textContent;
         switch ($index) {
           case 1:
             $id = (int)$text;
             break;
-          case 2:
+          case 3:
             $name = $text;
             break;
-          case 3:
-            $active = $text[0] != 'n';
+          case 4:
+            $icons = $col->getElementsByTagName('i');
+            /** @var DOMElement $icon */
+            foreach ($icons as $icon) {
+              $active = strpos($icon->getAttribute('class'), 'rex-icon-active-true') !== false;
+            }
+            break;
+          default:
             break;
         }
         $index++;
       }
-      if (!empty($id)) {
-        $templates[] = [
-          'id' => $id,
-          'name' => $name,
-          'active' => $active,
-        ];
+      if (empty($id)) {
+        continue;
       }
+      $template = [
+        'id' => $id,
+        'name' => $name,
+        'active' => $active,
+      ];
+      $templates[] = $template;
     }
     return $templates;
   }
@@ -262,7 +296,7 @@ class RPC
    */
   public function getModules():?array
   {
-    $result = $this->sendRequest('index.php?page=module');
+    $result = $this->sendRequest('index.php?page=modules');
 
     if ($result === false) {
       return $this->handleError("Unable to retrieve modules");
@@ -271,15 +305,21 @@ class RPC
     $html = $result['content'];
 
     $document = new DOMDocument();
-    $document->loadHTML($html);
+    $document->loadHTML($html, LIBXML_NOERROR);
     $xPath = new DOMXPath($document);
     $rows = $xPath->query('//tbody/tr');
     $modules = [];
     foreach ($rows as $row) {
       $cols = $xPath->query('td', $row);
-      // hard-coded: 1 is id, 2 is name
+      // hard-coded:
+      // - 0 is icon
+      // - 1 is id
+      // - 2 is key (what is this??)
+      // - 3 is name
+      // - 4 is active
       $id = null;
       $name = null;
+      $active = false;
       $index = 0;
       foreach ($cols as $col) {
         $text = $col->textContent;
@@ -287,18 +327,30 @@ class RPC
           case 1:
             $id = (int)$text;
             break;
-          case 2:
+          case 3:
             $name = $text;
+            break;
+          case 4:
+            $icons = $col->getElementsByTagName('i');
+            /** @var DOMElement $icon */
+            foreach ($icons as $icon) {
+              $active = strpos($icon->getAttribute('class'), 'rex-icon-active-true') !== false;
+            }
+            break;
+          default:
             break;
         }
         $index++;
       }
-      if (!empty($id)) {
-        $modules[] = [
-          'id' => $id,
-          'name' => $name,
-        ];
+      if (empty($id)) {
+        continue;
       }
+      $module = [
+        'id' => $id,
+        'name' => $name,
+        'active' => $active,
+      ];
+      $modules[] = $module;
     }
     return $modules;
   }
@@ -392,12 +444,14 @@ class RPC
       return $this->handleError("Delete article failed", result: false);
     }
 
+    $articles = $this->articlesById($articleId, $categoryId);
+
+
     // We could parse the request and have a look if the article is
     // still there ... do it.
 
     $html = $result['content'];
-
-    $articles = $this->filterArticlesByIdAndName($articleId, '.*', $html);
+    $articles = $this->findArticlesByIdAndName($articleId, '.*', $categoryId, $html);
 
     // Successful delete: return should be an empty array
     if (!is_array($articles) || count($articles) > 0) {
@@ -439,7 +493,7 @@ class RPC
 
     $html = $result['content'];
 
-    return $this->filterArticlesByIdAndName('.*', $name, $html);
+    return $this->findArticlesByIdAndName('.*', $name, $categoryId, $html);
   }
 
   /**
@@ -596,7 +650,7 @@ class RPC
 
     // Id should be unique, so the following should just return the
     // one article matching articleId.
-    return $this->filterArticlesByIdAndName($articleId, '.*', $html);
+    return $this->findArticlesByIdAndName($articleId, '.*', $categoryId, $html);
   }
 
   /**
@@ -633,7 +687,7 @@ class RPC
     // Search for the updated meta_article_name with the new name,
     // and compare the article-id for safety.
     $document = new DOMDocument();
-    $document->loadHTML($html);
+    $document->loadHTML($html, LIBXML_NOERROR);
 
     $inputs = $document->getElementsByTagName("input");
     $currentId = -1;
@@ -661,31 +715,63 @@ class RPC
   }
 
   /**
+   * Find the next chunk by parsing the pagination controls of the Redaxo
+   * output.
+   *
+   * @param string $html
+   *
+   * @return int
+   */
+  private function findNextChunk(string $html)
+  {
+    $document = new DOMDocument();
+    $document->loadHTML($html, LIBXML_NOERROR);
+
+    $xPath = new DOMXPath($document);
+    $pagination = $xPath->query("//ul[contains(@class, 'pagination')]/li[last()]");
+    if (empty($pagination) || count($pagination) == 0) {
+      return -1;
+    }
+
+    /** @var DOMElement $nextItem */
+    $nextItem = $pagination->item(0);
+    if (strpos($nextItem->getAttribute('class'), 'disabled') !== false) {
+      return -1; // no next page
+    }
+
+    $anchors = $nextItem->getElementsByTagName('a');
+    if (count($anchors) !== 1) {
+      return -1;
+    }
+
+    $href = $anchors->item(0)->getAttribute('href');
+    if (preg_match('/artstart=([0-9]+)/', $href, $matches)) {
+      return (int)$matches[1];
+    }
+
+    return -1;
+  }
+
+  /**
    * Fetch all matching articles by name. Still, the category has to
    * be given as id.
    *
-   * @param string $name
+   * @param string $nameRe A regular expression without delimiters for the
+   * matching article name. Use '.*' to match all articles.
    *
    * @param int $categoryId
    *
    * @return null|array
    */
-  public function articlesByName(string $name, int $categoryId):?array
+  public function articlesByName(string $nameRe, int $categoryId):?array
   {
-    $result = $this->sendRequest('index.php?page=structure&category_id='.$categoryId.'&clang=1');
-    if ($result === false) {
-      return $this->handleError("Unable to retrieve article by name");
-    }
-
-    $html = $result['content'];
-
-    return $this->filterArticlesByIdAndName('.*', $name, $html);
+    return $this->findArticlesByIdAndName('.*', $nameRe, $categoryId);
   }
 
   /**
    * Fetch articles by matching an array of ids
    *
-   * @param array $idList Flat array with id to search for. Use the empty
+   * @param string|array $idList Flat array with id to search for. Use the empty
    * array or '.*' to match all articles. Otherwise the elements of
    * idList are used to form a simple regular expression matching
    * the given numerical ids.
@@ -697,16 +783,70 @@ class RPC
    * an error. It is no error if no articles match, the returned array
    * is empty in this case.
    */
-  public function articlesById(array $idList, int $categoryId):?array
+  public function articlesById(string|array $idList, int $categoryId):?array
   {
-    $result = $this->sendRequest('index.php?page=structure&category_id='.$categoryId.'&clang=1');
-    if ($result === false) {
-      return $this->handleError("Unable to retrieve articles by id");
+    return $this->findArticlesByIdAndName($idList, '.*', $categoryId);
+  }
+
+  /**
+   * Find articles by id and/or name. Internally this has to fetch all
+   * articles for the given $categoryId and filter out the non-matching
+   * articles.
+   *
+   * @param int|string|array $idList Flat array or string with id criteria to
+   * search for. Use the empty array or '.*' to match all articles. Otherwise
+   * the elements of idList are used to form a simple regular expression
+   * matching the given numerical ids.
+   *
+   * @param string $nameRe Regular expression for matching the names. Use
+   * '.*' to match all articles.
+   *
+   * @param int $categoryId Id of the category (folder) the article belongs to.
+   *
+   * @param null|string $initialRequestResponse If non-null the initial
+   * request is skipped and the given string is assumed to contain a HTML
+   * response to a previous request.
+   *
+   * @return null|array
+   * The list of matching articles of false in case of
+   * an error. It is no error if no articles match, the returned array
+   * is empty in this case.
+   */
+  public function findArticlesByIdAndName(
+    int|string|array $idList,
+    string $nameRe,
+    int $categoryId,
+    ?string $initialRequestResponse = null,
+  ):?array {
+
+    // if $idList really refers to a single id then stop on the first matching
+    // article.
+    if (is_string($idList) && is_numeric($idList) && $idList == (int)$idList) {
+      $idList = (int)$idList;
     }
+    $stopOnFirstMatch = is_int($idList);
 
-    $html = $result['content'];
+    $articles = [];
+    $artStart = 0;
+    do {
+      $result = $this->sendRequest('index.php?page=structure&category_id=' . $categoryId . '&clang=1&artstart=' . $artStart);
+      if ($result === false) {
+        return $this->handleError("Unable to retrieve article by name");
+      }
 
-    return $this->filterArticlesByIdAndName($idList, '.*', $html);
+      $html = $result['content'];
+
+      $articles = array_merge($articles, $this->filterArticlesByIdAndName($idList, $nameRe, $html));
+
+      if ($stopOnFirstMatch && !empty($articles)) {
+        break;
+      }
+
+      $artStart = $this->findNextChunk($html);
+
+    } while ($artStart > 0);
+
+    return $articles;
   }
 
   /**
@@ -729,10 +869,10 @@ class RPC
    * We use some preg stuff to detect the two cases. No need to
    * catch the most general case.
    *
-   * @param array $idList Flat array with id to search for. Use the empty
-   * array or '.*' to match all articles. Otherwise the elements of
-   * idList are used to form a simple regular expression matching
-   * the given numerical ids.
+   * @param string|array $idList Flat array or string with id criteria to
+   * search for. Use the empty array or '.*' to match all articles. Otherwise
+   * the elements of idList are used to form a simple regular expression
+   * matching the given numerical ids.
    *
    * @param string $nameRe Regular expression for matching the names. Use
    * '.*' to match all articles.
@@ -742,11 +882,8 @@ class RPC
    * @return array List of articles matching the given criteria (both at the
    * same time).
    */
-  private function filterArticlesByIdAndName(array $idList, string $nameRe, string $html):array
+  private function filterArticlesByIdAndName(string|array $idList, string $nameRe, string $html):array
   {
-    if ($nameRe == '.*') {
-      $nameRe = '[^<]*';
-    }
     if (!is_array($idList)) {
       if ($idList == '.*') {
         $idRe = '[0-9]+';
@@ -759,53 +896,70 @@ class RPC
       }
     }
 
-    $matches = [];
-    $cnt = preg_match_all('|<td\s+class="rex-icon">\s*'.
-                          '<a\s+class="rex-i-element\s+rex-i-article"\s+'.
-                          'href="index.php\?page=content[^"]*'.
-                          'article_id=('.$idRe.')[^"]*'.
-                          'category_id=([0-9]+)[^"]*">\s*'.
-                          '<span[^>]*>\s*('.$nameRe.')\s*</span>\s*</a>\s*'.
-                          '</td>\s*'.
-                          '<td\s+class="rex-small">\s*'.
-                          '([0-9]+)\s*'.
-                          '</td>\s*'.
-                          '<td>\s*'.
-                          '<a\s+href="index.php\?page=content[^"]*'.
-                          'article_id=('.$idRe.')[^"]*'.
-                          'category_id=([0-9]+)[^"]*">\s*'.
-                          '('.$nameRe.')\s*</a>\s*'.
-                          '</td>\s*'.
-                          '<td>\s*([0-9]+)\s*</td>\s*'.
-                          '<td>\s*([^<]+)\s*</td>'.
-                          '|si', $html, $matches);
+    $nameRe = '@' . $nameRe . '@';
+    $idRe = '@' . $idRe . '@';
 
-    if ($cnt === false || $cnt == 0) {
+    $document = new DOMDocument();
+    $document->loadHTML($html, LIBXML_NOERROR);
+
+    $xPath = new DOMXPath($document);
+    $rows = $xPath->query("//tr[contains(@class, 'rex-status')]");
+
+    if (empty($rows)) {
       return [];
     }
 
-    /* match[1]: article ids
-     * match[2]: category
-     * match[3]: name
-     * match[4]: article ids
-     * match[5]: article ids
-     * match[6]: category
-     * match[7]: name
-     * match[8]: display priority
-     * match[9]: template name (but not id, unfortunately)
-     */
-
     $result = [];
-    for ($i = 0; $i < $cnt; ++$i) {
+    /** @var DOMElement $row */
+    foreach ($rows as $row) {
+      $articleId = $row->getAttribute('data-article-id');
+      if (empty($articleId) || !preg_match($idRe, $idRe)) {
+        continue;
+      }
       $article = [
-        'articleId' => $matches[1][$i],
-        'categoryId' => $matches[2][$i],
-        'articleName' => $matches[3][$i],
-        'priority' => $matches[8][$i],
-        'templateName' => trim($matches[9][$i]),
+        'articleId' => $articleId,
       ];
+      // $this->logInfo('STATUS ' . $rowStatus . ' ID ' . $articleId . ' CLASS ' . $row->getAttribute('class'));
+      /** @var DOMElement $col */
+      foreach ($row->getElementsByTagName('td') as $col) {
+        $class = $col->getAttribute('class');
+        switch (true) {
+          case strpos($class, 'rex-table-icon') !== false:
+            break;
+          case strpos($class, 'rex-table-article-name') !== false:
+            $articleName = $col->textContent;
+            if (!preg_match($nameRe, $articleName)) {
+              continue 2; // outer loop
+            }
+            // seemingly textContent only contains the innermost text.
+            $article['articleName'] = $col->textContent;
+            break;
+          case strpos($class, 'rex-table-priority') !== false:
+            $article['priority'] = $col->textContent;
+            break;
+          case strpos($class, 'rex-table-template') !== false:
+            $article['templateName'] = $col->textContent;
+            break;
+          default:
+            break;
+        }
+        if (empty($article['categoryId'])) {
+          // the category id is contained in various href attibutes.
+          $anchors = $col->getElementsByTagName('a');
+          /** @var DOMElement $anchor */
+          foreach ($anchors as $anchor) {
+            $query = parse_url($anchor->getAttribute('href'), PHP_URL_QUERY);
+            $data = [];
+            parse_str($query, $data);
+            $categoryId = $data['category_id'] ?? null;
+            if (!empty($categoryId)) {
+              $article['categoryId'] = $categoryId;
+              break;
+            }
+          }
+        }
+      }
       $result[] = $article;
-      $this->logDebug("Got article: ".print_r($article, true));
     }
 
     // sort ascending w.r.t. to article id
