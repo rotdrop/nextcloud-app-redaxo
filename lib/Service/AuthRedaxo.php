@@ -654,15 +654,15 @@ class AuthRedaxo
    *
    * @param string $header Guess what.
    *
-   * @return array Array with name, value, expires and path fields, or
+   * @return null|array Array with name, value, expires and path fields, or
    * false if $cookie was not a Set-Cookie header.
    */
-  private function parseCookie(string $header):array
+  private function parseCookie(string $header):?array
   {
     $count = 0;
     $cookieString = preg_replace('/^Set-Cookie: /i', '', trim($header), -1, $count);
     if ($count != 1) {
-      return false;
+      return null;
     }
     $cookie = [];
     $cookieValues = explode(';', $cookieString);
@@ -672,6 +672,7 @@ class AuthRedaxo
         count($cookieInfo) == 2 ? trim($cookieInfo[1]) : true;
     }
     ksort($cookie);
+
     return $cookie;
   }
 
