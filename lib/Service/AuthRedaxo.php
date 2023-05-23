@@ -594,7 +594,7 @@ class AuthRedaxo
           $this->logDebug("Rex Cookie: ".$match[1]."=".$match[2]);
           $this->logDebug("AuthHeaders: ".print_r($newAuthHeaders, true));
         }
-      } elseif (preg_match('|^HTTP/1.[0-9]\s+(30[23])|', $header, $match)) {
+      } elseif (preg_match('|^HTTP/1.[0-9]\s+(30[123])|', $header, $match)) {
         $redirect = true;
         $this->logDebug("Redirect status: ".$match[1]);
       } elseif (preg_match('/^Location:\s*(\S+)$/', $header, $match)) {
