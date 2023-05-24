@@ -23,6 +23,8 @@
 
 namespace OCA\Redaxo\Service;
 
+use DOMDocument;
+use DOMXPath;
 use Exception;
 use RuntimeException;
 use Throwable;
@@ -100,6 +102,9 @@ class AuthRedaxo
   /** @var string */
   private $csrfToken;
 
+  /** @var array */
+  private $csrfTokens;
+
   // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
     string $appName,
@@ -119,8 +124,6 @@ class AuthRedaxo
     $this->urlGenerator = $urlGenerator;
     $this->logger = $logger;
     $this->l = $l10n;
-
-    $this->csrfToken = null;
 
     $this->errorReporting = self::ON_ERROR_RETURN;
 
@@ -154,7 +157,10 @@ class AuthRedaxo
       $this->userId = null;
     }
 
+    $this->csrfTokens = [];
+
     $this->restoreLoginStatus(); // initialize and optionally restore from session data.
+    $this->restoreCSRFToken();
   }
   // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 
@@ -301,7 +307,9 @@ class AuthRedaxo
         'javascript' => 0,
         'rex_user_login' => $userName,
         'rex_user_psw' => $password,
-      ]);
+      ],
+      csrfKey: 'rex-login-form',
+    );
 
     $this->updateLoginStatus($response, true);
 
@@ -335,6 +343,42 @@ class AuthRedaxo
       $this->emitAuthHeaders(); // send cookies
     }
     return true;
+  }
+
+  /**
+   * Stash the CSRF token away in the session data if possible.
+   *
+   * @param null|string $csrfToken
+   *
+   * @return void
+   */
+  public function persistCSRFTokens():void
+  {
+    $sessionKey = $this->appName . self::CSRF_TOKEN_KEY;
+    $sessionCSRFs = $this->session->get($sessionKey) ?? [];
+    asort($sessionCSRFs);
+    if ($sessionCSRFs != $this->csrfTokens) {
+      if ($this->session->isClosed()) {
+        $this->logWarn('Session is already closed, unable to persist CSRF token.');
+        return;
+      }
+      $this->session->set($sessionKey, $this->csrfTokens);
+    }
+  }
+
+  /**
+   * Restore the CSRF token from the session if possible.
+   *
+   * @return void
+   */
+  public function restoreCSRFToken():void
+  {
+    if (empty($this->csrfTokens)) {
+      $csrfTokens = $this->session->get($this->appName . self::CSRF_TOKEN_KEY);
+      if (!empty($csrfTokens) && is_array($csrfTokens)) {
+        $this->csrfTokens = $csrfTokens;
+      }
+    }
   }
 
   /**
@@ -495,12 +539,15 @@ class AuthRedaxo
   }
 
   /**
-   * Send a GET or POST request corresponding to $postData as post
-   * values. GET is used if $postData is not an array.
+   * Send a GET or POST request corresponding to $postData as post values. GET
+   * is used if $postData is not an array. This "public" function handles
+   * resend on CSRF errors.
    *
    * @param string $formPath
    *
    * @param null|array $postData
+   *
+   * @param null|string $csrfKey
    *
    * @return null|array
    * ```
@@ -510,15 +557,49 @@ class AuthRedaxo
    *   'content' => RESPONSE_BODY,
    * ]
    */
-  public function sendRequest(string $formPath, ?array $postData = null):?array
+  public function sendRequest(string $formPath, ?array $postData = null, string $csrfKey = 'rex-form-login'):?array
   {
+    $result = $this->doSendRequest($formPath, $postData, $csrfKey);
+    if (!empty($result) && $this->isCSRFMismatch($result)) {
+      $result = $this->doSendRequest($formPath, $postData, $csrfKey);
+      if (!empty($result) && $this->isCSRFMismatch($result)) {
+        $this->logError('CSRF STILL A PROBLEM');
+      }
+    }
+    return $result;
+  }
+
+  /**
+   * Send a GET or POST request corresponding to $postData as post
+   * values. GET is used if $postData is not an array.
+   *
+   * @param string $formPath
+   *
+   * @param null|array $postData
+   *
+   * @param null|string $csrfKey
+   *
+   * @return null|array
+   * ```
+   * [
+   *   'request' => REQUEST_URI,
+   *   'responseHeaders' => RESPONSE_HEADERS,
+   *   'content' => RESPONSE_BODY,
+   * ]
+   */
+  private function doSendRequest(string $formPath, ?array $postData, string $csrfKey):?array
+  {
+    $csrfToken = $this->csrfTokens[$csrfKey] ?? null;
+    $this->logDebug('CSRF ' . $csrfKey . ' -> ' . $csrfToken);
     if (is_array($postData)) {
-      if (!empty($this->csrfToken)) {
-        $postData[self::CSRF_TOKEN_KEY] = $this->csrfToken;
+      if (!empty($csrfToken)) {
+        $postData[self::CSRF_TOKEN_KEY] = $csrfToken;
       }
       $postData = http_build_query($postData, '', '&');
+      $method = 'POST';
+    } else {
+      $method = 'GET';
     }
-    $method = (!$postData) ? "GET" : "POST";
 
     $cookies = [];
     foreach ($this->authCookies as $name => $value) {
@@ -557,8 +638,13 @@ class AuthRedaxo
     }
     $url = $this->externalURL() . $formPath;
 
+    if (!empty($csrfToken)) {
+      $join = empty(parse_url($url, PHP_URL_QUERY)) ? '?' : '&';
+      $url .= $join . self::CSRF_TOKEN_KEY . '=' . $csrfToken;
+    }
+
     $logPostData = preg_replace('/rex_user_psw=[^&]*(&|$)/', 'rex_user_psw=XXXXXX$1', $postData);
-    $this->logDebug("... to ".$url." data ".$logPostData);
+    $this->logDebug("... to " . $url . " data " . $logPostData);
 
     $fp = fopen($url, 'rb', false, $context);
     $result = '';
@@ -620,19 +706,16 @@ class AuthRedaxo
       return $this->handleError("Empty result");
     }
 
-    // update the CSRF token if there is one
-    // <input type="hidden" name="_csrf_token" value="A5AJ7s6T71vhVSsoD5sJxJYtD7D0Sb_XenaBncRH200"/>
+    $document = new DOMDocument();
+    $document->loadHTML($result, LIBXML_NOERROR);
 
-    $matches = null;
-    if (preg_match('@<input[^/]+name="' . self::CSRF_TOKEN_KEY . '"[^/]+value="([^"]+)"[^/]*/>@i', $result, $matches) ||
-        preg_match('@<input[^/]+value="([^"]+)"[^/]+name="' . self::CSRF_TOKEN_KEY . '"[^/]*/>@i', $result, $matches)) {
-      $this->csrfToken = $matches[1];
-    }
+    $this->updateCSRFTokens($document);
 
     return [
       'request' => $formPath,
       'responseHeaders' => $responseHdr,
       'content' => $result,
+      'document' => $document,
     ];
   }
 
@@ -719,5 +802,118 @@ class AuthRedaxo
       //header($header, false);
       $this->addCookie($header);
     }
+  }
+
+  /**
+   * Check whether the requested CSRF token is available.
+   *
+   * @param string $key
+   *
+   * @return bool
+   */
+  public function hasCSRFToken(string $key):bool
+  {
+    return !empty($this->csrfTokens[$key]);
+  }
+
+  /**
+   * Update the CSRF tokens needed to place successful API calls to Redaxo 5.
+   *
+   * @param DOMDocument $document
+   *
+   * @return void
+   */
+  public function updateCSRFTokens(DOMDocument $document):void
+  {
+    $xPath = new DOMXPath($document);
+
+    // extract the login-page CSRF
+    $loginCSRF = $xPath->query("//form[@id = 'rex-form-login']/input[@name = '" . self::CSRF_TOKEN_KEY . "']");
+    if (count($loginCSRF) > 0) {
+      /** @var DOMElement $loginCSRF */
+      $loginCSRF = $loginCSRF->item(0);
+      $this->csrfTokens['rex-form-login'] = $loginCSRF->getAttribute('value');
+      asort($this->csrfTokens);
+      return;
+    }
+
+    // extract CSRFs from hidden input elements
+    $actionCSRF = $xPath->query("//tr[contains(@class, 'mark')]/td[contains(@class, 'rex-table-action')]");
+    if (count($actionCSRF) > 0) {
+      /** @var DOMElement $actionData */
+      foreach ($actionCSRF as $actionData) {
+        foreach ($actionData->getElementsByTagName('input') as $input) {
+          /** @var DOMElement $input */
+          switch ($input->getAttribute('name')) {
+            case 'rex-api-call':
+              $apiCall = $input->getAttribute('value');
+              break;
+            case self::CSRF_TOKEN_KEY:
+              $csrfToken = $input->getAttribute('value');
+              break;
+            default:
+              break;
+          }
+        }
+        if (!empty($apiCall) && !empty($csrfToken)) {
+          $this->csrfTokens[$apiCall] = $csrfToken;
+        }
+        unset($apiCall);
+        unset($csrfToken);
+      }
+    }
+
+    // Another variant: inline on-click handle
+    // <button class="btn btn-send rex-form-aligned" type="submit" name="article_move" value="1" data-confirm="Artikel verschieben?" onclick="$(this.form).append('<input type=&quot;hidden&quot; name=&quot;rex-api-call&quot; value=&quot;article_move&quot;/><input type=&quot;hidden&quot; name=&quot;_csrf_token&quot; value=&quot;wOJVwI6tYGZk4bf-LSQNfXC1b5DK-Iqny-KSFK0mHMM&quot;/>')">Artikel verschieben</button>
+
+    $onClickCSRF = $xPath->query("//button[@onclick]");
+    /** @var DOMElement $button */
+    foreach ($onClickCSRF as $button) {
+      $onClickCode = html_entity_decode($button->getAttribute('onclick'));
+      $matches = [];
+      if (preg_match('@name="rex-api-call".*value="([^"]+)".*name="_csrf_token".*value="([^"]+)"@', $onClickCode, $matches)) {
+        $this->csrfTokens[$matches[1]] = $matches[2];
+      }
+    }
+
+    // https://dev4.home.claus-justus-heine.de/redaxo/index.php?page=structure&category_id=2&article_id=2&clang=1&category-id=15&catstart=0&rex-api-call=category_delete&_csrf_token=b9WbLV4X3Bntl4DJPcXh9zVReVCWFGZbSOdKWlxXztk
+    // extract CSRFs from action URLs
+    $urlCSRF = $xPath->query("//a[contains(@href, 'rex-api-call')]");
+    /** @var DOMElement $csrfAnchor */
+    foreach ($urlCSRF as $csrfAnchor) {
+      $href = $csrfAnchor->getAttribute('href');
+      $query = [];
+      parse_str(parse_url($href, PHP_URL_QUERY), $query);
+      if (!empty($query['rex-api-call']) && !empty($query[self::CSRF_TOKEN_KEY])) {
+        $this->csrfTokens[$query['rex-api-call']] = $query[self::CSRF_TOKEN_KEY];
+      }
+    }
+    asort($this->csrfTokens);
+
+    $this->logDebug('CSRF TOKENS: ' . print_r($this->csrfTokens, true));
+  }
+
+  /**
+   * Check for CSRF mismatch. In this case the request has to be repeated with
+   * the updated token.
+   *
+   * @param array $requestResult The result returned from sendRequest().
+   *
+   * @return bool
+   */
+  public function isCSRFMismatch(array $requestResult):bool
+  {
+    $document = $requestResult['document'];
+    $xPath = new DOMXPath($document);
+    $alerts = $xPath->query("//div[contains(@class, 'alert')]");
+    /** @var DOMElement $alert */
+    foreach ($alerts as $alert) {
+      $text = $alert->textContent;
+      if (stripos($text, 'csrf') !== false) {
+        $this->logError('CSRF MISMATCH');
+        return true;
+      }
+    }
+    return false;
   }
 }

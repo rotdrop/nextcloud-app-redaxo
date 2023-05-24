@@ -42,6 +42,11 @@ class RPC
   const ON_ERROR_THROW = AuthRedaxo::ON_ERROR_THROW;
   const ON_ERROR_RETURN = AuthRedaxo::ON_ERROR_RETURN;
 
+  const API_ARTICLE_MOVE = 'article_move';
+  const API_ARTICLE_DELETE = 'article_delete';
+  const API_ARTICLE_ADD = 'article_add';
+  const API_ARTICLE_EDIT = 'article_edit';
+
   /** @var AuthRedaxo */
   private $authenticator;
 
@@ -118,17 +123,31 @@ class RPC
    *
    * @param null|array $postData
    *
+   * @param null|string $csrfKey
+   *
    * @return null|array
    *
    * @see AuthRedaxo::sendRequest()
    */
-  public function sendRequest(string $formPath, ?array $postData = null):?array
+  public function sendRequest(string $formPath, ?array $postData = null, string $csrfKey = 'rex-form-login'):?array
   {
     // try to login if necessary ...
     if (!$this->authenticator->ensureLoggedIn()) {
       return $this->authenticator->handleError($this->l->t('Not logged in.'));
     }
-    return $this->authenticator->sendRequest($formPath, $postData);
+    return $this->authenticator->sendRequest($formPath, $postData, $csrfKey);
+  }
+
+  /**
+   * Check whether the requested CSRF token is available.
+   *
+   * @param string $key
+   *
+   * @return bool
+   */
+  public function hasCSRFToken(string $key):bool
+  {
+    return $this->authenticator->hasCSRFToken($key);
   }
 
   /**
@@ -366,56 +385,70 @@ class RPC
    */
   public function moveArticle(int $articleId, int $destCat):bool
   {
+    if (!$this->hasCSRFToken(self::API_ARTICLE_MOVE)) {
+      // index.php?page=content/functions&article_id=400&category_id=8&clang=1&ctype=1
+      $result = $this->sendRequest('index.php?page=content/functions&article_id=' . $articleId . '&clang=1&ctype=1');
+      if ($result === false) {
+        return $this->handleError("Moving article failed");
+      }
+      if (!$this->hasCSRFToken(self::API_ARTICLE_MOVE)) {
+        return $this->handleError("Moving article failed, unable to obtain the CSRF token.");
+      }
+    }
+
+    // Request URI index.php?page=content/functions&article_id=403&category_id=16&clang=1&ctype=1
+    //
+    // The old category id can be omitted,hopefully
+    //
+    // Parameters
+    // ctype: 1
+    // category_id_new: $destCat
+    // save: 1
+    // article_move: 1
+    // category_copy_id_new: $articleId
+    // rex-api-call: article_move
+
     $result = $this->sendRequest(
       'index.php',
-      [ 'article_id' => $articleId,
-        'page' => 'content', // needed?
-        'mode' => 'functions',
-        'save' => 1,
+      [
+        'article_id' => $articleId,
+        'page' => 'content/functions',
         'clang' => 1,
         'ctype' => 1,
+        // button values
+        'save' => 1,
+        self::API_ARTICLE_MOVE => 1,
+        // real request values
+        'rex-api-call' => self::API_ARTICLE_MOVE,
         'category_id_new' => $destCat,
-        'movearticle' => 'blah', // submit button
         'category_copy_id_new' => $articleId,
-      ]);
+      ],
+      csrfKey: self::API_ARTICLE_MOVE,
+    );
 
     if ($result === false) {
       return $this->handleError("sendRequest() failed.", result: false);
     }
 
-    /*
-     * Seemingly there is some potential for race-conditions: moving
-     * an article and retrieving the category view directly
-     * afterwards display, unfortunately, potentially wrong
-     * results. However, Redaxo answers with a status message in the
-     * configured backend-language. This is even present in the
-     * latest redirected request.
-     */
-    //<div class=\"rex-message\"><div class=\"rex-info\"><p><span>Artikel wurde verschoben<\/span><\/p><\/div>
-    // index.php?page=content&article_id=92&mode=functions&clang=1&ctype=1&info=Artikel+wurde+verschoben
-
-    $redirectReq = $result['request'];
-
-    // $this->logDebug("sendRequest() latest request URI: ".$redirectReq);
-
-    /*
-     * Redaxo currently only has de_de and en_gb as backend language, we accept both answers.
-     *
-     * content_articlemoved = Artikel wurde verschoben
-     * content_articlemoved = Article moved.
-     */
-    $validAnswers = [
-      'de_de' => 'Artikel wurde verschoben',
-      'en_gb' => 'Article moved.',
-    ];
-    foreach (array_values($validAnswers) as $answer) {
-      $answer = 'info='.urlencode($answer);
-      if (strstr($redirectReq, $answer)) {
-        return true; // got it, this is a success
+    // on success the breadcrumb contains the new category
+    $document = $result['document'];
+    $xPath = new DOMXPath($document);
+    $parentCrumb = $xPath->query("//ol[contains(@class, 'breadcrumb')]/li[position() = last()-1]");
+    if (count($parentCrumb) == 1) {
+      $parentCrumb = $parentCrumb->item(0);
+      /** @var DOMElement $parentCrumb */
+      /** @var DOMElement $anchor */
+      $anchor = $parentCrumb->getElementsByTagName('a')->item(0);
+      $query = parse_url($anchor->getAttribute('href'), PHP_URL_QUERY);
+      $data = [];
+      parse_str($query, $data);
+      $breadCrumbCategory = $data['category_id'] ?? null;
+      if ($breadCrumbCategory == $destCat) {
+        return true;
       }
     }
 
-    return $this->handleError("rename failed, latest redirect request: " . $redirectReq, result: false);
+    return $this->handleError("Rename failed.", result: false);
   }
 
   /**
@@ -432,20 +465,23 @@ class RPC
    */
   public function deleteArticle(int $articleId, int $categoryId):bool
   {
+    // index.php?page=structure&category_id=16&article_id=395&clang=1&artstart=0&rex-api-call=article_delete&_csrf_token=kxSPQaafJKdf3TsUCW-KIyGEMAehcaSyykl4hE94pOQ&_pjax=%23rex-js-page-main
     $result = $this->sendRequest(
       'index.php',
-      [ 'page' => 'structure',
+      [
+        'rex-api-call' => self::API_ARTICLE_DELETE,
         'article_id' => $articleId,
-        'function' => 'artdelete_function',
         'category_id' => $categoryId,
-        'clang' => 1 ]);
+        'page' => 'structure',
+        'clang' => 1,
+        'artstart' => 0,
+      ],
+      csrfKey: self::API_ARTICLE_DELETE,
+    );
 
     if ($result === false) {
       return $this->handleError("Delete article failed", result: false);
     }
-
-    $articles = $this->articlesById($articleId, $categoryId);
-
 
     // We could parse the request and have a look if the article is
     // still there ... do it.
@@ -455,8 +491,9 @@ class RPC
 
     // Successful delete: return should be an empty array
     if (!is_array($articles) || count($articles) > 0) {
-      return $this->handleError("Delete article failed");
+      return $this->handleError("Delete article failed " . (is_array($articles) ? print_r($articles, true) : 'NOT AN ARRAY RESPONSE'));
     }
+
     return true;
   }
 
@@ -475,17 +512,28 @@ class RPC
    */
   public function addArticle(string $name, int $categoryId, int $templateId, int $position = 10000):?array
   {
-    $result = $this->sendRequest(
-      'index.php',
-      [  // populate all form fields
-        'page' => 'structure',
-        'category_id' => $categoryId,
-        'clang' => 1, // ???
-        'template_id' => $templateId,
-        'article_name' => $name,
-        'Position_New_Article' => $position,
-        'artadd_function' => 'blah' // should not matter, submit button
-      ]);
+    // At first we may have to obtain or update the CSRF token for adding
+    // articles. Interestingly the action requesting the token itself is not
+    // protected by another CSRF token.
+    if (!$this->hasCSRFToken(self::API_ARTICLE_ADD)) {
+      // index.php?page=structure&category_id=2&article_id=2&clang=1&function=add_art&artstart=0&_pjax=%23rex-js-page-main
+      $result = $this->sendRequest('index.php?page=structure&clang=1&function=add_art&category_id=' . $categoryId);
+      if ($result === false) {
+        return $this->handleError("Adding empty article failed");
+      }
+      if (!$this->hasCSRFToken(self::API_ARTICLE_ADD)) {
+        return $this->handleError("Adding empty article failed, unable to obtain the CSRF token.");
+      }
+    }
+
+    $data = [
+      'article-name' => $name,
+      'template_id' => $templateId,
+      'article-position' => $position,
+      'rex-api-call' => self::API_ARTICLE_ADD,
+      'art_add_function' => '',
+    ];
+    $result = $this->sendRequest('index.php?page=structure&category_id=' . $categoryId . '&article_id=0&clang=1&artstart=0', $data, csrfKey: self::API_ARTICLE_ADD);
 
     if ($result === false) {
       return $this->handleError("Adding empty article failed");
@@ -493,7 +541,15 @@ class RPC
 
     $html = $result['content'];
 
-    return $this->findArticlesByIdAndName('.*', $name, $categoryId, $html);
+    $articles = $this->findArticlesByIdAndName('.*', $name, $categoryId, $html);
+
+    if (empty($articles)) {
+      return $this->handleError("Adding empty article failed");
+    }
+
+    // $this->logInfo('ARTICLES ' . print_r($articles, true));
+
+    return $articles;
   }
 
   /**
@@ -507,17 +563,21 @@ class RPC
    *
    * @return bool
    */
-  public function addArticleBlock(int $articleId, int $blockId, int $sliceId = 0):bool
+  public function addArticleBlock(int $articleId, int $blockId, int $sliceId = -1):bool
   {
     if (empty($articleId) || empty($blockId)) {
       return $this->handleError($this->l->t('Empty article: / block-id: (%d / %d).', [ $articleId, $blockId ]), result: false);
     }
 
+    // Starting the editor
+    //
+    // index.php?page=content/edit&article_id=403&clang=1&ctype=1&slice_id=-1&function=add&module_id=2&_pjax=%23rex-js-page-main-content#slice-add-pos-1
+
+
     $result = $this->sendRequest(
       'index.php',
       [ 'article_id' => $articleId,
-        'page' => 'content',
-        'mode' => 'edit',
+        'page' => 'content/edit',
         'slice_id' => $sliceId,
         'function' => 'add',
         'clang' => '1',
@@ -525,83 +585,64 @@ class RPC
         'module_id' => $blockId ]);
 
     if ($result === false) {
-      return $this->handleError("Adding article block failed", result: false);
+      return $this->handleError('Adding article block failed.', result: false);
     }
 
-    $html = $result['content'];
+    $document = $result['document'];
+    $xPath = new DOMXPath($document);
+    $slices = $xPath->query("//ul[contains(@class, 'rex-slices')]/li[contains(@class, 'rex-slice-add')]");
+    $addCnt = count($slices);
 
-    //\OCP\Util::writeLog(App::APP_NAME, "AFTER BLOCK ADD: ".$html, \OC\Util::DEBUG);
+    $this->logDebug('ADD SLICES ' . $addCnt);
 
-    $matches = [];
+    $slices = $xPath->query("//ul[contains(@class, 'rex-slices')]/li[contains(@class, 'rex-slice-output')]");
+    $haveCnt = count($slices);
 
-    // On success we have the following div:
-    //<div class="rex-form rex-form-content-editmode-add-slice">
-    $addCnt = preg_match_all(
-      '/<div\s+class="rex-form\s+rex-form-content-editmode-add-slice">/si',
-      $html,
-      $matches,
-    );
-
-    // Each existing block is surrounded by this div:
-    //<div class="rex-content-editmode-slice-output">
-    $haveCnt = preg_match_all(
-      '/<div\s+class="rex-content-editmode-slice-output">/si',
-      $html,
-      $matches,
-    );
+    $this->logDebug('HAVE SLICES ' . $haveCnt);
 
     if ($addCnt != 1) {
-      $this->logDebug("Adding block failed, edit-form is missing");
+      return $this->handleError('Adding block failed, edit-form is missing.', result: false);
     }
 
-    /*
-     * In the case of success we are confonted with an input form
-     * with matching hidden form fields. We check for those and then
-     * post another query. Hopefully any non submitted data field is
-     * simplye treated as empty
-     *
-     * article_id       122
-     * page     content
-     * mode     edit
-     * slice_id 0
-     * function add
-     * module_id        2
-     * save     1
-     * clang    1
-     * ctype    1
-     * ...
-     * BLOCK DATA, we hope we can omit it
-     * ...
-     * btn_save Block hinzufügen
-     */
+    // Submit request-url:
+    // index.php?page=content/edit&article_id=403&slice_id=-1&clang=1&ctype=1#slice-add-pos-0
+    //
+    // Submit post data:
+    // function: add
+    // module_id: ID
+    // save: 1
+    // btn_save: 1
+    //
+    // + input values which can be omitted as we do not add data here.
+
     $requiredFields = [
-      'article_id' => $articleId,
-      'page' => 'content',
-      'mode' => 'edit',
-      'slice_id' => $sliceId,
+      // POST
       'function' => 'add',
       'module_id' => $blockId,
       'save' => 1,
+      'btn_save' => 1,
+      // GET, just also put it in the post-data
+      'page' => 'content/edit',
+      'article_id' => $articleId,
+      'slice_id' => -1,
       'clang' => 1,
       'ctype' => 1,
-      'btn_save' => 'blah',
     ];
-    $target = 'index.php'.'#slice'.$sliceId;
+    $target = 'index.php' . '#slice-add-pos-1';
 
     // passed, send out another query
     $result = $this->sendRequest($target, $requiredFields);
 
-    $html = $result['content'];
+    $document = $result['document'];
+    $xPath = new DOMXPath($document);
 
-    $dummy = [];
-    $haveCntAfter = preg_match_all(
-      '/<div\s+class="rex-content-editmode-slice-output">/si',
-      $html,
-      $dummy,
-    );
+    $slices = $xPath->query("//ul[contains(@class, 'rex-slices')]/li[contains(@class, 'rex-slice-output')]");
+    $haveCntAfter = count($slices);
+
+    $this->logDebug('HAVE COUNT AFTER ' . $haveCntAfter);
 
     if ($haveCntAfter != $haveCnt + 1) {
-      return $this->handleError("AFTER BLOCK ADD: " . $html, result: false);
+      return $this->handleError('Adding block failed, new block is not there.', result: false);
     }
 
     return true;
@@ -629,6 +670,26 @@ class RPC
    */
   public function editArticle(int $articleId, int $categoryId, string $name, int $templateId, int $position = 10000):?array
   {
+    if (!$this->hasCSRFToken(self::API_ARTICLE_EDIT)) {
+      // index.php?page=structure&category_id=80&article_id=266&clang=1&function=edit_art&artstart=0&_pjax=%23rex-js-page-main
+      $result = $this->sendRequest('index.php?page=structure&article_id=' . $articleId . '&clang=1&function=edit_art');
+      if ($result === false) {
+        return $this->handleError('Unable to trigger CSRF update');
+      }
+      if (!$this->hasCSRFToken(self::API_ARTICLE_EDIT)) {
+        return $this->handleError('Unable to obtain the CSRF token.');
+      }
+    }
+
+    // Submit URL
+    // index.php?page=structure&category_id=80&article_id=266&clang=1&artstart=0
+    // POST data
+    // article-name: NAME
+    // template_id:
+    // article-position: pos
+    // rex-api-call: article_edit
+    // artedit_function ''
+
     $result = $this->sendRequest(
       'index.php',
       [
@@ -638,8 +699,10 @@ class RPC
         'function' => 'artedit_function',
         'article_name' => $name,
         'template_id' => $templateId,
-        'Position_Article' => $position,
+        'article_position' => $position,
+        'rex-api-call' => self::API_ARTICLE_EDIT,
         'clang' => 1,
+        'artstart' => 0,
       ]);
 
     if ($result === false) {
@@ -653,6 +716,7 @@ class RPC
     return $this->findArticlesByIdAndName($articleId, '.*', $categoryId, $html);
   }
 
+
   /**
    * Set the article's name to a new value without changing anything
    * else.
@@ -665,15 +729,16 @@ class RPC
    */
   public function setArticleName(int $articleId, string $name):bool
   {
+    // index.php?page=content/functions&article_id=266&clang=1&ctype=1
+
     $post = [
-      "page" => "content",
+      "page" => "content/functions",
       "article_id" => $articleId,
-      "mode" => "meta",
-      "save" => "1",
       "clang" => "1",
       "ctype" => "1",
       "meta_article_name" => $name,
-      "savemeta" => "blahsubmit",
+      "savemeta" => "1",
+      "save" => "1",
     ];
 
     $result = $this->sendRequest('index.php', $post);
@@ -682,33 +747,27 @@ class RPC
       return $this->handleError("Unable to set article name", result: false);
     }
 
-    $html = $result['content'];
-
     // Search for the updated meta_article_name with the new name,
     // and compare the article-id for safety.
-    $document = new DOMDocument();
-    $document->loadHTML($html, LIBXML_NOERROR);
 
-    $inputs = $document->getElementsByTagName("input");
-    $currentId = -1;
-    foreach ($inputs as $input) {
-      if ($input->getAttribute("name") == "article_id" &&
-          $input->getAttribute("value") == $articleId) {
-        $currentId = $input->getAttribute("value");
-        break;
-      }
-    }
+    $document = $result['document'];
+
+    $metaForm = $document->getElementById('rex-form-content-metamode');
+    $query = parse_url($metaForm->getAttribute('action'), PHP_URL_QUERY);
+    $data = [];
+    parse_str($query, $data);
+    $currentId = $data['article_id'];
 
     if ($currentId != $articleId) {
-      return $this->handleError("Changing the article name failed, mis-matched article ids", result: false);
+      return $this->handleError('Changing the article name failed, mis-matched article ids', result: false);
     }
 
-    $input = $document->getElementById("rex-form-meta-article-name");
+    $input = $document->getElementById("rex-id-meta-article-name");
     $valueName  = $input->getAttribute("name");
     $valueValue = $input->getAttribute("value");
 
-    if ($valueName != "meta_article_name" || $valueValue != $name) {
-      return $this->handleError("Changing the article name failed, got ".$valueName.'="'.$valueValue.'"', result: false);
+    if ($valueName != 'meta_article_name' || $valueValue != $name) {
+      return $this->handleError('Changing the article name failed, got ' . $valueName . ' = "' . $valueValue . '"', result: false);
     }
 
     return true;
@@ -829,12 +888,16 @@ class RPC
     $articles = [];
     $artStart = 0;
     do {
-      $result = $this->sendRequest('index.php?page=structure&category_id=' . $categoryId . '&clang=1&artstart=' . $artStart);
-      if ($result === false) {
-        return $this->handleError("Unable to retrieve article by name");
+      if (empty($initialRequestResponse)) {
+        $result = $this->sendRequest('index.php?page=structure&category_id=' . $categoryId . '&clang=1&artstart=' . $artStart);
+        if ($result === false) {
+          return $this->handleError("Unable to retrieve article by name");
+        }
+        $html = $result['content'];
+      } else {
+        $html = $initialRequestResponse;
+        $initialRequestResponse = null;
       }
-
-      $html = $result['content'];
 
       $articles = array_merge($articles, $this->filterArticlesByIdAndName($idList, $nameRe, $html));
 
@@ -887,6 +950,8 @@ class RPC
     if (!is_array($idList)) {
       if ($idList == '.*') {
         $idRe = '[0-9]+';
+      } else {
+        $idRe = $idList;
       }
     } else {
       if (count($idList) == 0) {
@@ -913,7 +978,7 @@ class RPC
     /** @var DOMElement $row */
     foreach ($rows as $row) {
       $articleId = $row->getAttribute('data-article-id');
-      if (empty($articleId) || !preg_match($idRe, $idRe)) {
+      if (empty($articleId) || !preg_match($idRe, $articleId)) {
         continue;
       }
       $article = [
@@ -929,7 +994,7 @@ class RPC
           case strpos($class, 'rex-table-article-name') !== false:
             $articleName = $col->textContent;
             if (!preg_match($nameRe, $articleName)) {
-              continue 2; // outer loop
+              continue 3; // outer loop
             }
             // seemingly textContent only contains the innermost text.
             $article['articleName'] = $col->textContent;
