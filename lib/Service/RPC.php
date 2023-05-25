@@ -129,7 +129,7 @@ class RPC
    *
    * @see AuthRedaxo::sendRequest()
    */
-  public function sendRequest(string $formPath, ?array $postData = null, string $csrfKey = 'rex-form-login'):?array
+  public function sendRequest(string $formPath, ?array $postData = null, string $csrfKey = AuthRedaxo::LOGIN_CSRF_KEY):?array
   {
     // try to login if necessary ...
     if (!$this->authenticator->ensureLoggedIn()) {

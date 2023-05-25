@@ -55,6 +55,8 @@ class AuthRedaxo
   const ON_ERROR_RETURN = 'return'; ///< Return boolean on error
   const CSRF_TOKEN_KEY = '_csrf_token';
 
+  const LOGIN_CSRF_KEY = 'login';
+
   private $loginResponse;
 
   /** @var string */
@@ -308,7 +310,7 @@ class AuthRedaxo
         'rex_user_login' => $userName,
         'rex_user_psw' => $password,
       ],
-      csrfKey: 'rex-login-form',
+      csrfKey: self::LOGIN_CSRF_KEY,
     );
 
     $this->updateLoginStatus($response, true);
@@ -557,7 +559,7 @@ class AuthRedaxo
    *   'content' => RESPONSE_BODY,
    * ]
    */
-  public function sendRequest(string $formPath, ?array $postData = null, string $csrfKey = 'rex-form-login'):?array
+  public function sendRequest(string $formPath, ?array $postData = null, string $csrfKey = self::LOGIN_CSRF_KEY):?array
   {
     $result = $this->doSendRequest($formPath, $postData, $csrfKey);
     if (!empty($result) && $this->isCSRFMismatch($result)) {
@@ -832,8 +834,9 @@ class AuthRedaxo
     if (count($loginCSRF) > 0) {
       /** @var DOMElement $loginCSRF */
       $loginCSRF = $loginCSRF->item(0);
-      $this->csrfTokens['rex-form-login'] = $loginCSRF->getAttribute('value');
+      $this->csrfTokens[self::LOGIN_CSRF_KEY] = $loginCSRF->getAttribute('value');
       asort($this->csrfTokens);
+      $this->logDebug('CSRF TOKENS: ' . print_r($this->csrfTokens, true));
       return;
     }
 
