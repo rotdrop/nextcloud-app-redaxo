@@ -2,7 +2,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2023
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -19,50 +19,36 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-import { state, cloudUser } from './config.js';
-import generateUrl from './generate-url.js';
+import { getCurrentUser } from '@nextcloud/auth';
+import axios from '@nextcloud/axios';
+import onDocumentLoaded from './toolkit/util/on-document-loaded.js';
+import generateUrl from './toolkit/util/generate-url.js';
+import { getInitialState } from './toolkit/services/InitialStateService.js';
 
-const jQuery = require('jquery');
-const $ = jQuery;
-require('./nextcloud/jquery/requesttoken.js');
+const state = getInitialState();
+let refreshInterval = state.authenticationRefreshInterval;
 
-function start() {
-
-  state.refresh = function() {
-    if (!(state.refreshInterval >= 30)) {
-      console.error('Refresh interval too short', state.refreshInterval);
-      state.refreshInterval = 30;
-    }
-    if (cloudUser) {
-      const url = generateUrl('authentication/refresh');
-      state.refresh = function(){
-        if (cloudUser) {
-          $.post(url, {}).always(function() {
-            console.info('DokuWiki refresh scheduled', state.refreshInterval * 1000);
-            state.refreshTimer = setTimeout(state.refresh, state.refreshInterval * 1000);
-          });
-        } else if (state.refreshTimer !== false) {
-          clearTimeout(state.refreshTimer);
-          state.refreshTimer = false;
-        }
-      };
-      console.info('DokuWiki refresh scheduled', state.refreshInterval * 1000);
-      state.refreshTimer = setTimeout(state.refresh, state.refreshInterval * 1000);
-    } else if (state.refreshTimer !== false) {
-      console.info('OC.currentUser appears unset');
-      clearTimeout(state.refreshTimer);
-      state.refreshTimer = false;
-    }
-  };
-
-  console.info('Starting DokuWiki refresh');
-  state.refresh();
-
+if (!(refreshInterval >= 30)) {
+  console.error('Refresh interval too short', refreshInterval);
+  refreshInterval = 30;
 }
 
-$(start);
+let refreshTimer = null;
+const url = generateUrl('authentication/refresh');
 
-// Local Variables: ***
-// js-indent-level: 2 ***
-// indent-tabs-mode: nil ***
-// End: ***
+const refreshHandler = async function() {
+  await axios.post(url);
+  console.info('Redaxo refresh scheduled', refreshInterval * 1000);
+  refreshTimer = setTimeout(refreshHandler, refreshInterval * 1000);
+};
+
+onDocumentLoaded(() => {
+  if (getCurrentUser()) {
+    console.info('Starting Redaxo authentication refresh.');
+    refreshTimer = setTimeout(refreshHandler, refreshInterval * 1000);
+  } else {
+    console.info('cloud-user appears unset.');
+    clearTimeout(refreshTimer);
+    refreshTimer = false;
+  }
+});

@@ -4,7 +4,7 @@
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
  * @copyright Claus-Justus Heine 2020, 2021, 2023
- * @license LGPL
+ * @license AGPL
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -29,30 +29,35 @@ use OCP\IRequest;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Controller;
 use OCP\IURLGenerator;
 use OCP\ISession;
-use OCP\ILogger;
+use Psr\Log\LoggerInterface as ILogger;
 use OCP\IL10N;
 use OCP\IConfig;
 use OCP\IInitialStateService;
 
-use OCA\Redaxo\Traits;
+use OCA\Redaxo\Toolkit\Traits;
 use OCA\Redaxo\Service\AuthRedaxo as Authenticator;
 use OCA\Redaxo\Exceptions\LoginException;
+use OCA\Redaxo\Service\AssetService;
+use OCA\Redaxo\Constants;
 
+/** Main entry point for web frontend. */
 class PageController extends Controller
 {
   use Traits\LoggerTrait;
   use Traits\ResponseTrait;
 
   const TEMPLATE = 'redaxo';
-
-  /** @var string */
-  private $userId;
+  const ASSET = 'app';
 
   /** @var Authenticator */
   private $authenticator;
+
+  /** @var AssetService */
+  private $assetService;
 
   /** @var IConfig */
   private $config;
@@ -66,51 +71,61 @@ class PageController extends Controller
   /** @var ISession */
   private $session;
 
+  // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
-    $appName
-    , IRequest $request
-    , ISession $session
-    , Authenticator $authenticator
-    , IConfig $config
-    , IURLGenerator $urlGenerator
-    , IInitialStateService $initialStateService
-    , ILogger $logger
-    , IL10N $l10n
+    string $appName,
+    IRequest $request,
+    ISession $session,
+    Authenticator $authenticator,
+    AssetService $assetService,
+    IConfig $config,
+    IURLGenerator $urlGenerator,
+    IInitialStateService $initialStateService,
+    ILogger $logger,
+    IL10N $l10n,
   ) {
     parent::__construct($appName, $request);
     $this->session = $session;
     $this->authenticator = $authenticator;
     $this->authenticator->errorReporting(Authenticator::ON_ERROR_THROW);
+    $this->assetService = $assetService;
     $this->config = $config;
     $this->urlGenerator = $urlGenerator;
     $this->initialStateService = $initialStateService;
     $this->logger = $logger;
     $this->l = $l10n;
   }
+  // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 
   /**
+   * @return Response
+   *
    * @NoAdminRequired
    * @NoCSRFRequired
    * @UseSession
    */
-  public function index()
+  public function index():Response
   {
     return $this->frame('user');
   }
 
   /**
+   * @param string $renderAs
+   *
+   * @return Response
+   *
    * @NoAdminRequired
    * @UseSession
    */
-  public function frame($renderAs = 'blank')
+  public function frame(string $renderAs = 'blank'):Response
   {
     try {
       $this->initialStateService->provideInitialState(
         $this->appName,
-        'initial',
+        Constants::INITIAL_STATE_SECTION,
         [
           'appName' => $this->appName,
-          'refreshInterval' => $this->config->getAppValue('refreshInterval', 600),
+          SettingsController::AUTHENTICATION_REFRESH_INTERVAL => $this->config->getAppValue(SettingsController::AUTHENTICATION_REFRESH_INTERVAL, 600),
         ]
       );
 
@@ -139,6 +154,10 @@ class PageController extends Controller
         'cssClass'         => $cssClass,
         'iframeAttributes' => '',
         'urlGenerator'     => $this->urlGenerator,
+        'assets' => [
+          Constants::JS => $this->assetService->getJSAsset(self::ASSET),
+          Constants::CSS => $this->assetService->getCSSAsset(self::ASSET),
+        ],
       ];
 
       $response = new TemplateResponse(
@@ -162,7 +181,5 @@ class PageController extends Controller
         throw $t;
       }
     }
-
-
   }
 }

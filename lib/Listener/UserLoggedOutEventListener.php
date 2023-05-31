@@ -4,6 +4,7 @@
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
  * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -27,70 +28,54 @@ use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\AppFramework\IAppContainer;
 use OCP\IRequest;
-use OCP\ILogger;
+use Psr\Log\LoggerInterface as ILogger;
+use Psr\Log\LogLevel;
 
 use OCA\Redaxo\Service\AuthRedaxo;
 
+/** Log the current user out of Redaxo if it logs out of Nextcloud. */
 class UserLoggedOutEventListener implements IEventListener
 {
-  use \OCA\Redaxo\Traits\LoggerTrait;
+  use \OCA\Redaxo\Toolkit\Traits\LoggerTrait;
+  use \OCA\Redaxo\Toolkit\Traits\ApiRequestTrait;
 
   const EVENT = HandledEvent::class;
-
-  /** @var OCP\IRequest */
-  private $request;
 
   /** @var IAppContainer */
   private $appContainer;
 
-  public function __construct(
-    IRequest $request,
-    ILogger $logger,
-    IAppContainer $appContainer,
-  ) {
-    $this->request = $request;
-    $this->logger = $logger;
+  // phpcs:disable Squiz.Commenting.FunctionComment.Missing
+  public function __construct(IAppContainer $appContainer)
+  {
     $this->appContainer = $appContainer;
   }
+  // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 
-  public function handle(Event $event): void {
-    if (!($event instanceOf HandledEvent)) {
-      return;
-    }
-
-    if ($this->ignoreRequest($this->request)) {
-      return;
-    }
-
-    /** @var AuthRedaxo $authenticator */
-    $authenticator = $this->appContainer->get(AuthRedaxo::class);
-
-    if ($authenticator->logout()) {
-      $authenticator->emitAuthHeaders();
-      // $this->logInfo("Redaxo logoff probably succeeded.");
-    }
-    $authenticator->persistLoginStatus();
-  }
-
-  /**
-   * In order to avoid request ping-pong the auto-login should only be
-   * attempted for UI logins.
-   */
-  private function ignoreRequest(IRequest $request):bool
+  /** {@inheritdoc} */
+  public function handle(Event $event):void
   {
-    $method = $request->getMethod();
-    if ($method != 'GET' && $method != 'POST') {
-      $this->logDebug('Ignoring request with method '.$method);
-      return true;
+    if (!($event instanceof HandledEvent)) {
+      return;
     }
-    if ($request->getHeader('OCS-APIREQUEST') === 'true') {
-      $this->logDebug('Ignoring API login');
-      return true;
+    /** @var HandledEvent $event */
+
+    $this->logger = $this->appContainer->get(ILogger::class);
+
+    $request = $this->appContainer->get(IRequest::class);
+    if ($this->isNonInteractiveRequest($request, LogLevel::DEBUG)) {
+      return;
     }
-    if (strpos($request->getHeader('Authorization'), 'Bearer ') === 0) {
-      $this->logDebug('Ignoring API "bearer" auth');
-      return true;
+
+    try {
+      /** @var AuthRedaxo $authenticator */
+      $authenticator = $this->appContainer->get(AuthRedaxo::class);
+      if ($authenticator->logout()) {
+        $authenticator->emitAuthHeaders();
+        $this->logInfo("Redaxo logoff probably succeeded.");
+      }
+      $authenticator->persistLoginStatus();
+    } catch (Throwable $t) {
+      $this->logException($t, 'Unable to log out of Redxao.');
     }
-    return false;
   }
 }

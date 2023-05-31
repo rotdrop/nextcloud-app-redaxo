@@ -1,0 +1,10 @@
+vendor/
+build/
+doc/
+js/
+lib/Toolkit/
+php-toolkit/Service/
+php-toolkit/Traits/UtilTrait.php
+statistics/
+repositories/
+src/toolkit/

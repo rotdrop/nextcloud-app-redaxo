@@ -5,7 +5,7 @@
     <name>Redaxo CMS</name>
     <summary>Support embedding an external Redaxo CMS instance with SSO</summary>
     <description><![CDATA[Redxao users and Nextcloud users have to coincide, e.g. by using a common authentication backend lik LDAP, or with an appropriate auth plugin on either side of the integration.]]></description>
-    <version>0.0.1</version>
+    <version>1.0.0</version>
     <licence>agpl</licence>
     <author mail="himself@claus-justus-heine.de" homepage="https://www.claus-justus-heine.de">Claus-Justus Heine</author>
     <namespace>Redaxo</namespace>

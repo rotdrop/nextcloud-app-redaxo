@@ -2,7 +2,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2023
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -19,71 +19,22 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-import { webPrefix } from './config.js';
-import ajaxFailData from './ajax.js';
-import generateUrl from './generate-url.js';
+import { appName } from './config.js';
+import { generateFilePath } from '@nextcloud/router';
 
-const jQuery = require('jquery');
-const $ = jQuery;
-require('./nextcloud/jquery/requesttoken.js');
+import Vue from 'vue';
+import AdminSettings from './AdminSettings.vue';
 
-const storeSettings = function(event, $id) {
-  const msg = $('#' + webPrefix + 'settings .msg');
-  if ($.trim(msg.html()) === '') {
-    msg.hide();
-  }
-  let post = $id.serialize();
-  const cbSelector = 'input:checkbox:not(:checked)';
-  $id.find(cbSelector).addBack(cbSelector).each(function(index) {
-    if (post !== '') {
-      post += '&';
-    }
-    post += $(this).attr('name') + '=' + 'off';
-  });
-  $.post(generateUrl('settings/admin/set'), post)
-    .done(function(data) {
-      if (data.value) {
-        $id.val(data.value);
-      }
-      if (data.message) {
-        msg.html(data.message);
-        msg.show();
-      }
-    })
-    .fail(function(xhr, status, errorThrown) {
-      const response = ajaxFailData(xhr, status, errorThrown);
-      console.error(response);
-      if (response.message) {
-        msg.html(response.message);
-        msg.show();
-      }
-    });
-  return false;
-};
+import { Tooltip } from '@nextcloud/vue';
 
-$(function() {
+Vue.directive('tooltip', Tooltip);
 
-  const inputs = {
-    externalLocation: 'blur',
-    authenticationRefreshInterval: 'blur',
-    reloginDelay: 'blur',
-    enableSSLVerify: 'change',
-  };
+// eslint-disable-next-line
+__webpack_public_path__ = generateFilePath(appName, '', 'js/');
 
-  for (const input in inputs) {
-    const $id = $('#' + input);
-    const event = inputs[input];
+Vue.mixin({ data() { return { appName }; }, methods: { t, n } });
 
-    $id.on(event, function(event) {
-      event.preventDefault();
-      storeSettings(event, $id);
-      return false;
-    });
-  }
-
+export default new Vue({
+  el: '#' + appName + '-admin-settings',
+  render: h => h(AdminSettings),
 });
-
-// Local Variables: ***
-// js-indent-level: 2 ***
-// indent-tabs-mode: nil ***
-// End: ***

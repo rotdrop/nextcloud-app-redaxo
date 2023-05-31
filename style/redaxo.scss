@@ -2,7 +2,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2023
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -19,15 +19,29 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-import { appName } from './config.js';
+##{$redaxoAppName}FrameWrapper {
+  height: 100%;
+  display: none;
+  overflow: hidden;
+}
 
-const generateUrl = function(postFix) {
-  return OC.generateUrl('/apps/' + appName + '/' + postFix);
-};
+##{$redaxoAppName}_container {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
 
-export default generateUrl;
+##{$redaxoAppName}Frame{
+  width: 100%;
+  height: 100%;
+}
 
-// Local Variables: ***
-// js-indent-level: 2 ***
-// indent-tabs-mode: nil ***
-// End: ***
+##{$redaxoAppName}Loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 128px;
+  height: 14px;
+  margin-top: -7px; /* Half the height */
+  margin-left: -64px; /* Half the width */
+}

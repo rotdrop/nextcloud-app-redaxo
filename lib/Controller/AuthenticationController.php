@@ -3,7 +3,8 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -27,14 +28,16 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Controller;
 use OCP\ISession;
-use OCP\ILogger;
+use Psr\Log\LoggerInterface as ILogger;
 use OCP\IL10N;
 
 use OCA\Redaxo\Service\AuthRedaxo as Authenticator;
+use OCA\Redaxo\Toolkit\Traits;
 
+/** AJAX end points for periodic authentication refresh. */
 class AuthenticationController extends Controller
 {
-  use \OCA\Redaxo\Traits\LoggerTrait;
+  use Traits\LoggerTrait;
 
   /** @var ISession */
   private $session;
@@ -45,14 +48,15 @@ class AuthenticationController extends Controller
   /** @var string */
   private $userId;
 
+  // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
-    $appName
-    , IRequest $request
-    , ISession $session
-    , $userId
-    , Authenticator $authenticator
-    , ILogger $logger
-    , IL10N $l10n
+    string $appName,
+    IRequest $request,
+    ISession $session,
+    $userId,
+    Authenticator $authenticator,
+    ILogger $logger,
+    IL10N $l10n,
   ) {
     parent::__construct($appName, $request);
     $this->session = $session;
@@ -61,12 +65,15 @@ class AuthenticationController extends Controller
     $this->logger = $logger;
     $this->l = $l10n;
   }
+  // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 
   /**
+   * @return void
+   *
    * @NoAdminRequired
    * @UseSession
    */
-  public function refresh()
+  public function refresh():void
   {
     if (false === $this->authenticator->refresh()) {
       $this->logDebug("Redaxo refresh for user ".($this->userId)." failed.");

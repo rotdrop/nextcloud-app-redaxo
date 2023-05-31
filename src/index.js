@@ -3,6 +3,7 @@
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
  * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -19,11 +20,11 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-import { webPrefix } from './config.js';
+import { appName as webPrefix } from './config.js';
 import { loadHandler } from './redaxo.js';
-import '../style/redaxo.css';
+import '../style/redaxo.scss';
+import jQuery from './toolkit/util/jquery.js';
 
-const jQuery = require('jquery');
 const $ = jQuery;
 
 $(function() {

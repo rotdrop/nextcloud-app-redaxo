@@ -33,7 +33,7 @@ use OCP\Authentication\LoginCredentials\IStore as ICredentialsStore;
 use OCP\Authentication\LoginCredentials\ICredentials;
 use OCP\IConfig;
 use OCP\IURLGenerator;
-use OCP\ILogger;
+use Psr\Log\LoggerInterface as ILogger;
 use OCP\ISession;
 use OCP\Session\Exceptions\SessionNotAvailableException;
 use OCP\IUserSession;
@@ -48,7 +48,7 @@ use OCA\Redaxo\Enums\LoginStatusEnum as LoginStatus;
  */
 class AuthRedaxo
 {
-  use \OCA\Redaxo\Traits\LoggerTrait;
+  use \OCA\Redaxo\Toolkit\Traits\LoggerTrait;
 
   const COOKIE_RE = 'REX[0-9]+|PHPSESSID|redaxo_sessid|KEY_PHPSESSID|KEY_redaxo_sessid';
   const ON_ERROR_THROW = 'throw'; ///< Throw an exception on error
@@ -100,9 +100,6 @@ class AuthRedaxo
 
   /** @var int */
   private $loginTimeStamp;
-
-  /** @var string */
-  private $csrfToken;
 
   /** @var array */
   private $csrfTokens;
@@ -349,8 +346,6 @@ class AuthRedaxo
 
   /**
    * Stash the CSRF token away in the session data if possible.
-   *
-   * @param null|string $csrfToken
    *
    * @return void
    */

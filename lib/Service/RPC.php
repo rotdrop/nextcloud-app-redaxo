@@ -27,7 +27,7 @@ use DOMDocument;
 use DOMXPath;
 use Throwable;
 
-use OCP\ILogger;
+use Psr\Log\LoggerInterface as ILogger;
 use OCP\IL10N;
 
 /**
@@ -37,7 +37,7 @@ use OCP\IL10N;
  */
 class RPC
 {
-  use \OCA\Redaxo\Traits\LoggerTrait;
+  use \OCA\Redaxo\Toolkit\Traits\LoggerTrait;
 
   const ON_ERROR_THROW = AuthRedaxo::ON_ERROR_THROW;
   const ON_ERROR_RETURN = AuthRedaxo::ON_ERROR_RETURN;
@@ -168,6 +168,10 @@ class RPC
   /**
    * Fetch all categories for the Redaxo server. For this to work the
    * "quick_navigation" addon must be installed.
+   *
+   * @param int $parentId
+   *
+   * @param int $level
    *
    * @return null|array
    *

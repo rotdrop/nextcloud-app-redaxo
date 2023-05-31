@@ -19,9 +19,9 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-import { webPrefix } from './config.js';
+import { appName as webPrefix } from './config.js';
+import jQuery from './toolkit/util/jquery.js';
 
-const jQuery = require('jquery');
 const $ = jQuery;
 
 const loadHandler = function(frame, frameWrapper, callback) {
@@ -39,10 +39,10 @@ const loadHandler = function(frame, frameWrapper, callback) {
   contents.find('a').filter(function() {
     return this.hostname && this.hostname !== window.location.hostname;
   }).each(function() {
-    $(this).attr('target','_blank');
+    $(this).attr('target', '_blank');
   });
 
-  if (typeof callback == 'undefined') {
+  if (typeof callback === 'undefined') {
     callback = function() {};
   }
 

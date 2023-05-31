@@ -1,52 +1,58 @@
-# Embedded Redaxo CMS
-Place this app in **nextcloud/apps/**
+Redaxo Integration for Nextcloud
+==================================
 
-## Building the app
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+**Table of Contents**
 
-The app can be built by using the provided Makefile by running:
+- [Intro](#intro)
+- [Installation](#installation)
+- [Single Sign On](#single-sign-on)
+- [More Documentation should follow ...](#more-documentation-should-follow-)
+- [Screenshots](#screenshots)
+  - [Start Page](#start-page)
+  - [Admin Settings](#admin-settings)
+  - [JQuery Popup](#jquery-popup)
 
-    make
+<!-- markdown-toc end -->
 
-This requires the following things to be present:
-* make
-* which
-* tar: for building the archive
-* curl: used if phpunit and composer are not installed to fetch them from the web
-* npm: for building and testing everything JS, only required if a package.json is placed inside the **js/** folder
+# Intro
 
-The make command will install or update Composer dependencies if a composer.json is present and also **npm run build** if a package.json is present in the **js/** folder. The npm **build** script should use local paths for build systems and package managers, so people that simply want to build the app won't need to install npm libraries globally, e.g.:
+This is a Nextcloud app which embeds a Redaxo instance into a
+Nextcloud server installation. If Redaxo and Nextcloud are
+configured to use the same authentication backend, then this will work
+with SSO, otherwise the login window of Redaxo will appear in the
+embedding iframe.
 
-**package.json**:
-```json
-"scripts": {
-    "test": "node node_modules/gulp-cli/bin/gulp.js karma",
-    "prebuild": "npm install && node_modules/bower/bin/bower install && node_modules/bower/bin/bower update",
-    "build": "node node_modules/gulp-cli/bin/gulp.js"
-}
-```
+# Installation
 
+- ~install from the app-store~ (not yet)
+- install from a (pre-)release tar-ball by extracting it into your app folder
+- clone the git repository in to your app folder and run make
+  - `make help` will list all targets
+  - `make dev` comiles without minification or other assset-size optimizations
+  - `make build` will generate optimized assets
+  - there are several build-dependencies like compose, node, tar
+    ... just try and install all missing tools ;)
 
-## Publish to App Store
+# Single Sign On
 
-First get an account for the [App Store](http://apps.nextcloud.com/) then run:
+If Redaxo and Nextcloud share a common user-base and authentication
+scheme then the current user is just silently logged into the
+configured Redaxo instance and later the Redaxo contents will just
+be presented in an IFrame to the user.
 
-    make && make appstore
+# More Documentation should follow ...
 
-The archive is located in build/artifacts/appstore and can then be uploaded to the App Store.
+# Screenshots
 
-## Running tests
-You can use the provided Makefile to run all tests by using:
+## Start Page
 
-    make test
+TODO
 
-This will run the PHP unit and integration tests and if a package.json is present in the **js/** folder will execute **npm run test**
+## Admin Settings
 
-Of course you can also install [PHPUnit](http://phpunit.de/getting-started.html) and use the configurations directly:
+TODO
 
-    phpunit -c phpunit.xml
+## JQuery Popup
 
-or:
-
-    phpunit -c phpunit.integration.xml
-
-for integration tests
+TODO

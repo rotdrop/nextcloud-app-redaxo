@@ -3,7 +3,8 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @license AGPL
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -22,9 +23,12 @@
 
 namespace OCA\Redaxo\Exceptions;
 
+use RuntimeException;
+use Throwable;
 use OCA\Redaxo\Enums\LoginStatusEnum;
 
-class LoginException extends \RuntimeException
+/** Login-error exception base class. */
+class LoginException extends RuntimeException
 {
   /** @var string */
   protected $originalMessage;
@@ -35,12 +39,13 @@ class LoginException extends \RuntimeException
   /** @var LoginStatusEnum */
   protected $loginStatus;
 
+  // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
-    string $message
-    , int $code = 0
-    , \Throwable $previous = null
-    , ?string $userId = null
-    , ?LoginStatusEnum $loginStatus = null
+    string $message,
+    int $code = 0,
+    Throwable $previous = null,
+    ?string $userId = null,
+    ?LoginStatusEnum $loginStatus = null,
   ) {
     parent::__construct($this->message, $code, $previous);
     $this->originalMessage = $message;
@@ -48,30 +53,54 @@ class LoginException extends \RuntimeException
     $this->loginStatus = $loginStatus?: LoginStatusEnum::UNKNOWN();
     $this->generateMessage();
   }
+  // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 
-  protected function generateMessage()
+  /**
+   * Generate a suitable message based on the supplied data.
+   *
+   * @return void
+   */
+  protected function generateMessage():void
   {
     $statusString = sprintf(' (user: %s, login-status: %s)', $this->userId, (string)$this->loginStatus);
     $this->message = $this->originalMessage.$statusString;
   }
 
-  public function setUserId(?string $userId)
+  /**
+   * @param null|string $userId
+   *
+   * @return LoginException $this
+   */
+  public function setUserId(?string $userId):LoginException
   {
     $this->userId = $userId;
     $this->generateMessage();
+    return $this;
   }
 
+  /**
+   * @return null|string
+   */
   public function getUserId():?string
   {
     return $this->userId;
   }
 
-  public function setLoginStatus(LoginStatusEnum $status)
+  /**
+   * @param LoginStatusEnum $status
+   *
+   * @return LoginException $this
+   */
+  public function setLoginStatus(LoginStatusEnum $status):LoginException
   {
     $this->loginStatus = $status;
     $this->generateMessage();
+    return $this;
   }
 
+  /**
+   * @return LoginStatusEnum
+   */
   public function getLoginStatus():LoginStatusEnum
   {
     return $this->loginStatus;

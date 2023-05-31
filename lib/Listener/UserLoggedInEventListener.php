@@ -4,6 +4,7 @@
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
  * @copyright Claus-Justus Heine 2020, 2021, 2022, 2023
+ * @license   AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -28,13 +29,14 @@ use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\AppFramework\IAppContainer;
 use OCP\IRequest;
-use OCP\ILogger;
+use Psr\Log\LoggerInterface as ILogger;
 
 use OCA\Redaxo\Service\AuthRedaxo;
 
+/** Log into Redaxo on login and receive the necessary authentication cookies. */
 class UserLoggedInEventListener implements IEventListener
 {
-  use \OCA\Redaxo\Traits\LoggerTrait;
+  use \OCA\Redaxo\Toolkit\Traits\LoggerTrait;
 
   const EVENT = [ Event1::class, Event2::class ];
 
@@ -44,6 +46,7 @@ class UserLoggedInEventListener implements IEventListener
   /** @var IAppContainer */
   private $appContainer;
 
+  // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
     IRequest $request,
     ILogger $logger,
@@ -53,10 +56,12 @@ class UserLoggedInEventListener implements IEventListener
     $this->logger = $logger;
     $this->appContainer = $appContainer;
   }
+  // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 
+  /** {@inheritdoc} */
   public function handle(Event $event): void
   {
-    if (!($event instanceOf Event1 && !($event instanceOf Event2))) {
+    if (!($event instanceof Event1 && !($event instanceof Event2))) {
       return;
     }
 
@@ -82,6 +87,10 @@ class UserLoggedInEventListener implements IEventListener
   /**
    * In order to avoid request ping-pong the auto-login should only be
    * attempted for UI logins.
+   *
+   * @param IRequest $request
+   *
+   * @return bool
    */
   private function ignoreRequest(IRequest $request):bool
   {
@@ -101,8 +110,3 @@ class UserLoggedInEventListener implements IEventListener
     return false;
   }
 }
-
-// Local Variables: ***
-// c-basic-offset: 2 ***
-// indent-tabs-mode: nil ***
-// End: ***

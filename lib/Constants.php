@@ -4,7 +4,7 @@
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
  * @copyright Claus-Justus Heine 2020, 2021, 2023
- * @license AGPL-3.0-or-later
+ * @license   AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -21,27 +21,12 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-return [
-  'routes' => [
-    [
-      'name' => 'page#index',
-      'url' => '/page/index',
-      'verb' => 'GET',
-    ],
-    [
-      'name' => 'page#frame',
-      'url' => '/page/frame',
-      'verb' => 'POST',
-    ],
-    [
-      'name' => 'admin_settings#set',
-      'url' => '/settings/admin/set',
-      'verb' => 'POST',
-    ],
-    [
-      'name' => 'authentication#refresh',
-      'url' => '/authentication/refresh',
-      'verb' => 'POST',
-    ],
-  ],
-];
+namespace OCA\Redaxo;
+
+use OCA\Redaxo\Toolkit\Traits\Constants as TraitsConstants;
+
+/** General constants for the app. */
+class Constants extends TraitsConstants
+{
+  public const INITIAL_STATE_SECTION = 'config';
+}

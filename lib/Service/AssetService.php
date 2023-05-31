@@ -1,8 +1,10 @@
+<?php
 /**
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -19,29 +21,34 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#redaxoFrameWrapper {
-  height: 100%;
-  display: none;
-  overflow: hidden;
-}
+namespace OCA\Redaxo\Service;
 
-#redaxo_container {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-}
+use OCP\IL10N;
+use Psr\Log\LoggerInterface;
 
-#redaxoFrame{
-  width: 100%;
-  height: 100%;
-}
+use OCA\Redaxo\Constants;
 
-#redaxoLoader {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 128px;
-  height: 14px;
-  margin-top: -7px; /* Half the height */
-  margin-left: -64px; /* Half the width */
+/**
+ * Return JavaScript- and CSS-assets names dealing with the attached content
+ * hashes
+ */
+class AssetService
+{
+  use \OCA\Redaxo\Toolkit\Traits\AssetTrait {
+    getAsset as public;
+    getJSAsset as public;
+    getCSSAsset as public;
+  }
+
+  const JS = Constants::JS;
+  const CSS = Constants::CSS;
+
+  // phpcs:disable Squiz.Commenting.FunctionComment.Missing
+  public function __construct(IL10N $l10n, LoggerInterface $logger)
+  {
+    $this->logger = $logger;
+    $this->l = $l10n;
+    $this->initializeAssets(__DIR__);
+  }
+  // phpcs:enable
 }

@@ -2,7 +2,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2023
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -21,28 +21,8 @@
 
 const appInfo = require('../appinfo/info.xml');
 const appName = appInfo.info.id[0];
-const webPrefix = appName;
-const webRoot = OC.appswebroots[appName] + '/';
-const cloudUser = OC.currentUser;
-
-let state = OCP.InitialState.loadState(appName, 'initial');
-state = $.extend({}, state);
-state.refreshTimer = false;
-
-if (appName !== state.appName) {
-  throw new Error('appName / state.appName are different: ' + appName + ' / ' + state.appName);
-}
 
 export {
-  state,
   appInfo,
   appName,
-  webPrefix,
-  webRoot,
-  cloudUser,
 };
-
-// Local Variables: ***
-// js-indent-level: 2 ***
-// indent-tabs-mode: nil ***
-// End: ***

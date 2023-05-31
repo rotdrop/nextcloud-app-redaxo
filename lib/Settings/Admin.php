@@ -3,7 +3,8 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -26,46 +27,49 @@ use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IURLGenerator;
 use OCP\Settings\IDelegatedSettings;
 use OCP\IConfig;
-use OCP\ILogger;
+use Psr\Log\LoggerInterface as ILogger;
 use OCP\IL10N;
 
+use OCA\Redaxo\Service\AssetService;
+use OCA\Redaxo\Controller\SettingsController;
+
+/** Admin settings. */
 class Admin implements IDelegatedSettings
 {
-  use \OCA\Redaxo\Traits\LoggerTrait;
-
   const TEMPLATE = 'admin-settings';
-  const SETTINGS = [
-    'externalLocation' => '',
-    'authenticationRefreshInterval' => 600,
-    'reloginDelay' => 5,
-    'enableSSLVerify' => true,
-  ];
+  const ASSET_NAME = 'admin-settings';
 
-  /** @var \OCP\IURLGenerator */
-  private $urlGenerator;
+  /** @var IConfig */
+  private $config;
 
+  /** @var AssetService */
+  private $assetService;
+
+  // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
-    $appName
-    , IConfig $config
-    , IURLGenerator $urlGenerator
-    , ILogger $logger
-    , IL10N $l10n
+    string $appName,
+    IConfig $config,
+    AssetService $assetService,
   ) {
     $this->appName = $appName;
     $this->config = $config;
-    $this->urlGenerator = $urlGenerator;
-    $this->logger = $logger;
-    $this->l = $l10n;
+    $this->assetService = $assetService;
   }
+  // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 
-  public function getForm() {
+  /** {@inheritdoc} */
+  public function getForm()
+  {
     $templateParameters = [
       'appName' => $this->appName,
       'webPrefix' => $this->appName,
-      'urlGenerator' => $this->urlGenerator,
+      'assets' => [
+        Constants::JS => $this->assetService->getJSAsset(self::ASSET_NAME),
+        Constants::CSS => $this->assetService->getCSSAsset(self::ASSET_NAME),
+      ],
     ];
-    foreach (self::SETTINGS as $setting => $default) {
-      $templateParameters[$setting] = $this->config->getAppValue($this->appName, $setting, $default);
+    foreach (SettingsController::ADMIN_SETTINGS as $setting => $meta) {
+      $templateParameters[$setting] = $this->config->getAppValue($this->appName, $setting, $meta['default']);
     }
     return new TemplateResponse(
       $this->appName,
@@ -73,37 +77,27 @@ class Admin implements IDelegatedSettings
       $templateParameters);
   }
 
-  /**
-   * @return string the section ID, e.g. 'sharing'
-   * @since 9.1
-   */
-  public function getSection() {
+  /** {@inheritdoc} */
+  public function getSection()
+  {
     return $this->appName;
   }
 
-  /**
-   * @return int whether the form should be rather on the top or bottom of
-   * the admin section. The forms are arranged in ascending order of the
-   * priority values. It is required to return a value between 0 and 100.
-   *
-   * E.g.: 70
-   * @since 9.1
-   */
-  public function getPriority() {
-    // @@TODO could be made a configure option.
+  /** {@inheritdoc} */
+  public function getPriority()
+  {
     return 50;
   }
 
-  public function getName(): ?string {
+  /** {@inheritdoc} */
+  public function getName():?string
+  {
     return null;
   }
 
-  public function getAuthorizedAppConfig(): array {
+  /** {@inheritdoc} */
+  public function getAuthorizedAppConfig():array
+  {
     return [];
   }
 }
-
-// Local Variables: ***
-// c-basic-offset: 2 ***
-// indent-tabs-mode: nil ***
-// End: ***

@@ -3,7 +3,8 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021
+ * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -24,68 +25,57 @@ namespace OCA\Redaxo\Settings;
 
 use OCP\Settings\IIconSection;
 use OCP\IURLGenerator;
-use OCP\ILogger;
+use Psr\Log\LoggerInterface as ILogger;
 use OCP\IL10N;
 
+/** Admin settings section. */
 class AdminSection implements IIconSection
 {
-  use \OCA\Redaxo\Traits\LoggerTrait;
+  use \OCA\Redaxo\Toolkit\Traits\LoggerTrait;
 
   /** @var string */
   private $appName;
 
   /** @var \OCP\IURLGenerator */
-  private $ulrGenerator;
+  private $urlGenerator;
 
+  // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
-    string $appName
-    , IURLGenerator $urlGenerator
-    , ILogger $logger
-    , IL10N $l10n
+    string $appName,
+    IURLGenerator $urlGenerator,
+    ILogger $logger,
+    IL10N $l10n,
   ) {
     $this->appName = $appName;
     $this->urlGenerator = $urlGenerator;
     $this->logger = $logger;
     $this->l = $l10n;
   }
+  // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 
-  /**
-   * returns the ID of the section. It is supposed to be a lower case string
-   *
-   * @returns string
-   */
-  public function getID() {
+  /** {@inheritdoc} */
+  public function getID()
+  {
     return $this->appName;
   }
 
-  /**
-   * returns the translated name as it should be displayed, e.g. 'LDAP / AD
-   * integration'. Use the L10N service to translate it.
-   *
-   * @return string
-   */
-  public function getName() {
+  /** {@inheritdoc} */
+  public function getName()
+  {
     // @@TODO make this configurable
     return $this->l->t("Redaxo Integration");
   }
 
-  /**
-   * @return int whether the form should be rather on the top or bottom of
-   * the settings navigation. The sections are arranged in ascending order of
-   * the priority values. It is required to return a value between 0 and 99.
-   */
-  public function getPriority() {
+  /** {@inheritdoc} */
+  public function getPriority()
+  {
     return 50;
   }
 
-  public function getIcon() {
+  /** {@inheritdoc} */
+  public function getIcon()
+  {
     // @@TODO make it configurable
     return $this->urlGenerator->imagePath($this->appName, 'app.svg');
   }
-
 }
-
-// Local Variables: ***
-// c-basic-offset: 2 ***
-// indent-tabs-mode: nil ***
-// End: ***
