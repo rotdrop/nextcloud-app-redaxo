@@ -32,6 +32,7 @@ use OCP\IL10N;
 
 use OCA\Redaxo\Service\AssetService;
 use OCA\Redaxo\Controller\SettingsController;
+use OCA\Redaxo\Constants;
 
 /** Admin settings. */
 class Admin implements IDelegatedSettings
