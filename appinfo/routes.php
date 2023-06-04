@@ -33,11 +33,27 @@ return [
       'url' => '/page/frame',
       'verb' => 'POST',
     ],
+    // settings
     [
-      'name' => 'admin_settings#set',
-      'url' => '/settings/admin/set',
+      'name' => 'settings#set_admin',
+      'url' => '/settings/admin/{setting}',
       'verb' => 'POST',
     ],
+    [
+      'name' => 'settings#get_admin',
+      'url' => '/settings/admin/{setting}',
+      'verb' => 'GET',
+      'requirements' => [
+        'setting' => '^.+$',
+      ],
+    ],
+    [
+      'name' => 'settings#get_admin',
+      'url' => '/settings/admin',
+      'verb' => 'GET',
+      'postfix' => '.all',
+    ],
+    // authentication refresh
     [
       'name' => 'authentication#refresh',
       'url' => '/authentication/refresh',
