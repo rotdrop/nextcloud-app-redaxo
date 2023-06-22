@@ -236,7 +236,7 @@ class AuthRedaxo
    *
    * @return string
    */
-  public function externalURL(?string $url = null):string
+  public function externalURL(?string $url = null):?string
   {
     if (!empty($url)) {
       if ($url[0] == '/') {
