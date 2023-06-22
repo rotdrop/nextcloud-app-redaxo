@@ -71,7 +71,6 @@ class AuthenticationController extends Controller
    * @return void
    *
    * @NoAdminRequired
-   * @UseSession
    */
   public function refresh():void
   {

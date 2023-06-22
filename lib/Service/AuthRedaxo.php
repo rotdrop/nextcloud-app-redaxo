@@ -355,11 +355,12 @@ class AuthRedaxo
     $sessionCSRFs = $this->session->get($sessionKey) ?? [];
     asort($sessionCSRFs);
     if ($sessionCSRFs != $this->csrfTokens) {
-      if ($this->session->isClosed()) {
-        $this->logWarn('Session is already closed, unable to persist CSRF token.');
-        return;
+      try {
+        $this->session->set($sessionKey, $this->csrfTokens);
+      } catch (SessionNotAvailableException $e) {
+        // The Nextcloud log-reader does not handle custom messages :(
+        $this->logException(new RuntimeException('Session is already closed, unable to persist CSRF tokens.', $e->getCode(), $e));
       }
-      $this->session->set($sessionKey, $this->csrfTokens);
     }
   }
 
@@ -385,10 +386,6 @@ class AuthRedaxo
    */
   public function persistLoginStatus():void
   {
-    if ($this->session->isClosed()) {
-      $this->logWarn('Session is already closed, unable to persist login credentials.');
-      return;
-    }
     try {
       $this->session->set($this->appName, [
         'authHeaders' => $this->authHeaders,

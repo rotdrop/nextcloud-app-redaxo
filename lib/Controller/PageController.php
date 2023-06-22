@@ -102,7 +102,6 @@ class PageController extends Controller
    *
    * @NoAdminRequired
    * @NoCSRFRequired
-   * @UseSession
    */
   public function index():Response
   {
@@ -115,7 +114,6 @@ class PageController extends Controller
    * @return Response
    *
    * @NoAdminRequired
-   * @UseSession
    */
   public function frame(string $renderAs = 'blank'):Response
   {
