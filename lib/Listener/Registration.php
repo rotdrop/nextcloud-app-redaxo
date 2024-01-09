@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2022, 2023
+ * @copyright Claus-Justus Heine 2020, 2021, 2022, 2023, 2024
  * @license AGPL
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -37,7 +37,7 @@ class Registration
   {
     self::registerListener($context, UserLoggedInEventListener::class);
     self::registerListener($context, UserLoggedOutEventListener::class);
-    self::registerListener($context, LoadAdditionalScriptsListener::class);
+    self::registerListener($context, LoadAdditionalScriptsEventListener::class);
   }
 
   /**
