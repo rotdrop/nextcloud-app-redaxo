@@ -3,7 +3,7 @@
         'name' => 'rotdrop/redaxo',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '99b2a8fb63d61b066e0768a254554b9a3571d846',
+        'reference' => 'd22c1e52c6548c7e5f1300793eb5c151a2014ec5',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -22,7 +22,7 @@
         'rotdrop/redaxo' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '99b2a8fb63d61b066e0768a254554b9a3571d846',
+            'reference' => 'd22c1e52c6548c7e5f1300793eb5c151a2014ec5',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
