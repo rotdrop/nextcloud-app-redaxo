@@ -37,6 +37,7 @@ class Registration
   {
     self::registerListener($context, UserLoggedInEventListener::class);
     self::registerListener($context, UserLoggedOutEventListener::class);
+    self::registerListener($context, LoadAdditionalScriptsListener::class);
   }
 
   /**

@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2024
  * @license   AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -35,34 +35,7 @@ namespace OCA\Redaxo\AppInfo;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Bootstrap\IBootContext;
-use OCP\AppFramework\Services\IInitialState;
 use OCP\AppFramework\App;
-
-use OCP\IConfig;
-use OCP\IInitialStateService;
-
-/*
- *
- **********************************************************
- *
- * Events and listeners
- *
- */
-
-use OCP\EventDispatcher\IEventDispatcher;
-use OCA\Redaxo\Listener\Registration as ListenerRegistration;
-
-/*
- *
- **********************************************************
- *
- * Assets
- *
- */
-
-use OCA\Redaxo\Service\AssetService;
-use OCA\Redaxo\Controller\SettingsController;
-use OCA\Redaxo\Constants;
 
 /*
  *
@@ -99,26 +72,6 @@ class Application extends App implements IBootstrap
   /** {@inheritdoc} */
   public function boot(IBootContext $context): void
   {
-    $context->injectFn(function(
-      IConfig $config,
-      IInitialState $initialState,
-      IEventDispatcher $dispatcher,
-      AssetService $assetService,
-    ) {
-      $refreshInterval = $config->getAppValue($this->appName, SettingsController::AUTHENTICATION_REFRESH_INTERVAL, 600);
-      $dispatcher->addListener(
-        \OCP\AppFramework\Http\TemplateResponse::EVENT_LOAD_ADDITIONAL_SCRIPTS_LOGGEDIN,
-        function() use ($initialState, $refreshInterval, $assetService) {
-          $initialState->provideInitialState(
-            Constants::INITIAL_STATE_SECTION, [
-              'appName' => $this->appName,
-              SettingsController::AUTHENTICATION_REFRESH_INTERVAL => $refreshInterval,
-            ],
-          );
-          \OCP\Util::addScript($this->appName, $assetService->getJSAsset('refresh')['asset']);
-        }
-      );
-    });
   }
 
   /** {@inheritdoc} */
