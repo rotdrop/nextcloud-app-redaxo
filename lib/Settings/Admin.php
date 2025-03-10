@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025
  * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -24,15 +24,15 @@
 namespace OCA\Redaxo\Settings;
 
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\IConfig;
+use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\Settings\IDelegatedSettings;
-use OCP\IConfig;
 use Psr\Log\LoggerInterface as ILogger;
-use OCP\IL10N;
 
-use OCA\Redaxo\Service\AssetService;
-use OCA\Redaxo\Controller\SettingsController;
 use OCA\Redaxo\Constants;
+use OCA\Redaxo\Controller\SettingsController;
+use OCA\Redaxo\Service\AssetService;
 
 /** Admin settings. */
 class Admin implements IDelegatedSettings
@@ -40,21 +40,12 @@ class Admin implements IDelegatedSettings
   const TEMPLATE = 'admin-settings';
   const ASSET_NAME = 'admin-settings';
 
-  /** @var IConfig */
-  private $config;
-
-  /** @var AssetService */
-  private $assetService;
-
   // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
-    string $appName,
-    IConfig $config,
-    AssetService $assetService,
+    private AssetService $assetService,
+    private IConfig $config,
+    protected string $appName,
   ) {
-    $this->appName = $appName;
-    $this->config = $config;
-    $this->assetService = $assetService;
   }
   // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 

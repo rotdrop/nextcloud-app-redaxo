@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @copyright Claus-Justus Heine 2020-2025
  * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -47,18 +47,12 @@ class RPC
   const API_ARTICLE_ADD = 'article_add';
   const API_ARTICLE_EDIT = 'article_edit';
 
-  /** @var AuthRedaxo */
-  private $authenticator;
-
   // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
-    AuthRedaxo $authenticator,
-    ILogger $logger,
-    IL10N $l10n,
+    private AuthRedaxo $authenticator,
+    protected ILogger $logger,
+    private IL10N $l,
   ) {
-    $this->authenticator = $authenticator;
-    $this->logger = $logger;
-    $this->l = $l10n;
   }
   // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 

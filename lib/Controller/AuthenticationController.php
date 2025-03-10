@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @copyright Claus-Justus Heine 2020-2025
  * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -39,31 +39,17 @@ class AuthenticationController extends Controller
 {
   use Traits\LoggerTrait;
 
-  /** @var ISession */
-  private $session;
-
-    /** @var Authenticator */
-  private $authenticator;
-
-  /** @var string */
-  private $userId;
-
   // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
     string $appName,
     IRequest $request,
-    ISession $session,
-    $userId,
-    Authenticator $authenticator,
-    ILogger $logger,
-    IL10N $l10n,
+    private Authenticator $authenticator,
+    private IL10N $l,
+    private ISession $session,
+    private string $userId,
+    protected ILogger $logger,
   ) {
     parent::__construct($appName, $request);
-    $this->session = $session;
-    $this->userId = $userId;
-    $this->authenticator = $authenticator;
-    $this->logger = $logger;
-    $this->l = $l10n;
   }
   // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 

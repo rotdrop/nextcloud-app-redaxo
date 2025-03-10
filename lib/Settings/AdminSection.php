@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025
  * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -33,23 +33,13 @@ class AdminSection implements IIconSection
 {
   use \OCA\Redaxo\Toolkit\Traits\LoggerTrait;
 
-  /** @var string */
-  private $appName;
-
-  /** @var \OCP\IURLGenerator */
-  private $urlGenerator;
-
   // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
-    string $appName,
-    IURLGenerator $urlGenerator,
-    ILogger $logger,
-    IL10N $l10n,
+    protected string $appName,
+    protected IURLGenerator $urlGenerator,
+    protected ILogger $logger,
+    protected IL10N $l,
   ) {
-    $this->appName = $appName;
-    $this->urlGenerator = $urlGenerator;
-    $this->logger = $logger;
-    $this->l = $l10n;
   }
   // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 

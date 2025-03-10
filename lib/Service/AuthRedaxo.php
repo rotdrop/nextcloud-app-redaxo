@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @copyright Claus-Justus Heine 2020-2025
  * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -60,25 +60,7 @@ class AuthRedaxo
   private $loginResponse;
 
   /** @var string */
-  private $appName;
-
-  /** @var string */
   private $userId;
-
-  /** @var IConfig */
-  private $config;
-
-  /** @var ISession */
-  private $session;
-
-  /** @var IUserSession */
-  private $userSession;
-
-  /** @var ICredentialsStore */
-  private $credentialsStore;
-
-  /** @var IURLGenerator */
-  private $urlGenerator;
 
   private $proto = null;
   private $host = null;
@@ -104,26 +86,20 @@ class AuthRedaxo
   /** @var array */
   private $csrfTokens;
 
+  /** @var int */
+  private $reloginDelay;
+
   // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
-    string $appName,
-    IConfig $config,
-    ISession $session,
-    IUserSession $userSession,
-    ICredentialsStore $credentialsStore,
-    IURLGenerator $urlGenerator,
-    ILogger $logger,
-    IL10N $l10n,
+    private string $appName,
+    private IConfig $config,
+    private ISession $session,
+    private IUserSession $userSession,
+    private ICredentialsStore $credentialsStore,
+    private IURLGenerator $urlGenerator,
+    protected ILogger $logger,
+    private IL10N $l,
   ) {
-    $this->appName = $appName;
-    $this->config = $config;
-    $this->session = $session;
-    $this->userSession = $userSession;
-    $this->credentialsStore = $credentialsStore;
-    $this->urlGenerator = $urlGenerator;
-    $this->logger = $logger;
-    $this->l = $l10n;
-
     $this->errorReporting = self::ON_ERROR_RETURN;
 
     $this->enableSSLVerify = $this->config->getAppValue('enableSSLVerfiy', true);
