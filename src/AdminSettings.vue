@@ -2,7 +2,7 @@
  - Redaxo -- a Nextcloud App for embedding Redaxo.
  -
  - @author Claus-Justus Heine <himself@claus-justus-heine.de>
- - @copyright Copyright (c) 2023, 2024 Claus-Justus Heine
+ - @copyright Copyright (c) 2023, 2024, 2025 Claus-Justus Heine
  - @license AGPL-3.0-or-later
  -
  - Redaxo is free software: you can redistribute it and/or
@@ -25,7 +25,7 @@
       {{ t(appName, 'Redaxo Integration') }}
     </h1>
     <NcSettingsSection title="">
-      <TextField :value.sync="externalLocation"
+      <TextField :value.sync="settings.externalLocation"
                  :label="t(appName, 'Redaxo Installation Path')"
                  :hint="t(appName, 'Please enter the location of the already installed Redaxo instance. This should either be a path, absolute or relative to the root of the web server, or a complete URL pointing to the web location of the Redaxo. In order to make things work, your have to enable the XML-RPC protocol in your Redaxo.')"
                  :disabled="loading > 0"
@@ -33,7 +33,7 @@
       />
     </NcSettingsSection>
     <NcSettingsSection title="">
-      <TextField :value.sync="authenticationRefreshInterval"
+      <TextField :value.sync="settings.authenticationRefreshInterval"
                  :label="t(appName, 'Redaxo Session Refresh Interval [s]')"
                  :hint="t(appName, 'Please enter the desired session-refresh interval here. The interval is measured in seconds and should be somewhat smaller than the configured session life-time for the Redaxo instance in use.')"
                  :disabled="loading > 0"
@@ -42,7 +42,7 @@
     </NcSettingsSection>
     <NcSettingsSection title="">
       <input id="enable-ssl-verify"
-             v-model="enableSSLVerify"
+             v-model="settings.enableSSLVerify"
              class="checkbox"
              type="checkbox"
              name="enableSSLVerify"
@@ -61,70 +61,60 @@
     </NcSettingsSection>
   </div>
 </template>
-<script>
+<script setup lang="ts">
+import { appName } from './config.ts'
+import { translate as t } from '@nextcloud/l10n'
 import { NcSettingsSection } from '@nextcloud/vue'
 import TextField from '@rotdrop/nextcloud-vue-components/lib/components/TextFieldWithSubmitButton.vue'
-import settingsSync from './toolkit/mixins/settings-sync.js'
-import cloudVersionClasses from './toolkit/util/cloud-version-classes.js'
+import cloudVersionClassesImport from './toolkit/util/cloud-version-classes.js'
+import {
+  fetchSettings,
+  saveConfirmedSetting,
+  saveSimpleSetting,
+} from './toolkit/util/settings-sync.ts'
+import {
+  ref,
+  computed,
+} from 'vue'
 
-export default {
-  name: 'AdminSettings',
-  components: {
-    NcSettingsSection,
-    TextField,
-  },
-  mixins: [
-    settingsSync,
-  ],
-  data() {
-    return {
-      loading: 0,
-      cloudVersionClasses,
-      externalLocation: null,
-      authenticationRefreshInterval: null,
-      enableSSLVerify: null,
-    }
-  },
-  computed: {
-  },
-  watch: {},
-  created() {
-    this.getData()
-  },
-  mounted() {
-  },
-  methods: {
-    info() {
-      console.info(...arguments)
-    },
-    async getData() {
-      // slurp in all personal settings
-      ++this.loading
-      this.fetchSettings('admin').finally(() => {
-        console.info('THIS', this)
-        --this.loading
-      })
-    },
-    async saveTextInput(settingsKey, value, force) {
-      if (value === undefined) {
-        value = this[settingsKey] || ''
-      }
-      if (this.loading > 0) {
-        // avoid ping-pong by reactivity
-        console.info('SKIPPING SETTINGS-SAVE DURING LOAD', settingsKey, value)
-        return
-      }
-      this.saveConfirmedSetting(value, 'admin', settingsKey, force)
-    },
-    async saveSetting(setting) {
-      if (this.loading > 0) {
-        // avoid ping-pong by reactivity
-        console.info('SKIPPING SETTINGS-SAVE DURING LOAD', setting)
-        return
-      }
-      this.saveSimpleSetting(setting, 'admin')
-    },
-  },
+const loading = ref(0)
+const cloudVersionClasses = computed<string[]>(() => cloudVersionClassesImport)
+
+const settings = ref({
+  externalLocation: '',
+  enableSSLVerify: false,
+  authenticationRefreshInterval: 0,
+})
+
+// slurp in all personal settings
+const getData = async () => {
+  ++loading.value
+  return fetchSettings({ section: 'admin', settings }).finally(() => {
+    console.info('THIS', this)
+    --loading.value
+  })
+}
+getData()
+
+const saveTextInput = async (settingsKey: string, value?: string | number | boolean, force?: boolean) => {
+  if (value === undefined) {
+    value = settings[settingsKey] || ''
+  }
+  if (loading.value > 0) {
+    // avoid ping-pong by reactivity
+    console.info('SKIPPING SETTINGS-SAVE DURING LOAD', settingsKey, value)
+    return
+  }
+  return saveConfirmedSetting({ value, section: 'admin', settingsKey, force, settings, resetData: getData })
+}
+
+const saveSetting = async (settingsKey: string) => {
+  if (loading.value > 0) {
+    // avoid ping-pong by reactivity
+    console.info('SKIPPING SETTINGS-SAVE DURING LOAD', settingsKey)
+    return
+  }
+  saveSimpleSetting({ settingsKey, section: 'admin', settings })
 }
 </script>
 <style lang="scss" scoped>

@@ -2,7 +2,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -19,7 +19,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-import { appName as webPrefix } from './config.js';
+import { appName as webPrefix } from './config.ts';
 import jQuery from './toolkit/util/jquery.js';
 
 const $ = jQuery;

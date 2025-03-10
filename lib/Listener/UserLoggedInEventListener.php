@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2022, 2023
+ * @copyright Claus-Justus Heine 2020, 2021, 2022, 2023, 2025
  * @license   AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -40,21 +40,12 @@ class UserLoggedInEventListener implements IEventListener
 
   const EVENT = [ Event1::class, Event2::class ];
 
-  /** @var OCP\IRequest */
-  private $request;
-
-  /** @var IAppContainer */
-  private $appContainer;
-
   // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
-    IRequest $request,
-    ILogger $logger,
-    IAppContainer $appContainer,
+    private IRequest $request,
+    protected ILogger $logger,
+    protected IAppContainer $appContainer,
   ) {
-    $this->request = $request;
-    $this->logger = $logger;
-    $this->appContainer = $appContainer;
   }
   // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 
