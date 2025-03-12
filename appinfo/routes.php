@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025
  * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -27,11 +27,6 @@ return [
       'name' => 'page#index',
       'url' => '/page/index',
       'verb' => 'GET',
-    ],
-    [
-      'name' => 'page#frame',
-      'url' => '/page/frame',
-      'verb' => 'POST',
     ],
     // settings
     [

@@ -26,7 +26,7 @@ const productionMode = process.env.NODE_ENV === 'production';
 webpackConfig.entry = {
   'admin-settings': path.join(__dirname, 'src', 'admin-settings.ts'),
   refresh: path.join(__dirname, 'src', 'refresh.ts'),
-  app: path.join(__dirname, 'src', 'index.ts'),
+  app: path.join(__dirname, 'src', 'app.ts'),
 };
 
 webpackConfig.output = {
@@ -81,6 +81,7 @@ webpackConfig.plugins = webpackConfig.plugins.concat([
       'src/toolkit/util/dialogs.js',
       'src/toolkit/util/file-download.js',
       'src/toolkit/util/file-node-helper.js',
+      'src/toolkit/util/jquery.js',
       'src/toolkit/util/pangram.js',
       'src/toolkit/util/print-r.js',
     ],

@@ -2,7 +2,8 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025
+ * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -19,29 +20,16 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-##{$redaxoAppName}FrameWrapper {
-  height: 100%;
-  display: none;
-  overflow: hidden;
-}
+import { appName } from './config.ts';
+import { generateFilePath } from '@nextcloud/router';
 
-##{$redaxoAppName}_container {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-}
+import Vue from 'vue';
+import App from './App.vue';
 
-##{$redaxoAppName}Frame{
-  width: 100%;
-  height: 100%;
-}
+// eslint-disable-next-line
+__webpack_public_path__ = generateFilePath(appName, '', 'js/');
 
-##{$redaxoAppName}Loader {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 128px;
-  height: 14px;
-  margin-top: -7px; /* Half the height */
-  margin-left: -64px; /* Half the width */
-}
+export default new Vue({
+  el: '#' + appName + '-app',
+  render: h => h(App),
+});

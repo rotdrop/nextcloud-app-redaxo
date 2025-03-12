@@ -19,49 +19,74 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-import { appName as webPrefix } from './config.ts';
-import jQuery from './toolkit/util/jquery.js';
-
-const $ = jQuery;
-
-const loadHandler = function(frame, frameWrapper, callback) {
-  const contents = frame.contents();
+const tuneContents = (frame: HTMLIFrameElement) => {
+  const frameWindow = frame.contentWindow!;
+  const frameDocument = frameWindow.document!;
 
   // Remove the logout stuff
-  contents.find('#rex-js-nav-top').remove();
+  frameDocument.querySelector('#rex-js-nav-top')!.remove();
 
   // shift the entire thing a little bit into the inside
-  contents.find('#rex-js-page-container').find('.rex-nav-main, .rex-page-main').css({
-    'padding-top': 0,
-  });
+  frameDocument.querySelector('#rex-js-page-container')?.querySelectorAll('.rex-nav-main, .rex-page-main')
+    .forEach((el) => (el as HTMLElement).style['padding-top'] = 0);
 
   // Make sure all external links are opened in another window
-  contents.find('a').filter(function() {
-    return this.hostname && this.hostname !== window.location.hostname;
-  }).each(function() {
-    $(this).attr('target', '_blank');
-  });
+  frameDocument.querySelectorAll('a').forEach(
+    (arg) => {
+      const anchor = arg as HTMLAnchorElement;
+      if (anchor.hostname && anchor.hostname !== window.location.hostname) {
+        anchor.target = '_blank';
+      }
+    },
+  );
+};
 
-  if (typeof callback === 'undefined') {
-    callback = function() {};
-  }
 
-  const loader = $('#' + webPrefix + 'Loader');
-  console.info('loader', loader);
-  if (frameWrapper.is(':hidden')) {
-    console.info('hide slideDown');
-    loader.fadeOut('slow', function() {
-      console.info('fade out callback');
-      frameWrapper.slideDown('slow', function() {
-        console.info('slideDown callback');
-        callback(frame, frameWrapper);
-      });
-    });
-  } else {
-    console.info('just display');
-    loader.fadeOut('slow');
-    callback(frame, frameWrapper);
+/**
+ * Fills height of window (more precise than height: 100%;)
+ *
+ * @param frame The frame to be  resized.
+ */
+const fillHeight = function(frame: HTMLIFrameElement) {
+  const height = window.innerHeight - frame.getBoundingClientRect().top;
+  frame.style.height = height + 'px';
+  const outerDelta = frame.getBoundingClientRect().height - frame.clientHeight;
+  if (outerDelta) {
+    frame.style.height = (height - outerDelta) + 'px';
   }
 };
 
-export { loadHandler };
+/**
+ * Fills width of window (more precise than width: 100%;)
+ *
+ * @param frame The frame to be resized.
+ */
+const fillWidth = function(frame: HTMLIFrameElement) {
+  const width = window.innerWidth - frame.getBoundingClientRect().left;
+  frame.style.width = width + 'px';
+  const outerDelta = frame.getBoundingClientRect().width - frame.clientWidth;
+  if (outerDelta > 0) {
+    frame.style.width = (width - outerDelta) + 'px';
+  }
+};
+
+/**
+ * Fills height and width of RC window.
+ * More precise than height/width: 100%.
+ *
+ * @param frame TBD.
+ */
+const resizeIframe = function(frame: HTMLIFrameElement) {
+  fillHeight(frame);
+  fillWidth(frame);
+};
+
+/**
+ * @param frame TBD.
+ */
+const loadHandler = function(frame: HTMLIFrameElement) {
+  tuneContents(frame)
+  resizeIframe(frame);
+};
+
+export { loadHandler, resizeIframe as resizeHandler };
