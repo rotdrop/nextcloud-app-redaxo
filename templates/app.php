@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025
  * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -25,16 +25,4 @@ script($appName, $assets['js']['asset']);
 style($appName, $assets['css']['asset']);
 
 ?>
-
-<div id="<?php echo $appName; ?>_container" class="<?php echo $cssClass; ?>">
-  <img src="<?php echo $urlGenerator->imagePath($appName, 'loader.gif'); ?>" id="<?php echo $appName; ?>Loader" class="<?php echo $cssClass; ?>">
-  <div id="<?php echo $appName; ?>FrameWrapper" class="<?php echo $cssClass; ?>">
-    <iframe style="overflow:auto"
-            src="<?php echo $externalURL . $externalPath;?>"
-            id="<?php echo $appName; ?>Frame"
-            name="<?php echo $appName; ?>"
-            width="100%"
-            <?php echo $iframeAttributes; ?>>
-    </iframe>
-  </div>
-</div>
+<div id="<?php p($appName) ?>-app"></div>

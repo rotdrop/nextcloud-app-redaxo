@@ -1,4 +1,8 @@
 /**
+ * Orchestra member, musicion and project management application.
+ *
+ * CAFEVDB -- Camerata Academica Freiburg e.V. DataBase.
+ *
  * @author Claus-Justus Heine
  * @copyright 2025 Claus-Justus Heine <himself@claus-justus-heine.de>
  * @license AGPL-3.0-or-later
@@ -17,21 +21,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-declare global {
-  var OC: {
-    config: {
-      versionstring: string,
-    }
-    dialogs: {
-      confirm: (text: string, title: string, callback: (answer: boolean) => any, modal: boolean) => void,
-      alert: (text: string, title: string) => void,
-    },
-  };
-  var OCA: {
-    Files: {
-      [key: string]: any,
-    },
-  }
+import axios, { AxiosError } from 'axios';
+import type { AxiosResponse } from 'axios';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface AxiosErrorResponse<T = unknown, D = any> extends Omit<AxiosError<T, D>, 'response'> {
+  response: AxiosResponse<T, D>,
 }
 
-export {}
+export const isAxiosError = (error: unknown): error is AxiosError => axios.isAxiosError(error);
+
+export const isAxiosErrorResponse = (error: unknown): error is AxiosErrorResponse =>
+  isAxiosError(error) && !!error.response;

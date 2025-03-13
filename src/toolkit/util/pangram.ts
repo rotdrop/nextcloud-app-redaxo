@@ -18,6 +18,7 @@
  */
 
 import { appName } from '../../config.ts';
+import { translate as t } from '@nextcloud/l10n';
 
 // TRANSLATORS: This should be a pangram in the target language, please have a look at
 // TRANSLATORS: https://en.wikipedia.org/wiki/Pangram where you can

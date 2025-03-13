@@ -27,6 +27,7 @@ declare module '@nextcloud/vue' {
 
   const NcActionButton: Vue;
   const NcActionCaption: Vue;
+  const NcActionInput: Vue;
   const NcActionLink: Vue;
   const NcActionRadio: Vue;
   const NcActionRouter: Vue;
@@ -39,7 +40,9 @@ declare module '@nextcloud/vue' {
       menuButton: Vue,
     },
   };
-  const NcActionCheckbox: Vue;
+  const NcActionCheckbox: Vue & {
+    'onUpdate:checked': (value: boolean) => any,
+  };
   const NcButton: Vue;
 
   export declare class Color {
@@ -88,11 +91,13 @@ declare module '@nextcloud/vue' {
   const NcCheckboxRadioSwitch: Vue;
   const NcEllipsisedOption: Vue;
   const NcEmptyContent: Vue;
+  const NcPasswordField: Vue;
 
   export {
     NcActionButton,
     NcActionCaption,
     NcActionCheckbox,
+    NcActionInput,
     NcActionLink,
     NcActionRadio,
     NcActionRouter,
@@ -114,6 +119,7 @@ declare module '@nextcloud/vue' {
     NcListItem,
     NcListItemIcon,
     NcModal,
+    NcPasswordField,
     NcProgressBar,
     NcRichText,
     NcSelect,
