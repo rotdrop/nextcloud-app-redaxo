@@ -22,9 +22,14 @@
 
 import { appName } from './config.ts';
 import { generateFilePath } from '@nextcloud/router';
+import { getRequestToken } from '@nextcloud/auth';
 
 import Vue from 'vue';
 import App from './App.vue';
+
+// CSP config for webpack dynamic chunk loading
+// eslint-disable-next-line
+__webpack_nonce__ = btoa(getRequestToken() || '')
 
 // eslint-disable-next-line
 __webpack_public_path__ = generateFilePath(appName, '', 'js/');
