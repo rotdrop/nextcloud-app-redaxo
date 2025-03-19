@@ -84,6 +84,7 @@ webpackConfig.plugins = webpackConfig.plugins.concat([
       'src/toolkit/util/jquery.js',
       'src/toolkit/util/pangram.js',
       'src/toolkit/util/print-r.js',
+      'src/toolkit/services/InitialStateService.js',
     ],
   }),
   new BundleAnalyzerPlugin({

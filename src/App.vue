@@ -44,18 +44,17 @@ import {
   ref,
 } from 'vue'
 import { loadHandler, resizeHandler } from './redaxo.ts'
-import { getInitialState } from './toolkit/services/InitialStateService.js'
+import getInitialState from './toolkit/util/initial-state.ts'
 
 interface InitialState {
   externalLocation: string,
-  authenticationRefreshInterval: number,
 }
 
-const initialState = getInitialState() as InitialState
+const initialState = getInitialState<InitialState>({ section: 'page' })
 
 console.info('GOT INITIAL_STATE', { initialState })
 
-const externalLocation = computed(() => initialState.externalLocation)
+const externalLocation = computed(() => initialState?.externalLocation)
 
 let gotLoadEvent = false
 
@@ -63,7 +62,7 @@ const loaderContainer = ref<null|HTMLElement>(null)
 const externalFrame = ref<null|HTMLIFrameElement>(null)
 
 const loadHandlerWrapper = () => {
-  console.info('ROUNDCUBD: GOT LOAD EVENT')
+  console.trace('ROUNDCUBD: GOT LOAD EVENT')
   loadHandler(externalFrame.value!)
   if (!gotLoadEvent) {
     loaderContainer.value!.classList.add('fading')

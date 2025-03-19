@@ -45,7 +45,8 @@ class LoadAdditionalScriptsEventListener implements IEventListener
   use \OCA\Redaxo\Toolkit\Traits\LoggerTrait;
   use \OCA\Redaxo\Toolkit\Traits\ApiRequestTrait;
 
-  const EVENT = HandledEvent::class;
+  private const INITIAL_STATE_SECTION = 'authRefresh';
+  public const EVENT = HandledEvent::class;
 
   // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(protected IAppContainer $appContainer)
@@ -88,7 +89,7 @@ class LoadAdditionalScriptsEventListener implements IEventListener
       $refreshInterval = $config->getAppValue($appName, SettingsController::AUTHENTICATION_REFRESH_INTERVAL, 600);
 
       $initialState->provideInitialState(
-        Constants::INITIAL_STATE_SECTION, [
+        self::INITIAL_STATE_SECTION, [
           'appName' => $appName,
           SettingsController::AUTHENTICATION_REFRESH_INTERVAL => $refreshInterval,
         ],

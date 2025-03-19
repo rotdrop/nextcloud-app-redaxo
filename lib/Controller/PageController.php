@@ -50,8 +50,9 @@ class PageController extends Controller
   use Traits\LoggerTrait;
   use Traits\ResponseTrait;
 
-  const TEMPLATE = 'app';
-  const ASSET = 'app';
+  private const INITIAL_STATE_SECTION = 'page';
+  private const TEMPLATE = 'app';
+  private const ASSET = 'app';
 
   // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
@@ -97,11 +98,9 @@ class PageController extends Controller
 
     $this->initialStateService->provideInitialState(
       $this->appName,
-      Constants::INITIAL_STATE_SECTION,
+      self::INITIAL_STATE_SECTION,
       [
-        'appName' => $this->appName,
         'externalLocation' => $externalURL . $externalPath,
-        SettingsController::AUTHENTICATION_REFRESH_INTERVAL => $this->config->getAppValue(SettingsController::AUTHENTICATION_REFRESH_INTERVAL, 600),
       ]
     );
 

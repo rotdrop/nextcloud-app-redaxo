@@ -22,11 +22,15 @@
 import { getCurrentUser } from '@nextcloud/auth';
 import axios from '@nextcloud/axios';
 import onDocumentLoaded from './toolkit/util/on-document-loaded.js';
-import generateUrl from './toolkit/util/generate-url.js';
-import { getInitialState } from './toolkit/services/InitialStateService.js';
+import generateAppUrl from './toolkit/util/generate-url.js';
+import getInitialState from './toolkit/util/initial-state.ts';
 
-const state = getInitialState();
-let refreshInterval = state.authenticationRefreshInterval;
+interface AuthRefreshState {
+  authenticationRefreshInterval: number,
+}
+
+const state = getInitialState<AuthRefreshState>({ section: 'auth-refresh', defaults: { authenticationRefreshInterval: 30 } });
+let refreshInterval = state!.authenticationRefreshInterval;
 
 if (!(refreshInterval >= 30)) {
   console.error('Refresh interval too short', refreshInterval);
@@ -34,7 +38,7 @@ if (!(refreshInterval >= 30)) {
 }
 
 let refreshTimer: null|ReturnType<typeof setTimeout> = null;
-const url = generateUrl('authentication/refresh');
+const url = generateAppUrl('authentication/refresh');
 
 const refreshHandler = async function() {
   await axios.post(url);
