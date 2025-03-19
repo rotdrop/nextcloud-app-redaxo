@@ -30,6 +30,6 @@ import App from './App.vue';
 __webpack_public_path__ = generateFilePath(appName, '', 'js/');
 
 export default new Vue({
-  el: '#' + appName + '-app',
+  el: '#content',
   render: h => h(App),
 });

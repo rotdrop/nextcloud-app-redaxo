@@ -20,9 +20,5 @@
  * License along with Redaxo.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-
-script($appName, $assets['js']['asset']);
-style($appName, $assets['css']['asset']);
-
 ?>
-<div id="<?php p($appName) ?>-app"></div>
+<!-- empty legacy template for vue app -->

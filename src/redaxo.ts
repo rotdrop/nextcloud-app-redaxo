@@ -41,7 +41,6 @@ const tuneContents = (frame: HTMLIFrameElement) => {
   );
 };
 
-
 /**
  * Fills height of window (more precise than height: 100%;)
  *

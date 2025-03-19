@@ -20,7 +20,7 @@
  - <http://www.gnu.org/licenses/>.
  -->
 <template>
-  <div :class="['app-container']">
+  <NcContent :app-name="appName" class="app-container">
     <div ref="loaderContainer" class="loader-container" />
     <iframe :id="frameId"
             ref="externalFrame"
@@ -28,10 +28,15 @@
             :name="appName"
             @load="loadHandlerWrapper"
     />
-  </div>
+  </NcContent>
 </template>
 <script setup lang="ts">
 import { appName } from './config.ts'
+import {
+  // NcAppContent,
+  // NcAppNavigation,
+  NcContent,
+} from '@nextcloud/vue'
 import {
   computed,
   onMounted,
@@ -47,6 +52,8 @@ interface InitialState {
 }
 
 const initialState = getInitialState() as InitialState
+
+console.info('GOT INITIAL_STATE', { initialState })
 
 const externalLocation = computed(() => initialState.externalLocation)
 
