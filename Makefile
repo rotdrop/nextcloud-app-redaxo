@@ -95,7 +95,7 @@ include $(APP_TOOLKIT_DIR)/tools/scopeme.mk
 include $(DEV_LIB_DIR)/makefile/ts-app-config.mk
 
 CSS_FILES = $(shell find $(ABSSRCDIR)/style -name "*.css" -o -name "*.scss")
-JS_FILES = $(shell find $(ABSSRCDIR)/src -name "*.js" -o -name "*.vue")
+JS_FILES = $(shell find $(ABSSRCDIR)/src -name "*.js" -o -name "*.vue" -o -name "*.ts")
 
 NPM_INIT_DEPS =\
  Makefile package-lock.json package.json webpack.config.js .eslintrc.js
