@@ -32,7 +32,7 @@ import App from './App.vue';
 __webpack_nonce__ = btoa(getRequestToken() || '')
 
 // eslint-disable-next-line
-__webpack_public_path__ = generateFilePath(appName, '', 'js/');
+__webpack_public_path__ = generateFilePath(appName, '', '');
 
 export default new Vue({
   el: '#content',
