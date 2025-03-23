@@ -19,7 +19,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-const tuneContents = (frame: HTMLIFrameElement) => {
+export const tuneContents = (frame: HTMLIFrameElement) => {
   const frameWindow = frame.contentWindow!;
   const frameDocument = frameWindow.document!;
 

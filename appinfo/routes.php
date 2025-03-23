@@ -25,7 +25,7 @@ return [
   'routes' => [
     [
       'name' => 'page#index',
-      'url' => '/page/index',
+      'url' => '/',
       'verb' => 'GET',
     ],
     // settings

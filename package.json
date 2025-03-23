@@ -46,6 +46,7 @@
     "mini-css-extract-plugin": "^2.4.5",
     "svgo-loader": "^4.0.0",
     "vue": "^2.7.15",
+    "vue-router": "^3.6.0",
     "webpack": "^5.69.0",
     "webpack-bundle-analyzer": "^4.7.0",
     "webpack-cli": "*",
