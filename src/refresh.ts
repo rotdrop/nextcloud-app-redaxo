@@ -22,7 +22,7 @@
 import { getCurrentUser } from '@nextcloud/auth';
 import axios from '@nextcloud/axios';
 import onDocumentLoaded from './toolkit/util/on-document-loaded.ts';
-import generateAppUrl from './toolkit/util/generate-url.js';
+import generateAppUrl from './toolkit/util/generate-url.ts';
 import getInitialState from './toolkit/util/initial-state.ts';
 
 interface AuthRefreshState {
