@@ -1,6 +1,6 @@
 {
   "name": "@rotdrop/nextcloud-app-redaxo",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Support embedding an external Redaxo instance with SSO",
   "keywords": [],
   "homepage": "https://github.com/rotdrop/nextcloud-app-redaxo.git",
