@@ -183,7 +183,7 @@ class AuthRedaxo
    *
    * @return mixed
    */
-  public function handleError(?string $msg, Throwable $throwable = null, mixed $result = null):mixed
+  public function handleError(?string $msg, ?Throwable $throwable = null, mixed $result = null):mixed
   {
     switch ($this->errorReporting) {
       case self::ON_ERROR_THROW:
@@ -495,7 +495,7 @@ class AuthRedaxo
     //<div id="rex-navi-logout"><p class="rex-logout">nicht angemeldet</p></div>
 
     $this->loginStatus = LoginStatus::UNKNOWN();
-    if ($response !== false) {
+    if ($response !== false && !empty($response['content'])) {
       //$this->logDebug(print_r($response['content'], true));
       if (preg_match('/<form.+rex-form-login/mi', $response['content'])) {
         $this->loginResponse = $response['content'];
