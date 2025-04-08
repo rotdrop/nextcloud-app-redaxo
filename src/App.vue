@@ -44,6 +44,9 @@ import {
   useRouter,
 } from 'vue-router/composables'
 import type { Location as RouterLocation } from 'vue-router'
+import Console from './toolkit/util/console.ts'
+
+const logger = new Console('RedaxoWrapper')
 
 const loading = ref(true)
 
@@ -52,7 +55,7 @@ const currentRoute = useRoute()
 
 const onIFrameLoaded = async (event: { wikiPath: string[], query: Record<string, string> }) => {
   loading.value = false
-  console.debug('GOT EVENT', { event })
+  logger.debug('GOT EVENT', { event })
   const routerLocation: RouterLocation = {
     name: currentRoute.name!,
     params: {},
@@ -61,7 +64,7 @@ const onIFrameLoaded = async (event: { wikiPath: string[], query: Record<string,
   try {
     await router.push(routerLocation)
   } catch (error) {
-    console.debug('NAVIGATION ABORTED', { error })
+    logger.debug('NAVIGATION ABORTED', { error })
   }
 }
 
@@ -78,7 +81,7 @@ router.onReady(async () => {
     try {
       await router.replace(routerLocation)
     } catch (error) {
-      console.debug('NAVIGATION ABORTED', { error })
+      logger.debug('NAVIGATION ABORTED', { error })
     }
   }
 })

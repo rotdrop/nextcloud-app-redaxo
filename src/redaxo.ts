@@ -23,12 +23,6 @@ export const tuneContents = (frame: HTMLIFrameElement) => {
   const frameWindow = frame.contentWindow!;
   const frameDocument = frameWindow.document!;
 
-  console.info('FRAME ETC', {
-    frame,
-    frameWindow,
-    frameDocument,
-  })
-
   // Remove the logout stuff
   frameDocument.querySelector('#rex-js-nav-top')!.remove();
 

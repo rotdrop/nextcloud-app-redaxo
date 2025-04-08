@@ -44,6 +44,8 @@
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",
     "mini-css-extract-plugin": "^2.4.5",
+    "stacktrace-gps": "github:stacktracejs/stacktrace-gps#62f6967fc85e6fdd5fb9cea1a056b935d9b07a9a",
+    "stacktrace-js": "^2.0.2",
     "svgo-loader": "^4.0.0",
     "vue": "^2.7.15",
     "vue-router": "^3.6.0",
@@ -58,7 +60,7 @@
     "xml2js": "*"
   },
   "engines": {
-    "node": "^16.0.0",
-    "npm": "^8.0.0"
+    "node": "^22.0.0",
+    "npm": "^10.0.0"
   }
 }

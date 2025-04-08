@@ -24,6 +24,9 @@ import axios from '@nextcloud/axios';
 import onDocumentLoaded from './toolkit/util/on-document-loaded.ts';
 import generateAppUrl from './toolkit/util/generate-url.ts';
 import getInitialState from './toolkit/util/initial-state.ts';
+import Console from './toolkit/util/console.ts';
+
+const logger = new Console('RedaxoWrapper::refresh');
 
 interface AuthRefreshState {
   authenticationRefreshInterval: number,
@@ -33,7 +36,7 @@ const state = getInitialState<AuthRefreshState>({ section: 'auth-refresh', defau
 let refreshInterval = state!.authenticationRefreshInterval;
 
 if (!(refreshInterval >= 30)) {
-  console.error('Refresh interval too short', refreshInterval);
+  logger.error('Refresh interval too short', refreshInterval);
   refreshInterval = 30;
 }
 
@@ -42,16 +45,16 @@ const url = generateAppUrl('authentication/refresh');
 
 const refreshHandler = async function() {
   await axios.post(url);
-  console.info('Redaxo refresh scheduled', refreshInterval * 1000);
+  logger.info('Redaxo refresh scheduled', refreshInterval * 1000);
   refreshTimer = setTimeout(refreshHandler, refreshInterval * 1000);
 };
 
 onDocumentLoaded(() => {
   if (getCurrentUser()) {
-    console.info('Starting Redaxo authentication refresh.');
+    logger.info('Starting Redaxo authentication refresh.');
     refreshTimer = setTimeout(refreshHandler, refreshInterval * 1000);
   } else {
-    console.info('cloud-user appears unset.');
+    logger.info('cloud-user appears unset.');
     if (refreshTimer) {
       clearTimeout(refreshTimer);
     }
