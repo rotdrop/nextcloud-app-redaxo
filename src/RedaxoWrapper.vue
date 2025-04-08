@@ -2,7 +2,7 @@
  - Redaxo -- a Nextcloud App for embedding Redaxo.
  -
  - @author Claus-Justus Heine <himself@claus-justus-heine.de>
- - @copyright Copyright (c) 2023, 2024, 2025 Claus-Justus Heine
+ - @copyright Copyright (c) 2023-2025 Claus-Justus Heine
  - @license AGPL-3.0-or-later
  -
  - Redaxo is free software: you can redistribute it and/or
@@ -40,6 +40,7 @@
 </template>
 <script setup lang="ts">
 import { appName } from './config.ts'
+import { translate as t } from '@nextcloud/l10n'
 import getInitialState from './toolkit/util/initial-state.ts'
 import { tuneContents } from './redaxo.ts'
 import {
@@ -50,12 +51,13 @@ import {
   ref,
   watch,
 } from 'vue'
+import Console from './toolkit/util/console'
+
+const logger = new Console('RedaxoWrapper')
 
 interface InitialState {
   externalLocation: string,
 }
-
-const initialState = getInitialState<InitialState>({ section: 'page' })
 
 const props = withDefaults(defineProps<{
   query?: Record<string, string>,
@@ -65,8 +67,6 @@ const props = withDefaults(defineProps<{
   fullScreen: true,
 })
 
-const loading = ref(true)
-
 interface IFrameLoadedEventData {
   query: Record<string, string>,
   iFrame: HTMLIFrameElement,
@@ -74,11 +74,21 @@ interface IFrameLoadedEventData {
   document: Document,
 }
 
+interface ErrorEventData {
+  error: Error,
+  hint: string,
+}
+
 const emit = defineEmits<{
   (event: 'iframe-loaded', eventData: IFrameLoadedEventData): void,
   (event: 'iframe-resize', eventData: ResizeObserverEntry): void,
   (event: 'update-loading', loading: boolean): void,
+  (event: 'error', eventData: ErrorEventData): void,
 }>()
+
+const initialState = getInitialState<InitialState>({ section: 'page' })
+
+const loading = ref(true)
 
 watch(loading, (value) => emit('update-loading', value))
 
@@ -100,11 +110,11 @@ const frameId = computed(() => appName + '-frame')
 
 watch(queryString, (_value) => {
   if (requestedLocation.value !== currentLocation.value) {
-    console.debug('TRIGGER IFRAME REFRESH', { request: requestedLocation.value, current: currentLocation.value })
+    logger.debug('TRIGGER IFRAME REFRESH', { request: requestedLocation.value, current: currentLocation.value })
     loading.value = true
     iFrameLocation.value = requestedLocation.value
   } else {
-    console.debug('NOT CHANGING IFRAME SOURCE', { request: requestedLocation.value, current: currentLocation.value })
+    logger.debug('NOT CHANGING IFRAME SOURCE', { request: requestedLocation.value, current: currentLocation.value })
   }
 })
 
@@ -141,29 +151,32 @@ const resizeObserver = new ResizeObserver((entries) => {
   }
 })
 
-const loadHandler = () => {
-  console.debug('DOKUWIKI: GOT LOAD EVENT')
-  const iFrame = externalFrame.value
-  const iFrameWindow = iFrame?.contentWindow
-  if (!iFrame || !iFrameWindow) {
-    return
-  }
-  loading.value = true // if not already set ...
-  const iFrameDocument = iFrame.contentDocument
-  tuneContents(iFrame)
-  if (props.fullScreen) {
-    setIFrameSize(container.value!.getBoundingClientRect())
-  }
-  iFrameBody = iFrameDocument?.body as undefined|HTMLBodyElement
-  console.debug('IFRAME BODY', { iFrameBody })
-  if (iFrameBody) {
-    resizeObserver.observe(iFrameBody)
-  }
+const contentObserver = new MutationObserver((entries) => {
+  logger.info('MUTATION OBSERVED', { entries })
+  const iFrame = externalFrame.value!
+  emitLoaded(iFrame)
+})
+
+const emitError = (error: unknown) => {
   loaderContainer.value!.classList.toggle('fading', true)
-  console.debug('IFRAME IS NOW', {
-    iFrame,
-    location: iFrameWindow.location,
+  emit('error', {
+    error: error instanceof Error ? error : new Error('Non-error error', { cause: error }),
+    hint: t(
+      appName,
+      `Unable to access the contents of the wrapped Redaxo instance.
+This may be caused by cross-domain access restrictions.
+Please check that your Nextcloud instance ({nextcloudUrl}) and the wrapped Redaxo instance ({iFrameUrl}) are served from the same domain.`,
+      {
+        nextcloudUrl: window.location.protocol + '//' + window.location.host,
+        iFrameUrl: initialState?.externalLocation || '',
+      },
+    ),
   })
+}
+
+const emitLoaded = (iFrame: HTMLIFrameElement) => {
+  const iFrameWindow = iFrame.contentWindow!
+  const iFrameDocument = iFrame.contentDocument!
   currentLocation.value = iFrameWindow.location.href
   const search = iFrameWindow.location.search
   const query = Object.fromEntries((new URLSearchParams(search)).entries())
@@ -175,18 +188,58 @@ const loadHandler = () => {
   })
 }
 
+const loadHandler = () => {
+  logger.debug('GOT LOAD EVENT')
+  const iFrame = externalFrame.value
+  const iFrameWindow = iFrame?.contentWindow
+  if (!iFrame || !iFrameWindow) {
+    return
+  }
+  loading.value = true // if not already set ...
+  let iFrameDocument: Document|null
+  try {
+    iFrameDocument = iFrame.contentDocument
+    tuneContents(iFrame)
+  } catch (error: unknown) {
+    logger.error('UNABLE TO ACCESS IFRAME CONTENTS', { error })
+    emitError(error)
+    return
+  }
+  if (props.fullScreen) {
+    setIFrameSize(container.value!.getBoundingClientRect())
+  }
+  iFrameBody = iFrameDocument?.body as undefined|HTMLBodyElement
+  logger.debug('IFRAME BODY', { iFrameBody })
+  if (iFrameBody) {
+    resizeObserver.observe(iFrameBody)
+    contentObserver.observe(iFrameBody, { childList: true, subtree: true })
+  }
+  loaderContainer.value!.classList.toggle('fading', true)
+  logger.debug('IFRAME IS NOW', {
+    iFrame,
+    location: iFrameWindow.location,
+  })
+  emitLoaded(iFrame)
+  loading.value = false
+}
+
 const loadTimerHandler = () => {
   loadTimer = undefined
   if (!loading.value) {
     return
   }
   timerCount++
-  const rcfContents = externalFrame.value!.contentWindow!.document
-  if (rcfContents.querySelector('#layout')) {
-    console.debug('REDAXO: LOAD EVENT FROM TIMER AFTER ' + (loadTimeout * timerCount) + ' ms')
-    externalFrame.value!.dispatchEvent(new Event('load'))
-  } else {
-    loadTimer = setTimeout(loadTimerHandler, loadTimeout)
+  try {
+    const iFrameContents = externalFrame.value!.contentWindow!.document
+    if (iFrameContents.querySelector('#rex-page-structure')) {
+      logger.debug('LOAD EVENT FROM TIMER AFTER ' + (loadTimeout * timerCount) + ' ms')
+      externalFrame.value!.dispatchEvent(new Event('load'))
+    } else {
+      loadTimer = setTimeout(loadTimerHandler, loadTimeout)
+    }
+  } catch (error: unknown) {
+    logger.error('UNABLE TO ACCESS IFRAME CONTENTS', { error })
+    emitError(error)
   }
 }
 
@@ -219,6 +272,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   resizeObserver.disconnect()
+  contentObserver.disconnect()
 })
 
 defineExpose({
