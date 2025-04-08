@@ -53,7 +53,9 @@ import {
 } from 'vue'
 import Console from './toolkit/util/console'
 
-const logger = new Console('RedaxoWrapper')
+const wrappedApp = 'Redaxo'
+
+const logger = new Console(wrappedApp + 'Wrapper')
 
 interface InitialState {
   externalLocation: string,
@@ -163,10 +165,11 @@ const emitError = (error: unknown) => {
     error: error instanceof Error ? error : new Error('Non-error error', { cause: error }),
     hint: t(
       appName,
-      `Unable to access the contents of the wrapped Redaxo instance.
+      `Unable to access the contents of the wrapped {wrappedApp} instance.
 This may be caused by cross-domain access restrictions.
-Please check that your Nextcloud instance ({nextcloudUrl}) and the wrapped Redaxo instance ({iFrameUrl}) are served from the same domain.`,
+Please check that your Nextcloud instance ({nextcloudUrl}) and the wrapped {wrappedApp} instance ({iFrameUrl}) are served from the same domain.`,
       {
+        wrappedApp,
         nextcloudUrl: window.location.protocol + '//' + window.location.host,
         iFrameUrl: initialState?.externalLocation || '',
       },
