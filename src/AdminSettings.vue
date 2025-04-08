@@ -73,6 +73,7 @@ import {
   saveSimpleSetting,
 } from './toolkit/util/settings-sync.ts'
 import {
+  reactive,
   ref,
   computed,
 } from 'vue'
@@ -80,7 +81,7 @@ import {
 const loading = ref(0)
 const cloudVersionClasses = computed<string[]>(() => cloudVersionClassesImport)
 
-const settings = ref({
+const settings = reactive({
   externalLocation: '',
   enableSSLVerify: false,
   authenticationRefreshInterval: 0,
@@ -130,23 +131,23 @@ const saveSetting = async (settingsKey: string) => {
     --cloud-theme-filter: var(--background-invert-if-dark);
   }
 }
-.flex-container {
-  display:flex;
-  &.flex-column {
-    flex-direction:column;
+.templateroot {
+  .flex-container {
+    display:flex;
+    &.flex-column {
+      flex-direction:column;
+    }
+    &.flex-row {
+      flex-direction:row;
+    }
+    &.flex-center {
+      align-items:center;
+    }
   }
-  &.flex-row {
-    flex-direction:row;
-  }
-  &.flex-center {
-    align-items:center;
-  }
-}
-.settings-section {
-  :deep(.app-settings-section) {
-    margin-bottom: 40px;
-  }
-  :deep(.settings-section__title) {
+  h1.title {
+    margin: 30px 30px 0px;
+    font-size:revert;
+    font-weight:revert;
     position: relative;
     padding-left:48px;
     height:32px;
@@ -165,10 +166,10 @@ const saveSetting = async (settingsKey: string) => {
       filter: var(--cloud-theme-filter);
     }
   }
-}
-.hint {
-  color: var(--color-text-lighter);
-  font-style: italic;
-  max-width: 400px;
+  .hint {
+    color: var(--color-text-lighter);
+    font-style: italic;
+    max-width: 400px;
+  }
 }
 </style>
