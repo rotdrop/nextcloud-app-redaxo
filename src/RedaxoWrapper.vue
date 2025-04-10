@@ -187,7 +187,7 @@ const emitLoaded = (iFrame: HTMLIFrameElement) => {
     query,
     iFrame,
     window: iFrameWindow,
-    document: iFrameDocument!,
+    document: iFrameDocument,
   })
 }
 
