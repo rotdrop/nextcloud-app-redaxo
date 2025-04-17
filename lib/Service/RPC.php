@@ -79,7 +79,7 @@ class RPC
    *
    * @return mixed
    */
-  public function handleError(?string $msg, Throwable $throwable = null, mixed $result = null):mixed
+  public function handleError(?string $msg, ?Throwable $throwable = null, mixed $result = null):mixed
   {
     return $this->authenticator->handleError($msg, $throwable);
   }
