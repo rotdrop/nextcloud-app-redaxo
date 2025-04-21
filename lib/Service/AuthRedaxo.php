@@ -626,11 +626,11 @@ class AuthRedaxo
       fclose($fp);
     } else {
       $error = error_get_last();
-      $headers = $http_response_header;
+      $headers = $http_response_header ?? [];
       return $this->handleError(
         "URL fopen to $url failed: "
         . print_r($error, true)
-        . $headers[0]
+        . print_r($headers, true)
       );
     }
 
