@@ -28,7 +28,7 @@ export const tuneContents = (frame: HTMLIFrameElement) => {
 
   // shift the entire thing a little bit into the inside
   frameDocument.querySelector('#rex-js-page-container')?.querySelectorAll('.rex-nav-main, .rex-page-main')
-    .forEach((el) => (el as HTMLElement).style['padding-top'] = 0);
+    .forEach((el) => { (el as HTMLElement).style['padding-top'] = 0; });
 
   // Make sure all external links are opened in another window
   frameDocument.querySelectorAll('a').forEach(
@@ -84,7 +84,7 @@ const resizeIframe = function(frame: HTMLIFrameElement) {
  * @param frame TBD.
  */
 const loadHandler = function(frame: HTMLIFrameElement) {
-  tuneContents(frame)
+  tuneContents(frame);
   resizeIframe(frame);
 };
 

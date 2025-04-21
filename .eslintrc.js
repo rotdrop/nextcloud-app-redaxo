@@ -8,6 +8,7 @@ module.exports = {
     'src/toolkit/util/file-download.js',
     'src/toolkit/util/dialogs.js',
     'src/toolkit/util/ajax.js',
+    'src/toolkit/types/axios-type-guards.ts',
   ],
   rules: {
     'no-tabs': ['error', { allowIndentationTabs: false }],
