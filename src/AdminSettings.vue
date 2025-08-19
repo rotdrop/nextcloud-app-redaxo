@@ -66,7 +66,7 @@ import { appName } from './config.ts'
 import { translate as t } from '@nextcloud/l10n'
 import { NcSettingsSection } from '@nextcloud/vue'
 import TextField from '@rotdrop/nextcloud-vue-components/lib/components/TextFieldWithSubmitButton.vue'
-import cloudVersionClassesImport from './toolkit/util/cloud-version-classes.js'
+import cloudVersionClassesImport from './toolkit/util/cloud-version-classes.ts'
 import {
   fetchSettings,
   saveConfirmedSetting,
