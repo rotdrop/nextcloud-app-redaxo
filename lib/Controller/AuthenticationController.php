@@ -23,13 +23,12 @@
 
 namespace OCA\Redaxo\Controller;
 
-use OCP\IRequest;
+use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
-use OCP\AppFramework\Controller;
-use OCP\ISession;
-use Psr\Log\LoggerInterface as ILogger;
 use OCP\IL10N;
+use OCP\IRequest;
+use Psr\Log\LoggerInterface as ILogger;
 
 use OCA\Redaxo\Service\AuthRedaxo as Authenticator;
 use OCA\Redaxo\Toolkit\Traits;
@@ -43,10 +42,9 @@ class AuthenticationController extends Controller
   public function __construct(
     string $appName,
     IRequest $request,
+    private ?string $userId,
     private Authenticator $authenticator,
     private IL10N $l,
-    private ISession $session,
-    private string $userId,
     protected ILogger $logger,
   ) {
     parent::__construct($appName, $request);
@@ -60,13 +58,17 @@ class AuthenticationController extends Controller
    */
   public function refresh():void
   {
+    if ($this->userId === null) {
+      // cannot work ...
+      $this->logDebug('Unable to refresh Redaxo session without active user.');
+      return;
+    }
     if (false === $this->authenticator->refresh()) {
-      $this->logDebug("Redaxo refresh for user ".($this->userId)." failed.");
+      $this->logDebug("Redaxo refresh for user " . $this->userId . "failed.");
       $this->authenticator->persistLoginStatus(); // record in session
     } else {
       $this->authenticator->emitAuthHeaders();
-      $this->logDebug("Redaxo refresh for user ".($this->userId)." probably succeeded.");
+      $this->logDebug("Redaxo refresh for user " . $this->userId . " probably succeeded.");
     }
-    $this->session->close();
   }
 }
