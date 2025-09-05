@@ -13,7 +13,7 @@
     <category>tools</category>
     <bugs>https://github.com/rotdrop/nextcloud-app-redaxo</bugs>
     <dependencies>
-        <nextcloud min-version="29" max-version="31"/>
+        <nextcloud min-version="29" max-version="32"/>
     </dependencies>
     <navigations>
         <navigation>
