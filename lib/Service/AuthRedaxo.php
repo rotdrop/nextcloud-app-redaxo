@@ -31,7 +31,7 @@ use Throwable;
 
 use OCP\Authentication\LoginCredentials\IStore as ICredentialsStore;
 use OCP\Authentication\LoginCredentials\ICredentials;
-use OCP\IConfig;
+use OCP\IAppConfig;
 use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface as ILogger;
 use OCP\ISession;
@@ -92,7 +92,7 @@ class AuthRedaxo
   // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(
     private string $appName,
-    private IConfig $config,
+    private IAppConfig $appConfig,
     private ISession $session,
     private IUserSession $userSession,
     private ICredentialsStore $credentialsStore,
@@ -102,11 +102,11 @@ class AuthRedaxo
   ) {
     $this->errorReporting = self::ON_ERROR_RETURN;
 
-    $this->enableSSLVerify = $this->config->getAppValue('enableSSLVerfiy', true);
+    $this->enableSSLVerify = $this->appConfig->getValueBool($this->appName, 'enableSSLVerfiy', true);
 
-    $this->reloginDelay = $this->config->getAppValue('reloginDelay', 5);
+    $this->reloginDelay = $this->appConfig->getValueInt($this->appName, 'reloginDelay', 5);
 
-    $location = $this->config->getAppValue($this->appName, 'externalLocation');
+    $location = $this->appConfig->getValueString($this->appName, 'externalLocation');
 
     if (!empty($location)) {
 
