@@ -24,8 +24,7 @@
 namespace OCA\Redaxo\Controller;
 
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http;
-use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\IL10N;
 use OCP\IRequest;
 use Psr\Log\LoggerInterface as ILogger;
@@ -56,12 +55,12 @@ class AuthenticationController extends Controller
    *
    * @NoAdminRequired
    */
-  public function refresh():void
+  public function refresh():Response
   {
     if ($this->userId === null) {
       // cannot work ...
       $this->logDebug('Unable to refresh Redaxo session without active user.');
-      return;
+      return new Response();
     }
     if (false === $this->authenticator->refresh()) {
       $this->logDebug("Redaxo refresh for user " . $this->userId . "failed.");
@@ -70,5 +69,6 @@ class AuthenticationController extends Controller
       $this->authenticator->emitAuthHeaders();
       $this->logDebug("Redaxo refresh for user " . $this->userId . " probably succeeded.");
     }
+    return new Response();
   }
 }
