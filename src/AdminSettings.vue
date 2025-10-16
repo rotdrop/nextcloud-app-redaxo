@@ -77,9 +77,7 @@ import {
   ref,
   computed,
 } from 'vue'
-import Console from './toolkit/util/console.ts'
-
-const logger = new Console('RedaxoWrapper')
+import logger from './logger.ts'
 
 const loading = ref(0)
 const cloudVersionClasses = computed<string[]>(() => cloudVersionClassesImport)
