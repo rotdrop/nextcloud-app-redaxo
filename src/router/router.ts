@@ -35,11 +35,8 @@ const options: RouterOptions = {
   routes: [
     {
       path: '/',
-      component: () => import('../RedaxoWrapper.vue'),
+      component: () => import('../RedaxoWrapperRouteReactivity.vue'),
       name: 'home',
-      props: route => ({
-        query: route.query,
-      }),
     },
   ],
   scrollBehavior(to, _from, savedPosition) {

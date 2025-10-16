@@ -51,18 +51,15 @@ import {
   ref,
   watch,
 } from 'vue'
-import Console from './toolkit/util/console'
-
-const wrappedApp = 'Redaxo'
-
-const logger = new Console(wrappedApp + 'Wrapper')
+import logger from './logger.ts'
+import type { Route } from 'vue-router'
 
 interface InitialState {
   externalLocation: string,
 }
 
 const props = withDefaults(defineProps<{
-  query?: Record<string, string>,
+  query?: Route['query'],
   fullScreen?: boolean,
 }>(), {
   query: () => ({}),
@@ -94,7 +91,7 @@ const loading = ref(true)
 
 watch(loading, (value) => emit('update-loading', value))
 
-const queryString = computed(() => (new URLSearchParams(props.query)).toString())
+const queryString = computed(() => (new URLSearchParams(props.query as Record<string, string>)).toString().replace(/\+/g, '%20'))
 
 const requestedLocation = computed(() => {
   return initialState?.externalLocation + '/index.php' + (queryString.value ? '?' + queryString.value : '')
@@ -109,16 +106,6 @@ const iFrameLocation = ref(requestedLocation.value)
 const currentLocation = ref(requestedLocation.value)
 
 const frameId = computed(() => appName + '-frame')
-
-watch(queryString, (_value) => {
-  if (requestedLocation.value !== currentLocation.value) {
-    logger.debug('TRIGGER IFRAME REFRESH', { request: requestedLocation.value, current: currentLocation.value })
-    loading.value = true
-    iFrameLocation.value = requestedLocation.value
-  } else {
-    logger.debug('NOT CHANGING IFRAME SOURCE', { request: requestedLocation.value, current: currentLocation.value })
-  }
-})
 
 const loadTimeout = 1000 // 1 second
 
@@ -159,6 +146,21 @@ const contentObserver = new MutationObserver((entries) => {
   emitLoaded(iFrame)
 })
 
+watch(queryString, (_value) => {
+  if (requestedLocation.value !== currentLocation.value) {
+    logger.debug('TRIGGER IFRAME REFRESH', { request: requestedLocation.value, current: currentLocation.value })
+    loading.value = true
+    contentObserver.disconnect()
+    iFrameLocation.value = requestedLocation.value
+    const iFrame = externalFrame.value
+    if (iFrame?.contentWindow) {
+      iFrame.contentWindow.location.href = requestedLocation.value
+    }
+  } else {
+    logger.debug('NOT CHANGING IFRAME SOURCE', { request: requestedLocation.value, current: currentLocation.value })
+  }
+})
+
 const emitError = (error: unknown) => {
   loaderContainer.value!.classList.toggle('fading', true)
   emit('error', {
@@ -169,7 +171,7 @@ const emitError = (error: unknown) => {
 This may be caused by cross-domain access restrictions.
 Please check that your Nextcloud instance ({nextcloudUrl}) and the wrapped {wrappedApp} instance ({iFrameUrl}) are served from the same domain.`,
       {
-        wrappedApp,
+        wrappedApp: 'RedaxoWrapper',
         nextcloudUrl: window.location.protocol + '//' + window.location.host,
         iFrameUrl: initialState?.externalLocation || '',
       },
