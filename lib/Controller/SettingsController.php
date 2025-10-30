@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025
  * @license   AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -42,7 +42,7 @@ class SettingsController extends Controller
   use \OCA\Redaxo\Toolkit\Traits\LoggerTrait;
 
   public const EXTERNAL_LOCATION = 'externalLocation';
-  public const EXTERNAL_LOCATION_DEFAULT = null;
+  public const EXTERNAL_LOCATION_DEFAULT = '';
 
   public const AUTHENTICATION_REFRESH_INTERVAL = 'authenticationRefreshInterval';
   public const AUTHENTICATION_REFRESH_INTERVAL_DEFAULT = 600;
@@ -50,6 +50,9 @@ class SettingsController extends Controller
 
   public const ENABLE_SSL_VERIFY = 'enableSSLVerify';
   public const ENABLE_SSL_VERIFY_DEFAULT = true;
+
+  public const RELOGIN_DELAY = 'reloginDelay';
+  public const RELOGIN_DELAY_DEFAULT = 5;
 
   /**
    * @var array<string, array>
@@ -68,6 +71,10 @@ class SettingsController extends Controller
     self::ENABLE_SSL_VERIFY => [
       'rw' => true,
       'default' => self::ENABLE_SSL_VERIFY_DEFAULT,
+    ],
+    self::RELOGIN_DELAY => [
+      'rw' => true,
+      'default' => self::RELOGIN_DELAY,
     ],
   ];
 
@@ -227,8 +234,9 @@ class SettingsController extends Controller
         self::ADMIN_SETTINGS[$oneSetting]['default'] ?? null);
       $humanValue = $value;
       switch ($oneSetting) {
-        case self::EXTERNAL_LOCATION:
         case self::AUTHENTICATION_REFRESH_INTERVAL:
+        case self::EXTERNAL_LOCATION:
+        case self::RELOGIN_DELAY:
           break;
         case self::ENABLE_SSL_VERIFY:
           if ($humanValue !== null) {

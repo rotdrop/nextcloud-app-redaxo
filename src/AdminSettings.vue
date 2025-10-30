@@ -41,6 +41,14 @@
       />
     </NcSettingsSection>
     <NcSettingsSection title="">
+      <TextField :value.sync="settings.reloginDelay"
+                 :label="t(appName, 'Redaxo re-login delay [s]')"
+                 :hint="t(appName, 'Redaxo enforces a delay between successive login attempts. The value entered here must equal to or larger than the configured delay enforced by Redaxo.')"
+                 :disabled="loading > 0"
+                 @update="saveTextInput('reloginDelay')"
+      />
+    </NcSettingsSection>
+    <NcSettingsSection title="">
       <input id="enable-ssl-verify"
              v-model="settings.enableSSLVerify"
              class="checkbox"
@@ -86,6 +94,7 @@ const settings = reactive({
   externalLocation: '',
   enableSSLVerify: false,
   authenticationRefreshInterval: 0,
+  reloginDelay: 5,
 })
 
 // slurp in all personal settings

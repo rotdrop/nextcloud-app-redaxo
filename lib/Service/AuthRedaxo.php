@@ -29,18 +29,19 @@ use Exception;
 use RuntimeException;
 use Throwable;
 
-use OCP\Authentication\LoginCredentials\IStore as ICredentialsStore;
 use OCP\Authentication\LoginCredentials\ICredentials;
+use OCP\Authentication\LoginCredentials\IStore as ICredentialsStore;
 use OCP\IAppConfig;
-use OCP\IURLGenerator;
-use Psr\Log\LoggerInterface as ILogger;
-use OCP\ISession;
-use OCP\Session\Exceptions\SessionNotAvailableException;
-use OCP\IUserSession;
 use OCP\IL10N;
+use OCP\ISession;
+use OCP\IURLGenerator;
+use OCP\IUserSession;
+use OCP\Session\Exceptions\SessionNotAvailableException;
+use Psr\Log\LoggerInterface as ILogger;
 
-use OCA\Redaxo\Exceptions\LoginException;
+use OCA\Redaxo\Controller\SettingsController;
 use OCA\Redaxo\Enums\LoginStatusEnum as LoginStatus;
+use OCA\Redaxo\Exceptions\LoginException;
 
 /**
  * Handle authentication against a running redaxo instance and provide basic
@@ -102,11 +103,23 @@ class AuthRedaxo
   ) {
     $this->errorReporting = self::ON_ERROR_RETURN;
 
-    $this->enableSSLVerify = $this->appConfig->getValueBool($this->appName, 'enableSSLVerfiy', true);
+    $this->enableSSLVerify = $this->appConfig->getValueBool(
+      $this->appName,
+      SettingsController::ENABLE_SSL_VERIFY,
+      SettingsController::ENABLE_SSL_VERIFY_DEFAULT,
+    );
 
-    $this->reloginDelay = $this->appConfig->getValueInt($this->appName, 'reloginDelay', 5);
+    $this->reloginDelay = $this->appConfig->getValueInt(
+      $this->appName,
+      SettingsController::RELOGIN_DELAY,
+      SettingsController::RELOGIN_DELAY_DEFAULT,
+    );
 
-    $location = $this->appConfig->getValueString($this->appName, 'externalLocation');
+    $location = $this->appConfig->getValueString(
+      $this->appName,
+      SettingsController::EXTERNAL_LOCATION,
+      SettingsController::EXTERNAL_LOCATION_DEFAULT,
+    );
 
     if (!empty($location)) {
 
@@ -591,7 +604,7 @@ class AuthRedaxo
      * code ATM will only work when Redaxo is the only in-between
      * thingy issuing redirection headers.
      */
-    $context = stream_context_create([
+    $contextParameters = [
       'http' => [
         'method' => $method,
         'header' => $httpHeader,
@@ -602,7 +615,8 @@ class AuthRedaxo
         'verify_peer' => $this->enableSSLVerify,
         'verify_peer_name' => $this->enableSSLVerify,
       ],
-    ]);
+    ];
+    $context = stream_context_create($contextParameters);
     if (!empty($formPath) && $formPath[0] != '/') {
       $formPath = '/'.$formPath;
     }
