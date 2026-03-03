@@ -27,7 +27,7 @@ use OCP\User\Events\UserLoggedInEvent as Event1;
 use OCP\User\Events\UserLoggedInWithCookieEvent as Event2;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use OCP\AppFramework\IAppContainer;
+use Psr\Container\ContainerInterface;
 use OCP\IRequest;
 use Psr\Log\LoggerInterface as ILogger;
 
@@ -44,7 +44,7 @@ class UserLoggedInEventListener implements IEventListener
   public function __construct(
     private IRequest $request,
     protected ILogger $logger,
-    protected IAppContainer $appContainer,
+    protected ContainerInterface $appContainer,
   ) {
   }
   // phpcs:enable Squiz.Commenting.FunctionComment.Missing
