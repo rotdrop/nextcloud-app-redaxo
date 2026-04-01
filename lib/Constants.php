@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025, 2026
  * @license   AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -23,9 +23,9 @@
 
 namespace OCA\Redaxo;
 
-use OCA\Redaxo\Toolkit\Traits\Constants as TraitsConstants;
+use OCA\Redaxo\Toolkit\Constants as ToolkitConstants;
 
 /** General constants for the app. */
-class Constants extends TraitsConstants
+class Constants extends ToolkitConstants
 {
 }
