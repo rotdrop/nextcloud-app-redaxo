@@ -18,10 +18,12 @@
  * License along with Redaxo.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-import { appName } from '../config.ts';
-import { createWebHistory, createRouter } from 'vue-router';
+
 import type { RouterOptions } from 'vue-router';
+
 import { generateUrl } from '@nextcloud/router';
+import { createRouter, createWebHistory } from 'vue-router';
+import { appName } from '../config.ts';
 
 const base = generateUrl('/apps/' + appName);
 

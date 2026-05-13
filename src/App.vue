@@ -20,11 +20,11 @@
  - <http://www.gnu.org/licenses/>.
  -->
 <template>
-  <NcContent :app-name="appName">
+  <NcContent :appName="appName">
     <NcAppContent :class="[appName + '-content-container', { 'icon-loading': loading }]">
       <RouterView v-show="!loading && !error"
-                  :loading.sync="loading"
-                  @iframe-loaded="onIFrameLoaded($event)"
+                  v-model:loading="loading"
+                  @iframeLoaded="onIFrameLoaded($event)"
                   @error="onError"
       />
       <NcEmptyContent v-if="error">
@@ -32,7 +32,7 @@
           <h2>{{ t(appName, 'Redaxo Wrapper for Nextcloud') }}</h2>
         </template>
         <template #icon>
-          <DynamicSvgIcon :data="appIcon" size="64" />
+          <DynamicSvgIcon :data="appIcon" :size="64" />
         </template>
         <template #description>
           <div class="error-message">
@@ -43,24 +43,24 @@
     </NcAppContent>
   </NcContent>
 </template>
+
 <script setup lang="ts">
-import { appName } from './config.ts'
 import { translate as t } from '@nextcloud/l10n'
 import {
   NcAppContent,
   NcContent,
   NcEmptyContent,
 } from '@nextcloud/vue'
-import DynamicSvgIcon from '@rotdrop/nextcloud-vue-components/lib/components/DynamicSvgIcon.vue'
-import appIcon from '../img/app.svg?raw'
+import { ref } from 'vue'
 import {
-  ref,
-} from 'vue'
-import {
+  type RouteLocationRaw as RouterLocation,
+
   useRoute,
   useRouter,
-  type RouteLocationRaw as RouterLocation,
 } from 'vue-router'
+import DynamicSvgIcon from '@rotdrop/nextcloud-vue-components/lib/components/DynamicSvgIcon.vue'
+import appIcon from '../img/app.svg?raw'
+import { appName } from './config.ts'
 import logger from './logger.ts'
 
 const loading = ref(true)
@@ -122,6 +122,7 @@ router.isReady().then(async () => {
   }
 })
 </script>
+
 <style scoped lang="scss">
   main {
   // strange: all divs have the same height, there is no horizontal

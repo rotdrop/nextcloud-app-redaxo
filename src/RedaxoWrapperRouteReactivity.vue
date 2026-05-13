@@ -21,17 +21,19 @@
                  :query="routeQuery"
   />
 </template>
+
 <script setup lang="ts">
-import RedaxoWrapper from './RedaxoWrapper.vue'
 import {
   onBeforeMount,
   ref,
 } from 'vue'
 import {
+  type RouteLocationNormalizedGeneric,
+
   onBeforeRouteUpdate,
   useRoute,
-  type RouteLocationNormalizedGeneric,
 } from 'vue-router'
+import RedaxoWrapper from './RedaxoWrapper.vue'
 import logger from './logger.ts'
 
 const currentRoute = useRoute()

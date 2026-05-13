@@ -2,7 +2,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023, 2023, 2025
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025, 2026
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -21,15 +21,15 @@
 
 import { getCurrentUser } from '@nextcloud/auth';
 import axios from '@nextcloud/axios';
-import onDocumentLoaded from './toolkit/util/on-document-loaded.ts';
+import Console from './toolkit/util/console.ts';
 import generateAppUrl from './toolkit/util/generate-url.ts';
 import getInitialState from './toolkit/util/initial-state.ts';
-import Console from './toolkit/util/console.ts';
+import onDocumentLoaded from './toolkit/util/on-document-loaded.ts';
 
 const logger = new Console('RedaxoWrapper::refresh');
 
 interface AuthRefreshState {
-  authenticationRefreshInterval: number,
+  authenticationRefreshInterval: number;
 }
 
 const state = getInitialState<AuthRefreshState>({ section: 'auth-refresh', defaults: { authenticationRefreshInterval: 30 } });

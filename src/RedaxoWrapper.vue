@@ -2,7 +2,7 @@
  - Redaxo -- a Nextcloud App for embedding Redaxo.
  -
  - @author Claus-Justus Heine <himself@claus-justus-heine.de>
- - @copyright Copyright (c) 2023-2025 Claus-Justus Heine
+ - @copyright Copyright (c) 2023-2026 Claus-Justus Heine
  - @license AGPL-3.0-or-later
  -
  - Redaxo is free software: you can redistribute it and/or
@@ -38,11 +38,11 @@
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
-import { appName } from './config.ts'
+import type { RouteQueryAndHash } from 'vue-router'
+
 import { translate as t } from '@nextcloud/l10n'
-import getInitialState from './toolkit/util/initial-state.ts'
-import { tuneContents } from './redaxo.ts'
 import {
   computed,
   onBeforeMount,
@@ -51,45 +51,48 @@ import {
   ref,
   watch,
 } from 'vue'
+import { appName } from './config.ts'
 import logger from './logger.ts'
-import type { Route } from 'vue-router'
+import { tuneContents } from './redaxo.ts'
+import getInitialState from './toolkit/util/initial-state.ts'
 
 interface InitialState {
-  externalLocation: string,
+  externalLocation: string
 }
 
-const props = withDefaults(defineProps<{
-  query?: Route['query'],
-  fullScreen?: boolean,
-}>(), {
-  query: () => ({}),
-  fullScreen: true,
-})
-
 interface IFrameLoadedEventData {
-  query: Record<string, string>,
-  iFrame: HTMLIFrameElement,
-  window: Window,
-  document: Document,
+  query: Record<string, string>
+  iFrame: HTMLIFrameElement
+  window: Window
+  document: Document
 }
 
 interface ErrorEventData {
-  error: Error,
-  hint: string,
+  error: Error
+  hint: string
 }
 
+const props = withDefaults(defineProps<{
+  query?: RouteQueryAndHash['query']
+  fullScreen?: boolean
+}>(), {
+  query: () => ({}),
+  // eslint-disable-next-line vue/no-boolean-default
+  fullScreen: true,
+})
+
 const emit = defineEmits<{
-  (event: 'iframe-loaded', eventData: IFrameLoadedEventData): void,
-  (event: 'iframe-resize', eventData: ResizeObserverEntry): void,
-  (event: 'update-loading', loading: boolean): void,
-  (event: 'error', eventData: ErrorEventData): void,
+  (event: 'iframeLoaded', eventData: IFrameLoadedEventData): void
+  (event: 'iframeResize', eventData: ResizeObserverEntry): void
+  (event: 'updateLoading', loading: boolean): void
+  (event: 'error', eventData: ErrorEventData): void
 }>()
 
 const initialState = getInitialState<InitialState>({ section: 'page' })
 
 const loading = ref(true)
 
-watch(loading, (value) => emit('update-loading', value))
+watch(loading, (value) => emit('updateLoading', value))
 
 const queryString = computed(() => (new URLSearchParams(props.query as Record<string, string>)).toString().replace(/\+/g, '%20'))
 
@@ -128,10 +131,42 @@ const setIFrameSize = ({ width, height }: DOMRectReadOnly) => {
   iFrame.style.height = height + 'px'
 }
 
+const emitError = (error: unknown) => {
+  loaderContainer.value!.classList.toggle('fading', true)
+  emit('error', {
+    error: error instanceof Error ? error : new Error('Non-error error', { cause: error }),
+    hint: t(
+      appName,
+      `Unable to access the contents of the wrapped {wrappedApp} instance.
+This may be caused by cross-domain access restrictions.
+Please check that your Nextcloud instance ({nextcloudUrl}) and the wrapped {wrappedApp} instance ({iFrameUrl}) are served from the same domain.`,
+      {
+        wrappedApp: 'RedaxoWrapper',
+        nextcloudUrl: window.location.protocol + '//' + window.location.host,
+        iFrameUrl: initialState?.externalLocation || '',
+      },
+    ),
+  })
+}
+
+const emitLoaded = (iFrame: HTMLIFrameElement) => {
+  const iFrameWindow = iFrame.contentWindow!
+  const iFrameDocument = iFrame.contentDocument!
+  currentLocation.value = iFrameWindow.location.href
+  const search = iFrameWindow.location.search
+  const query = Object.fromEntries((new URLSearchParams(search)).entries()) as (Record<string, string>)
+  emit('iframeLoaded', {
+    query,
+    iFrame,
+    window: iFrameWindow,
+    document: iFrameDocument,
+  })
+}
+
 const resizeObserver = new ResizeObserver((entries) => {
   for (const entry of entries) {
     if (entry.target === iFrameBody) {
-      emit('iframe-resize', entry)
+      emit('iframeResize', entry)
       continue
     }
     if (props.fullScreen && entry.target === container.value) {
@@ -160,38 +195,6 @@ watch(queryString, (_value) => {
     logger.debug('NOT CHANGING IFRAME SOURCE', { request: requestedLocation.value, current: currentLocation.value })
   }
 })
-
-const emitError = (error: unknown) => {
-  loaderContainer.value!.classList.toggle('fading', true)
-  emit('error', {
-    error: error instanceof Error ? error : new Error('Non-error error', { cause: error }),
-    hint: t(
-      appName,
-      `Unable to access the contents of the wrapped {wrappedApp} instance.
-This may be caused by cross-domain access restrictions.
-Please check that your Nextcloud instance ({nextcloudUrl}) and the wrapped {wrappedApp} instance ({iFrameUrl}) are served from the same domain.`,
-      {
-        wrappedApp: 'RedaxoWrapper',
-        nextcloudUrl: window.location.protocol + '//' + window.location.host,
-        iFrameUrl: initialState?.externalLocation || '',
-      },
-    ),
-  })
-}
-
-const emitLoaded = (iFrame: HTMLIFrameElement) => {
-  const iFrameWindow = iFrame.contentWindow!
-  const iFrameDocument = iFrame.contentDocument!
-  currentLocation.value = iFrameWindow.location.href
-  const search = iFrameWindow.location.search
-  const query = Object.fromEntries((new URLSearchParams(search)).entries())
-  emit('iframe-loaded', {
-    query,
-    iFrame,
-    window: iFrameWindow,
-    document: iFrameDocument,
-  })
-}
 
 const loadHandler = () => {
   logger.debug('GOT LOAD EVENT')
@@ -286,6 +289,7 @@ defineExpose({
 })
 
 </script>
+
 <style scoped lang="scss">
 .#{$redaxoAppName}-container {
   display: flex;
