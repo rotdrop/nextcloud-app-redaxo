@@ -2,7 +2,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2025
+ * @copyright Claus-Justus Heine 2025, 2026
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -19,18 +19,14 @@
  * <http://www.gnu.org/licenses/>.
  */
 import { appName } from '../config.ts';
-import Vue from 'vue';
-import Router from 'vue-router';
+import { createWebHistory, createRouter } from 'vue-router';
 import type { RouterOptions } from 'vue-router';
 import { generateUrl } from '@nextcloud/router';
-
-Vue.use(Router);
 
 const base = generateUrl('/apps/' + appName);
 
 const options: RouterOptions = {
-  mode: 'history',
-  base,
+  history: createWebHistory(base),
   linkActiveClass: 'active',
   routes: [
     {
@@ -51,6 +47,6 @@ const options: RouterOptions = {
   },
 };
 
-const router = new Router(options);
+const router = createRouter(options);
 
 export default router;

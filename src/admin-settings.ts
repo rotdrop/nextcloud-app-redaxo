@@ -2,7 +2,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025, 2026
  *
  * Redaxo is free software: you can redistribute it and/or
  * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -20,21 +20,13 @@
  */
 
 import { appName } from './config.ts';
-import { generateFilePath } from '@nextcloud/router';
+import './webpack-setup.ts';
+import { createApp } from 'vue';
 
-import Vue from 'vue';
 import AdminSettings from './AdminSettings.vue';
 
-import { Tooltip } from '@nextcloud/vue';
+import Tooltip from '@rotdrop/nextcloud-vue-components/lib/directives/Tooltip';
 
-Vue.directive('tooltip', Tooltip);
-
-// eslint-disable-next-line
-__webpack_public_path__ = generateFilePath(appName, '', 'js/');
-
-Vue.mixin({ data() { return { appName }; }, methods: { t, n } });
-
-export default new Vue({
-  el: '#' + appName + '-admin-settings',
-  render: h => h(AdminSettings),
-});
+const app = createApp(AdminSettings);
+app.directive('tooltip', Tooltip);
+app.mount(`#${appName}-admin-settings`);

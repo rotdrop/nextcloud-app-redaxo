@@ -2,7 +2,7 @@
  - Redaxo -- a Nextcloud App for embedding Redaxo.
  -
  - @author Claus-Justus Heine <himself@claus-justus-heine.de>
- - @copyright Copyright (c) 2023, 2024, 2025 Claus-Justus Heine
+ - @copyright Copyright (c) 2023-2026 Claus-Justus Heine
  - @license AGPL-3.0-or-later
  -
  - Redaxo is free software: you can redistribute it and/or
@@ -59,9 +59,9 @@ import {
 import {
   useRoute,
   useRouter,
-} from 'vue-router/composables'
+  type RouteLocationRaw as RouterLocation,
+} from 'vue-router'
 import logger from './logger.ts'
-import type { Location as RouterLocation } from 'vue-router'
 
 const loading = ref(true)
 const error = ref<string | undefined>(undefined)
@@ -101,7 +101,7 @@ const onIFrameLoaded = async (event: { wikiPath: string[], query: Record<string,
 // The initial route is not named and consequently does not load the
 // wrapper component, so just replace it by the one and only named
 // route.
-router.onReady(async () => {
+router.isReady().then(async () => {
   if (!currentRoute.name) {
     logger.debug('FORCING NAMED ROUTE', { currentRoute })
     const routerLocation: RouterLocation = {
@@ -113,6 +113,11 @@ router.onReady(async () => {
       await router.replace(routerLocation)
     } catch (error) {
       logger.debug('NAVIGATION ABORTED', { error })
+      const hint = t(appName, 'The initial navigation failed. This is likely a bug in this app.')
+      onError({
+        error: error instanceof Error ? error : new Error('Non-error error', { cause: error }),
+        hint,
+      })
     }
   }
 })
@@ -125,7 +130,7 @@ router.onReady(async () => {
   // DO NOT ALLOW THIS!
   overflow: hidden !important;
 }
-.empty-content::v-deep {
+:deep(.empty-content) {
   h2 ~ p {
     text-align: center;
     width: 72ex;

@@ -1,5 +1,5 @@
 <!--
- - @copyright Copyright (c) 2025 Claus-Justus Heine <himself@claus-justus-heine.de>
+ - @copyright Copyright (c) 2025, 2026 Claus-Justus Heine <himself@claus-justus-heine.de>
  - @author Claus-Justus Heine <himself@claus-justus-heine.de>
  - @license AGPL-3.0-or-later
  -
@@ -19,7 +19,6 @@
 <template>
   <RedaxoWrapper v-bind="$attrs"
                  :query="routeQuery"
-                 v-on="$listeners"
   />
 </template>
 <script setup lang="ts">
@@ -31,15 +30,15 @@ import {
 import {
   onBeforeRouteUpdate,
   useRoute,
-} from 'vue-router/composables'
-import type { Route } from 'vue-router'
+  type RouteLocationNormalizedGeneric,
+} from 'vue-router'
 import logger from './logger.ts'
 
 const currentRoute = useRoute()
 
-const routeQuery = ref<Route['query']>({})
+const routeQuery = ref<RouteLocationNormalizedGeneric['query']>({})
 
-const onRouteChange = (to: Route) => {
+const onRouteChange = (to: RouteLocationNormalizedGeneric) => {
   routeQuery.value = to.query
 }
 
