@@ -2,7 +2,7 @@
  - Redaxo -- a Nextcloud App for embedding Redaxo.
  -
  - @author Claus-Justus Heine <himself@claus-justus-heine.de>
- - @copyright Copyright (c) 2023, 2024, 2025 Claus-Justus Heine
+ - @copyright Copyright (c) 2023-2026 Claus-Justus Heine
  - @license AGPL-3.0-or-later
  -
  - Redaxo is free software: you can redistribute it and/or
@@ -20,11 +20,11 @@
  - <http://www.gnu.org/licenses/>.
  -->
 <template>
-  <NcContent :app-name="appName">
+  <NcContent :appName="appName">
     <NcAppContent :class="[appName + '-content-container', { 'icon-loading': loading }]">
       <RouterView v-show="!loading && !error"
-                  :loading.sync="loading"
-                  @iframe-loaded="onIFrameLoaded($event)"
+                  v-model:loading="loading"
+                  @iframeLoaded="onIFrameLoaded($event)"
                   @error="onError"
       />
       <NcEmptyContent v-if="error">
@@ -32,7 +32,7 @@
           <h2>{{ t(appName, 'Redaxo Wrapper for Nextcloud') }}</h2>
         </template>
         <template #icon>
-          <DynamicSvgIcon :data="appIcon" size="64" />
+          <DynamicSvgIcon :data="appIcon" :size="64" />
         </template>
         <template #description>
           <div class="error-message">
@@ -43,25 +43,25 @@
     </NcAppContent>
   </NcContent>
 </template>
+
 <script setup lang="ts">
-import { appName } from './config.ts'
 import { translate as t } from '@nextcloud/l10n'
 import {
   NcAppContent,
   NcContent,
   NcEmptyContent,
 } from '@nextcloud/vue'
-import DynamicSvgIcon from '@rotdrop/nextcloud-vue-components/lib/components/DynamicSvgIcon.vue'
-import appIcon from '../img/app.svg?raw'
+import { ref } from 'vue'
 import {
-  ref,
-} from 'vue'
-import {
+  type RouteLocationRaw as RouterLocation,
+
   useRoute,
   useRouter,
-} from 'vue-router/composables'
+} from 'vue-router'
+import DynamicSvgIcon from '@rotdrop/nextcloud-vue-components/lib/components/DynamicSvgIcon.vue'
+import appIcon from '../img/app.svg?raw'
+import { appName } from './config.ts'
 import logger from './logger.ts'
-import type { Location as RouterLocation } from 'vue-router'
 
 const loading = ref(true)
 const error = ref<string | undefined>(undefined)
@@ -101,7 +101,7 @@ const onIFrameLoaded = async (event: { wikiPath: string[], query: Record<string,
 // The initial route is not named and consequently does not load the
 // wrapper component, so just replace it by the one and only named
 // route.
-router.onReady(async () => {
+router.isReady().then(async () => {
   if (!currentRoute.name) {
     logger.debug('FORCING NAMED ROUTE', { currentRoute })
     const routerLocation: RouterLocation = {
@@ -113,10 +113,16 @@ router.onReady(async () => {
       await router.replace(routerLocation)
     } catch (error) {
       logger.debug('NAVIGATION ABORTED', { error })
+      const hint = t(appName, 'The initial navigation failed. This is likely a bug in this app.')
+      onError({
+        error: error instanceof Error ? error : new Error('Non-error error', { cause: error }),
+        hint,
+      })
     }
   }
 })
 </script>
+
 <style scoped lang="scss">
   main {
   // strange: all divs have the same height, there is no horizontal
@@ -125,7 +131,7 @@ router.onReady(async () => {
   // DO NOT ALLOW THIS!
   overflow: hidden !important;
 }
-.empty-content::v-deep {
+:deep(.empty-content) {
   h2 ~ p {
     text-align: center;
     width: 72ex;

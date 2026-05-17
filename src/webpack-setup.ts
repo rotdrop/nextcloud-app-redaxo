@@ -19,12 +19,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-const onDocumentLoaded = (callback: () => void) => {
-  if (document.readyState !== 'loading') {
-    callback();
-  } else {
-    document.addEventListener('DOMContentLoaded', callback);
-  }
-};
+import { getRequestToken, onRequestTokenUpdate } from '@nextcloud/auth';
+import { generateFilePath } from '@nextcloud/router';
+import { appName } from './config.ts';
 
-export default onDocumentLoaded;
+declare global {
+  var __webpack_public_path__: string;
+  var __webpack_nonce__: string;
+}
+
+__webpack_public_path__ = generateFilePath(appName, '', '');
+__webpack_nonce__ = btoa(getRequestToken() || '');
+
+// this may not be necessary as the actual secret value does not change
+onRequestTokenUpdate(function(token) {
+  __webpack_nonce__ = btoa(token);
+});

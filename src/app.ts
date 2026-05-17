@@ -2,7 +2,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025, 2026
  * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -20,24 +20,12 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-import { appName } from './config.ts';
-import { generateFilePath } from '@nextcloud/router';
-import { getRequestToken } from '@nextcloud/auth';
+import { createApp } from 'vue';
+import App from './App.vue';
 import router from './router/router.ts';
 
-import Vue from 'vue';
-import App from './App.vue';
+import './webpack-setup.ts';
 
-// CSP config for webpack dynamic chunk loading
-// eslint-disable-next-line
-__webpack_nonce__ = btoa(getRequestToken() || '')
-
-// eslint-disable-next-line
-__webpack_public_path__ = generateFilePath(appName, '', '');
-
-export default new Vue({
-  el: '#content',
-  render: h => h(App),
-  // @ts-expect-error: 2769, passing the router es extension should be allowed.
-  router,
-});
+const app = createApp(App);
+app.use(router);
+app.mount('#content');

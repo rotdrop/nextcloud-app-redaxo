@@ -2,7 +2,7 @@
  - Redaxo -- a Nextcloud App for embedding Redaxo.
  -
  - @author Claus-Justus Heine <himself@claus-justus-heine.de>
- - @copyright Copyright (c) 2023, 2024, 2025 Claus-Justus Heine
+ - @copyright Copyright (c) 2023-2026 Claus-Justus Heine
  - @license AGPL-3.0-or-later
  -
  - Redaxo is free software: you can redistribute it and/or
@@ -20,12 +20,12 @@
  - <http://www.gnu.org/licenses/>.
  -->
 <template>
-  <div :class="['templateroot', appName, ...cloudVersionClasses]">
+  <div class="templateroot" :class="[appName, ...cloudVersionClasses]">
     <h1 class="title">
       {{ t(appName, 'Redaxo Integration') }}
     </h1>
     <NcSettingsSection title="">
-      <TextField :value.sync="settings.externalLocation"
+      <TextField v-model:value="settings.externalLocation"
                  :label="t(appName, 'Redaxo Installation Path')"
                  :hint="t(appName, 'Please enter the location of the already installed Redaxo instance. This should either be a path, absolute or relative to the root of the web server, or a complete URL pointing to the web location of the Redaxo. In order to make things work, your have to enable the XML-RPC protocol in your Redaxo.')"
                  :disabled="loading > 0"
@@ -33,7 +33,7 @@
       />
     </NcSettingsSection>
     <NcSettingsSection title="">
-      <TextField :value.sync="settings.authenticationRefreshInterval"
+      <TextField v-model:value="settings.authenticationRefreshInterval"
                  :label="t(appName, 'Redaxo Session Refresh Interval [s]')"
                  :hint="t(appName, 'Please enter the desired session-refresh interval here. The interval is measured in seconds and should be somewhat smaller than the configured session life-time for the Redaxo instance in use.')"
                  :disabled="loading > 0"
@@ -41,7 +41,7 @@
       />
     </NcSettingsSection>
     <NcSettingsSection title="">
-      <TextField :value.sync="settings.reloginDelay"
+      <TextField v-model:value="settings.reloginDelay"
                  :label="t(appName, 'Redaxo re-login delay [s]')"
                  :hint="t(appName, 'Redaxo enforces a delay between successive login attempts. The value entered here must equal to or larger than the configured delay enforced by Redaxo.')"
                  :disabled="loading > 0"
@@ -69,23 +69,24 @@
     </NcSettingsSection>
   </div>
 </template>
+
 <script setup lang="ts">
-import { appName } from './config.ts'
 import { translate as t } from '@nextcloud/l10n'
 import { NcSettingsSection } from '@nextcloud/vue'
+import {
+  computed,
+  reactive,
+  ref,
+} from 'vue'
 import TextField from '@rotdrop/nextcloud-vue-components/lib/components/TextFieldWithSubmitButton.vue'
+import { appName } from './config.ts'
+import logger from './logger.ts'
 import cloudVersionClassesImport from './toolkit/util/cloud-version-classes.ts'
 import {
   fetchSettings,
   saveConfirmedSetting,
   saveSimpleSetting,
 } from './toolkit/util/settings-sync.ts'
-import {
-  reactive,
-  ref,
-  computed,
-} from 'vue'
-import logger from './logger.ts'
 
 const loading = ref(0)
 const cloudVersionClasses = computed<string[]>(() => cloudVersionClassesImport)
@@ -128,6 +129,7 @@ const saveSetting = async (settingsKey: string) => {
   saveSimpleSetting({ settingsKey, section: 'admin', settings })
 }
 </script>
+
 <style lang="scss" scoped>
 .cloud-version {
   --cloud-icon-info: var(--icon-info-000);
