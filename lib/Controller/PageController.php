@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025, 2026
  * @license AGPL
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -26,6 +26,7 @@ namespace OCA\Redaxo\Controller;
 use Exception;
 
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Http\Attribute as CoreAttributes;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\Response;
@@ -76,7 +77,10 @@ class PageController extends Controller
    * @NoAdminRequired
    * @NoCSRFRequired
    */
-  public function index():TemplateResponse
+  #[CoreAttributes\NoAdminRequired]
+  #[CoreAttributes\NoCSRFRequired]
+  #[CoreAttributes\FrontpageRoute(verb: 'GET', url: '/')]
+  public function index(): TemplateResponse
   {
     $externalURL  = $this->authenticator->externalURL();
     $externalPath = $this->request->getParam('externalPath', '');

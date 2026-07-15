@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020-2025
+ * @copyright Claus-Justus Heine 2020-2026
  * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -24,6 +24,7 @@
 namespace OCA\Redaxo\Controller;
 
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Http\Attribute as CoreAttributes;
 use OCP\AppFramework\Http\Response;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -55,6 +56,8 @@ class AuthenticationController extends Controller
    *
    * @NoAdminRequired
    */
+  #[CoreAttributes\NoAdminRequired]
+  #[CoreAttributes\FrontpageRoute(verb: 'POST', url: '/authentication/refresh')]
   public function refresh():Response
   {
     if ($this->userId === null) {

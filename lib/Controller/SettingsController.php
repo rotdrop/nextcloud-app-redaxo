@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2025, 2026
  * @license   AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -23,14 +23,15 @@
 
 namespace OCA\Redaxo\Controller;
 
-use Psr\Log\LoggerInterface;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http\Response;
+use OCP\AppFramework\Http\Attribute as CoreAttributes;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Http\Response;
+use OCP\IConfig;
+use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
-use OCP\IL10N;
-use OCP\IConfig;
+use Psr\Log\LoggerInterface;
 
 /**
  * Settings-controller for both, personal and admin, settings.
@@ -110,9 +111,10 @@ class SettingsController extends Controller
    *
    * @return DataResponse
    *
-   * @AuthorizedAdminSetting(settings=OCA\Redaxo\Settings\Admin)
    * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
    */
+  #[CoreAttributes\AuthorizedAdminSetting(settings: \OCA\Redaxo\Settings\Admin::class)]
+  #[CoreAttributes\FrontpageRoute(verb: 'POST', url: '/settings/admin/{setting}')]
   public function setAdmin(string $setting, mixed $value, bool $force = false):DataResponse
   {
     if (!isset(self::ADMIN_SETTINGS[$setting])) {
@@ -213,9 +215,18 @@ class SettingsController extends Controller
    * @param string $setting
    *
    * @return DataResponse
-   *
-   * @AuthorizedAdminSetting(settings=OCA\Redaxo\Settings\Admin)
    */
+  #[CoreAttributes\AuthorizedAdminSetting(settings: \OCA\Redaxo\Settings\Admin::class)]
+  #[CoreAttributes\FrontpageRoute(
+    verb: 'GET',
+    url: '/settings/admin/{setting}',
+    requirements: [ 'setting' => '^.+$' ],
+  )]
+  #[CoreAttributes\FrontpageRoute(
+    verb: 'GET',
+    url: '/settings/admin',
+    postfix: '.all',
+  )]
   public function getAdmin(?string $setting = null):DataResponse
   {
     if ($setting === null) {
