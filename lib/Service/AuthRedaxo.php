@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020-2025
+ * @copyright Claus-Justus Heine 2020-2026
  * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -636,11 +636,11 @@ class AuthRedaxo
 
     if ($fp !== false) {
       $result = stream_get_contents($fp);
-      $responseHdr = $http_response_header;
+      $responseHdr = http_get_last_response_headers();
       fclose($fp);
     } else {
       $error = error_get_last();
-      $headers = $http_response_header ?? [];
+      $headers = http_get_last_response_headers() ?? [];
       return $this->handleError(
         "URL fopen to $url failed: "
         . print_r($error, true)
