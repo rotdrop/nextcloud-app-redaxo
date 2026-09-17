@@ -25,7 +25,7 @@
       {{ t(appName, 'Redaxo Integration') }}
     </h1>
     <NcSettingsSection title="">
-      <TextField v-model:value="settings.externalLocation"
+      <TextField v-model="settings.externalLocation"
                  :label="t(appName, 'Redaxo Installation Path')"
                  :hint="t(appName, 'Please enter the location of the already installed Redaxo instance. This should either be a path, absolute or relative to the root of the web server, or a complete URL pointing to the web location of the Redaxo. In order to make things work, your have to enable the XML-RPC protocol in your Redaxo.')"
                  :disabled="loading > 0"
@@ -33,19 +33,19 @@
       />
     </NcSettingsSection>
     <NcSettingsSection title="">
-      <TextField v-model:value="settings.authenticationRefreshInterval"
+      <TextField v-model="settings.authenticationRefreshInterval"
                  :label="t(appName, 'Redaxo Session Refresh Interval [s]')"
                  :hint="t(appName, 'Please enter the desired session-refresh interval here. The interval is measured in seconds and should be somewhat smaller than the configured session life-time for the Redaxo instance in use.')"
                  :disabled="loading > 0"
-                 @update="saveTextInput('authenticationRefreshInterval')"
+                 @submit="saveTextInput('authenticationRefreshInterval')"
       />
     </NcSettingsSection>
     <NcSettingsSection title="">
-      <TextField v-model:value="settings.reloginDelay"
+      <TextField v-model="settings.reloginDelay"
                  :label="t(appName, 'Redaxo re-login delay [s]')"
                  :hint="t(appName, 'Redaxo enforces a delay between successive login attempts. The value entered here must equal to or larger than the configured delay enforced by Redaxo.')"
                  :disabled="loading > 0"
-                 @update="saveTextInput('reloginDelay')"
+                 @submit="saveTextInput('reloginDelay')"
       />
     </NcSettingsSection>
     <NcSettingsSection title="">
