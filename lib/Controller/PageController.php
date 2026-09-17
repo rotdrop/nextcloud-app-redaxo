@@ -108,8 +108,8 @@ class PageController extends Controller
       ]
     );
 
-    Util::addScript($this->appName, $this->assetService->getJSAsset(self::ASSET)['asset']);
-    Util::addStyle($this->appName, $this->assetService->getCSSAsset(self::ASSET)['asset']);
+    Util::addScript($this->appName, $this->assetService->getJSAsset(self::ASSET));
+    Util::addStyle($this->appName, $this->assetService->getCSSAsset(self::ASSET));
 
     $response = new TemplateResponse($this->appName, self::TEMPLATE, []);
 
