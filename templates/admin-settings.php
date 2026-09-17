@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2026
  * @license AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -23,8 +23,8 @@
 
 namespace OCA\Redaxo;
 
-script($appName, $assets['js']['asset']);
-style($appName, $assets['css']['asset']);
+script($appName, $assets['js']);
+style($appName, $assets['css']);
 
 ?>
 <div id="<?php p($appName); ?>-admin-settings"></div>
