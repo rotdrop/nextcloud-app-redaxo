@@ -1,14 +1,14 @@
 const BabelLoaderExcludeNodeModulesExcept = require('babel-loader-exclude-node-modules-except');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const CssoWebpackPlugin = require('csso-webpack-plugin').default;
-const DeadCodePlugin = require('webpack-deadcode-plugin');
+const webpackConfig = require('@nextcloud/webpack-vue-config');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const fs = require('fs');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
 const webpack = require('webpack');
-const webpackConfig = require('@nextcloud/webpack-vue-config');
+const DeadCodePlugin = require('webpack-deadcode-plugin');
 const Visualizer = require('webpack-visualizer-plugin2');
 const xml2js = require('xml2js');
 
@@ -106,7 +106,7 @@ webpackConfig.plugins = webpackConfig.plugins.concat([
     {
       pluginOutputPostfix: productionMode ? null : 'min',
     },
-    productionMode ? /\.css$/ : /^$/
+    productionMode ? /\.css$/ : /^$/,
   ),
   new DeadCodePlugin({
     patterns: [
