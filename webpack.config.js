@@ -24,16 +24,16 @@ const appName = appInfo.info.id[0];
 const productionMode = process.env.NODE_ENV === 'production';
 
 const webpackSetup = path.join('toolkit', 'util', 'webpack-setup');
-const entryPoints = {
-  'admin-settings': 'admin-settings',
-  refresh: 'refresh',
-  app: 'app',
-};
+const entryPoints = [
+  'admin-settings',
+  'refresh',
+  'app',
+];
 
-webpackConfig.entry = Object.keys(entryPoints).reduce((acc, key) => {
+webpackConfig.entry = entryPoints.reduce((acc, key) => {
   acc[key] = [
     path.join(__dirname, 'src', `${webpackSetup}.ts`),
-    path.join(__dirname, 'src', `${entryPoints[key]}.ts`),
+    path.join(__dirname, 'src', `${key}.ts`),
   ];
   return acc;
 }, {});
