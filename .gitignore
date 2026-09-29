@@ -1,4 +1,4 @@
-build/**
+/build/
 js/**
 css/**
 node_modules/**
@@ -12,3 +12,4 @@ composer.json
 vendor
 lib/Toolkit/[A-Z]*
 *-build-hash
+.vite/

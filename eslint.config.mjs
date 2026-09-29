@@ -4,6 +4,14 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 const configOptions = [
   ...recommended,
   {
+    name: 'undo gitignores',
+    ignores: [
+      '!build',
+      'build/*',
+      '!build/ts-types/',
+    ],
+  },
+  {
     files: ['**/*.vue'],
     rules: {
       'vue/attribute-hyphenation': ['error', 'never'],
@@ -49,7 +57,7 @@ const configOptions = [
     },
   },
   {
-    files: ['**/*.js', '**/*.ts', '**/*.cts', '**/*.mts', '**/*.tsx'],
+    files: ['**/*.js', '**/*.mjs', '**/*.ts', '**/*.cts', '**/*.mts', '**/*.tsx'],
     rules: {
       '@stylistic/function-paren-newline': [
         'error',
