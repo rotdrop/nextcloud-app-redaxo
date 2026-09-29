@@ -117,7 +117,6 @@ class PageController extends Controller
     $externalHost = $urlParts['host'];
 
     $policy = new ContentSecurityPolicy();
-    $policy->addAllowedChildSrcDomain($externalHost);
     $policy->addAllowedFrameDomain($externalHost);
     $response->setContentSecurityPolicy($policy);
 
