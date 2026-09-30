@@ -3,7 +3,7 @@
  * Redaxo -- a Nextcloud App for embedding Redaxo.
  *
  * @author Claus-Justus Heine <himself@claus-justus-heine.de>
- * @copyright Claus-Justus Heine 2020, 2021, 2023, 2024
+ * @copyright Claus-Justus Heine 2020, 2021, 2023, 2024, 2026
  * @license   AGPL-3.0-or-later
  *
  * Redaxo is free software: you can redistribute it and/or
@@ -26,59 +26,22 @@
 
 namespace OCA\Redaxo\AppInfo;
 
-/*-********************************************************
- *
- * Bootstrap
- *
- */
-
-use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
-use OCP\AppFramework\Bootstrap\IBootContext;
-use OCP\AppFramework\App;
 
 use OCA\Redaxo\Listener\Registration as ListenerRegistration;
+use OCA\Redaxo\Toolkit\AppInfo\AbstractApplication;
 
-/*
- *
- **********************************************************
- *
- */
-
-include_once __DIR__ . '/../../vendor/autoload.php';
+include_once __DIR__ . '/../Toolkit/AppInfo/AbstractApplication.php';
 
 /**
  * App entry point.
  */
-class Application extends App implements IBootstrap
+class Application extends AbstractApplication
 {
-  use \OCA\Redaxo\Toolkit\Traits\AppNameTrait;
-
-  /** @var string */
-  protected $appName;
-
-  // phpcs:disable Squiz.Commenting.FunctionComment.Missing
-  public function __construct(array $urlParams = [])
-  {
-    $this->appName = $this->getAppInfoAppName(__DIR__);
-    parent::__construct($this->appName, $urlParams);
-  }
-  // phpcs:enable Squiz.Commenting.FunctionComment.Missing
-
-  /** @return string */
-  public function getAppName()
-  {
-    return $this->appName;
-  }
-
-  /** {@inheritdoc} */
-  public function boot(IBootContext $context): void
-  {
-  }
-
   /** {@inheritdoc} */
   public function register(IRegistrationContext $context): void
   {
+    parent::register($context);
     ListenerRegistration::register($context);
   }
 }
