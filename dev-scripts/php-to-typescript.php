@@ -55,6 +55,10 @@ $excludes = [
   'vendor-scoped/rotdrop/nextcloud-app-toolkit/src/Backend/ArchiveBackend.php',
   'vendor-scoped/rotdrop/nextcloud-app-toolkit/src/Backend/ArchiveFormats.php',
   'vendor-scoped/rotdrop/nextcloud-app-toolkit/src/Common/RationalNumber.php',
+  'vendor-scoped/rotdrop/nextcloud-app-toolkit/src/Common/AbstractDecimalRational.php',
+  'vendor-scoped/rotdrop/nextcloud-app-toolkit/src/Common/DecimalRationalMonetary.php',
+  'vendor-scoped/rotdrop/nextcloud-app-toolkit/src/Common/DecimalRationalP2S2.php',
+  'vendor-scoped/rotdrop/nextcloud-app-toolkit/src/Common/DecimalRationalP4S4.php',
 ];
 
 $scopedNamespaces = [
