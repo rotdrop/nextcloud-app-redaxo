@@ -50,7 +50,7 @@ class LoginException extends RuntimeException
     parent::__construct($this->message, $code, $previous);
     $this->originalMessage = $message;
     $this->userId = $userId;
-    $this->loginStatus = $loginStatus?: LoginStatusEnum::UNKNOWN();
+    $this->loginStatus = $loginStatus?: LoginStatusEnum::UNKNOWN;
     $this->generateMessage();
   }
   // phpcs:enable Squiz.Commenting.FunctionComment.Missing
@@ -62,7 +62,7 @@ class LoginException extends RuntimeException
    */
   protected function generateMessage():void
   {
-    $statusString = sprintf(' (user: %s, login-status: %s)', $this->userId, (string)$this->loginStatus);
+    $statusString = sprintf(' (user: %s, login-status: %s)', $this->userId, $this->loginStatus->value);
     $this->message = $this->originalMessage.$statusString;
   }
 

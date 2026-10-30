@@ -10,7 +10,6 @@
     }
   ],
   "require": {
-    "myclabs/php-enum": "^1.7",
     "rotdrop/nextcloud-app-toolkit": "dev-main"
   },
   "config": {

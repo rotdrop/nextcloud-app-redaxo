@@ -301,7 +301,7 @@ class AuthRedaxo
 
     $this->updateLoginStatus($response, true);
 
-    return $this->loginStatus->equals(LoginStatus::LOGGED_IN());
+    return $this->loginStatus === LoginStatus::LOGGED_IN;
   }
 
   /**
@@ -378,7 +378,7 @@ class AuthRedaxo
     try {
       $this->session->set($this->appName, [
         'authHeaders' => $this->authHeaders,
-        'loginStatus' => (string)$this->loginStatus,
+        'loginStatus' => $this->loginStatus->value,
         'loginTimeStamp' => time(),
       ]);
     } catch (SessionNotAvailableException $e) {
@@ -395,16 +395,18 @@ class AuthRedaxo
   private function restoreLoginStatus():void
   {
     $this->cleanCookies();
-    $this->loginStatus = LoginStatus::UNKNOWN();
+    $this->loginStatus = LoginStatus::UNKNOWN;
     $sessionData = $this->session->get($this->appName);
     if (!empty($sessionData)) {
       $this->logDebug('SESSION DATA: '.print_r($sessionData, true));
-      if (!LoginStatus::isValid($sessionData['loginStatus'])) {
+      $sessionLoginStatus = $sessionData['loginStatus'] ?? null;
+      $loginStatus = is_string($sessionLoginStatus) ? LoginStatus::tryFrom($sessionLoginStatus) : null;
+      if ($loginStatus === null) {
         $this->logError('Unable to load login status from session data');
         return;
       }
       $this->loginTimeStamp = (int)$sessionData['loginTimeStamp'];
-      $this->loginStatus = LoginStatus::from($sessionData['loginStatus']);
+      $this->loginStatus = $loginStatus;
       $this->authHeaders = $sessionData['authHeaders'];
       foreach ($this->authHeaders as $header) {
         if (preg_match('/^Set-Cookie:\s*('.self::COOKIE_RE.')=([^;]+);/i', $header, $match)) {
@@ -424,7 +426,7 @@ class AuthRedaxo
     $response = $this->sendRequest($this->location.'?rex_logout=1');
     $this->updateLoginStatus($response);
     $this->cleanCookies();
-    return $this->loginStatus->equals(LoginStatus::LOGGED_OUT());
+    return $this->loginStatus === LoginStatus::LOGGED_OUT;
   }
 
   /**
@@ -438,7 +440,7 @@ class AuthRedaxo
   {
     $this->updateLoginStatus(null, $forceUpdate);
 
-    return $this->loginStatus->equals(LoginStatus::LOGGED_IN());
+    return $this->loginStatus === LoginStatus::LOGGED_IN;
   }
 
   /**
@@ -462,7 +464,7 @@ class AuthRedaxo
    */
   public function refresh():bool
   {
-    if ($this->loginStatus->equals(LoginStatus::LOGGED_IN())) {
+    if ($this->loginStatus === LoginStatus::LOGGED_IN) {
       $this->logDebug('Refreshing login for user '.$this->userId);
       return $this->isLoggedIn(true);
     }
@@ -482,7 +484,7 @@ class AuthRedaxo
   private function updateLoginStatus(?array $response = null, bool $forceUpdate = false):void
   {
     if ($response === null
-        && !$this->loginStatus->equals(LoginStatus::UNKNOWN())
+        && $this->loginStatus !== LoginStatus::UNKNOWN
         && count($this->authHeaders) > 0
         && (time() - $this->loginTimeStamp <= $this->reloginDelay)
         && !$forceUpdate) {
@@ -507,14 +509,14 @@ class AuthRedaxo
     // LOGGED OFF:
     //<div id="rex-navi-logout"><p class="rex-logout">nicht angemeldet</p></div>
 
-    $this->loginStatus = LoginStatus::UNKNOWN();
+    $this->loginStatus = LoginStatus::UNKNOWN;
     if ($response !== false && !empty($response['content'])) {
       //$this->logDebug(print_r($response['content'], true));
       if (preg_match('/<form.+rex-form-login/mi', $response['content'])) {
         $this->loginResponse = $response['content'];
-        $this->loginStatus = LoginStatus::LOGGED_OUT();
+        $this->loginStatus = LoginStatus::LOGGED_OUT;
       } elseif (preg_match('/index.php[?]page=profile/m', $response['content'])) {
-        $this->loginStatus = LoginStatus::LOGGED_IN();
+        $this->loginStatus = LoginStatus::LOGGED_IN;
       }
     } else {
       $this->logInfo("Empty response from login-form");
