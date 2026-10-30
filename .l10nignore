@@ -6,3 +6,5 @@ vendor-scoped/
 statistics/
 repositories/
 src/toolkit/
+vendor-bin/
+build-flavour/

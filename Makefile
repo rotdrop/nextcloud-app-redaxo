@@ -130,6 +130,11 @@ vendor-scoped/autoload.php: vendor-scoped
 namespace-wrapper: php-scoper-install vendor-scoped/autoload.php
 .PHONY: namespace-wrapper
 
+#@@ Generate the toolkit string catalogue for translation extraction.
+toolkit-l10n: vendor-scoped/autoload.php
+	$(PHP) vendor-scoped/rotdrop/nextcloud-app-toolkit/tools/extract-l10n.php l10n-sources/toolkit-strings.php
+.PHONY: toolkit-l10n
+
 include $(DEV_LIB_DIR)/makefile/ts-app-config.mk
 include $(DEV_LIB_DIR)/makefile/ts-notification-api.mk
 include $(DEV_LIB_DIR)/makefile/ts-types-files.mk
