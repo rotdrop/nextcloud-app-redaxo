@@ -50,8 +50,6 @@ use OCA\RotDrop\DevScripts\PhpToTypeScript;
 
 // store output of different transformers in different files
 
-$excludes = [];
-
 $scopedNamespaces = [
   // \Doctrine::class,
   // \Carbon::class,
@@ -64,7 +62,6 @@ $phpToTypeScript = new PhpToTypeScript\PhpToTypeScript(
     EnumCollector::class,
   ],
   devScriptsFolder: __DIR__,
-  excludes: $excludes,
   scopedNamespaces: $scopedNamespaces,
 );
 
