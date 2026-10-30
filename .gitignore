@@ -7,8 +7,8 @@ build-flavour
 stamp*
 *.html
 #*
-composer.lock
-composer.json
+/composer.lock
+/composer.json
 vendor
 vendor-scoped
 composer-scoped.lock

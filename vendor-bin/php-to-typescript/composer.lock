@@ -334,12 +334,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/rotdrop/nextcloud-app-toolkit.git",
-                "reference": "eecf850b6c14c5906ae418af7edab22f915f95d1"
+                "reference": "74866e4e0f3f5847a2ecd505576b44a852fb8137"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rotdrop/nextcloud-app-toolkit/zipball/eecf850b6c14c5906ae418af7edab22f915f95d1",
-                "reference": "eecf850b6c14c5906ae418af7edab22f915f95d1",
+                "url": "https://api.github.com/repos/rotdrop/nextcloud-app-toolkit/zipball/74866e4e0f3f5847a2ecd505576b44a852fb8137",
+                "reference": "74866e4e0f3f5847a2ecd505576b44a852fb8137",
                 "shasum": ""
             },
             "require": {
@@ -387,10 +387,10 @@
             ],
             "description": "Reusable PHP toolkit for Nextcloud apps",
             "support": {
-                "source": "https://github.com/rotdrop/nextcloud-app-toolkit/tree/main",
+                "source": "https://github.com/rotdrop/nextcloud-app-toolkit/tree/v1.0.0",
                 "issues": "https://github.com/rotdrop/nextcloud-app-toolkit/issues"
             },
-            "time": "2026-10-29T19:44:05+00:00"
+            "time": "2026-10-30T12:34:29+00:00"
         },
         {
             "name": "rotdrop/php-to-typescript",
