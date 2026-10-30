@@ -23,16 +23,10 @@
 
 namespace OCA\Redaxo\Enums;
 
-/**
- * Login status enum.
- *
- * @method static LoginStatusEnum UNKNOWN()
- * @method static LoginStatusEnum LOGGED_IN()
- * @method static LoginStatusEnum LOGGED_OUT()
- */
-final class LoginStatusEnum extends \OCA\Redaxo\Scoped\MyCLabs\Enum\Enum
+/** Login status enum. */
+enum LoginStatusEnum: string
 {
-  private const UNKNOWN = 'unknown';
-  private const LOGGED_IN = 'logged-in';
-  private const LOGGED_OUT = 'logged-out';
+  case UNKNOWN = 'unknown';
+  case LOGGED_IN = 'logged-in';
+  case LOGGED_OUT = 'logged-out';
 }
