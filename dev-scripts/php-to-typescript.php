@@ -46,19 +46,14 @@ $autoloader->addPsr4(
 
 use Spatie\TypeScriptTransformer\Collectors\EnumCollector;
 use OCA\RotDrop\DevScripts\PhpToTypeScript\Collectors\DTOCollector;
-use OCA\RotDrop\DevScripts\PhpToTypeScript\Collectors\DefaultCollector;
 use OCA\RotDrop\DevScripts\PhpToTypeScript;
 
 // store output of different transformers in different files
 
 $excludes = [
-  'lib/Mount', // there is nothing to convert, and code diversion between NC versions triggers errors.
-  'lib/Storage',
-  'vendor-scoped/rotdrop/nextcloud-app-toolkit/src/Common',
-  'vendor-scoped/rotdrop/nextcloud-app-toolkit/src/Doctrine',
-  // classes depending on UnifiedArchive
-  'vendor-scoped/rotdrop/nextcloud-app-toolkit/src/Backend',
   'vendor-scoped/rotdrop/nextcloud-app-toolkit/src/Service/ArchiveService.php',
+  'vendor-scoped/rotdrop/nextcloud-app-toolkit/src/Backend/ArchiveBackend.php',
+  'vendor-scoped/rotdrop/nextcloud-app-toolkit/src/Backend/ArchiveFormats.php',
 ];
 
 $scopedNamespaces = [
@@ -70,7 +65,6 @@ $scopedNamespaces = [
 $phpToTypeScript = new PhpToTypeScript\PhpToTypeScript(
   collectors: [
     DTOCollector::class,
-    DefaultCollector::class,
     EnumCollector::class,
   ],
   devScriptsFolder: __DIR__,
