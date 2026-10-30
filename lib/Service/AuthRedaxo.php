@@ -49,7 +49,7 @@ use OCA\Redaxo\Exceptions\LoginException;
  */
 class AuthRedaxo
 {
-  use \OCA\Redaxo\Toolkit\Traits\LoggerTrait;
+  use \OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\Traits\LoggerTrait;
 
   const COOKIE_RE = 'REX[0-9]+|PHPSESSID|redaxo_sessid|KEY_PHPSESSID|KEY_redaxo_sessid';
   const ON_ERROR_THROW = 'throw'; ///< Throw an exception on error

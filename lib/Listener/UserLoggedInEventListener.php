@@ -36,7 +36,7 @@ use OCA\Redaxo\Service\AuthRedaxo;
 /** Log into Redaxo on login and receive the necessary authentication cookies. */
 class UserLoggedInEventListener implements IEventListener
 {
-  use \OCA\Redaxo\Toolkit\Traits\LoggerTrait;
+  use \OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\Traits\LoggerTrait;
 
   const EVENT = [ Event1::class, Event2::class ];
 

@@ -31,7 +31,7 @@ use OCP\IRequest;
 use Psr\Log\LoggerInterface as ILogger;
 
 use OCA\Redaxo\Service\AuthRedaxo as Authenticator;
-use OCA\Redaxo\Toolkit\Traits;
+use OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\Traits;
 
 /** AJAX end points for periodic authentication refresh. */
 class AuthenticationController extends Controller
@@ -52,7 +52,7 @@ class AuthenticationController extends Controller
   // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 
   /**
-   * @return void
+   * @return Response
    *
    * @NoAdminRequired
    */

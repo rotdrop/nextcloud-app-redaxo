@@ -43,7 +43,7 @@ use OCA\Redaxo\Constants;
 use OCA\Redaxo\Exceptions\LoginException;
 use OCA\Redaxo\Service\AssetService;
 use OCA\Redaxo\Service\AuthRedaxo as Authenticator;
-use OCA\Redaxo\Toolkit\Traits;
+use OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\Traits;
 
 /** Main entry point for web frontend. */
 class PageController extends Controller

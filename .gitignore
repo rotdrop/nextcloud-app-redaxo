@@ -7,9 +7,14 @@ build-flavour
 stamp*
 *.html
 #*
-composer.lock
-composer.json
+/composer.lock
+/composer.json
 vendor
-lib/Toolkit/[A-Z]*
+vendor-scoped
+composer-scoped.lock
+/vendor-bin/**/vendor/
+/vendor-bin/**/composer.lock
+!/vendor-bin/php-to-typescript/composer.lock
+patches.lock.json
 *-build-hash
 .vite/

@@ -34,7 +34,7 @@ use OCA\Redaxo\Constants;
  */
 class AssetService
 {
-  use \OCA\Redaxo\Toolkit\Traits\AssetTrait {
+  use \OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\Traits\AssetTrait {
     getAsset as public;
     getJSAsset as public;
     getCSSAsset as public;
