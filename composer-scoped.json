@@ -2,7 +2,7 @@
   "name": "rotdrop/nextcloud-app-redaxo",
   "description": "Support embedding an external Redaxo instance with SSO",
   "type": "project",
-  "license": "AGPL",
+  "license": "AGPL-3.0-or-later",
   "authors": [
     {
       "name": "Claus-Justus Heine",
@@ -11,6 +11,13 @@
   ],
   "require": {
     "rotdrop/nextcloud-app-toolkit": "dev-main"
+  },
+  "provide": {
+    "psr/cache": "*",
+    "psr/clock": "*",
+    "psr/container": "*",
+    "psr/log": "*",
+    "symfony/console": "*"
   },
   "config": {
     "vendor-dir": "vendor-scoped",
