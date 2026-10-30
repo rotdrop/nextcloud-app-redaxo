@@ -52,7 +52,7 @@ class AuthenticationController extends Controller
   // phpcs:enable Squiz.Commenting.FunctionComment.Missing
 
   /**
-   * @return void
+   * @return Response
    *
    * @NoAdminRequired
    */

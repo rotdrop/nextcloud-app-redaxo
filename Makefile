@@ -39,6 +39,8 @@ BUNDLER_CONFIG = vite.config.ts
 OPENSSL = $(shell which openssl 2> /dev/null)
 PHPUNIT = $(ABSSRCDIR)/vendor-bin/phpunit/vendor/bin/phpunit
 PHP_SCOPER = $(ABSSRCDIR)/vendor-bin/php-scoper/vendor/bin/php-scoper
+PHPCS = $(ABSSRCDIR)/vendor-bin/phpcs/vendor/bin/phpcs
+PHPMD = $(ABSSRCDIR)/vendor-bin/phpmd/vendor/bin/phpmd
 
 COMPOSER_SYSTEM = $(shell which composer 2> /dev/null)
 ifeq (, $(COMPOSER_SYSTEM))
@@ -151,13 +153,21 @@ WEBPACK_DEPS =\
 
 include $(DEV_LIB_DIR)/makefile/npm.mk
 
+$(PHPCS): composer.lock
+	if ! [ -x "$@" ]; then $(COMPOSER) bin phpcs install; else touch "$@"; fi
+
+$(PHPMD): composer.lock
+	if ! [ -x "$@" ]; then $(COMPOSER) bin phpmd install; else touch "$@"; fi
+
 #@@ Run phpcs on the PHP code
-phpcs: composer
-	vendor/bin/phpcs -s --report=emacs --standard=$(SRCDIR)/.phpcs.xml lib/ appinfo/ templates/
+phpcs: $(PHPCS)
+	$(PHPCS) -s --runtime-set ignore_warnings_on_exit 1 --report=emacs --standard=$(SRCDIR)/.phpcs.xml lib/ appinfo/ templates/
+.PHONY: phpcs
 
 #@@ Run phpmd on the PHP code
-phpmd: composer
-	vendor/bin/phpmd lib/,appinfo/,templates/ text $(SRCDIR)/.phpmd.xml
+phpmd: $(PHPMD)
+	$(PHPMD) --format text --ruleset $(SRCDIR)/.phpmd.xml lib appinfo templates
+.PHONY: phpmd
 
 # what has to be copied to the appstore archive
 APPSTORE_FILES =\

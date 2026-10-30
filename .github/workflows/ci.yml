@@ -15,6 +15,34 @@ env:
   APP_NAME: redaxo
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    env:
+      PHP_VERSION: '8.5'
+    steps:
+      - name: Use https for submodules
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
+
+      - name: Install xpath
+        run: sudo apt-get install -y --no-install-recommends libxml-xpath-perl
+
+      - name: Run phpcs
+        env:
+          COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ github.token }}"}}'
+        run: make phpcs
+
+      - name: Run phpmd
+        run: make phpmd
+
   appstore:
     runs-on: ubuntu-latest
     env:
