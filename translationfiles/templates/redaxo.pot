@@ -1,0 +1,435 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Nextcloud package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: redaxo\n"
+"Report-Msgid-Bugs-To: translations\\@example.com\n"
+"POT-Creation-Date: 2026-10-30 16:34+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: l10n-sources/toolkit-strings.php:15
+#, php-format
+msgid "%1$s (renamed)"
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:16
+msgid "App-data root folder does not exist."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:17
+#, php-format
+msgid "App-storage sub-folder \"%s\" does not exist and cannot be created."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:18
+#, php-format
+msgid ""
+"Archive format of \"%1$s\" detected as \"%2$s\", but there is no backend "
+"driver installed which can decompress \".%3$s\" files."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:19
+msgid "Cloud installation problem: instance ID is missing."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:20
+#, php-format
+msgid "Collection \"%1$s\" in entity of type \"%2$s\" is null."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:21
+#, php-format
+msgid "Converter \"%1$s\" has failed trying to convert MIME type \"%2$s\""
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:22
+#, php-format
+msgid "Error response from call to internal route \"%1$s\": %2$s"
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:23
+#, php-format
+msgid "Error response from call to internal route \"%1$s\": %2$s --  %3$s"
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:24
+#, php-format
+msgid ""
+"Exactly one of query-parameters \"%1$s\" and \"%2$s\" have to be specified."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:25
+msgid "Installation instructions:"
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:26
+#, php-format
+msgid ""
+"Installation problem; the required resource \"%1$s\" of type \"%2$s\" is not "
+"installed on the server, please contact the system administrator!"
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:27
+#, php-format
+msgid "Invalid OCS response from call to internal route \"%1$s\": %2$s"
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:28
+#, php-format
+msgid "Invalid response from API call: \"%s\""
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:29
+msgid "Login failed."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:30
+msgid "Login succeeded."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:31
+msgid "Password"
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:32
+#, php-format
+msgid "Please install the \"%s\" program on the server."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:33
+#, php-format
+msgid ""
+"Shared folder for mount-point \"%1$s\" already exists, cannot create it."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:34
+#, php-format
+msgid ""
+"Shared folder for mount-point \"%1$s\" does not exist, cannot add group "
+"\"%2$s\"."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:35
+#, php-format
+msgid ""
+"Shared folder for mount-point \"%1$s\" does not exist, cannot change its "
+"mount-point to \"%2$s\"."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:36
+#, php-format
+msgid ""
+"Shared folder for mount-point \"%1$s\" does not exist, cannot modify manager "
+"\"%2$s\"."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:37
+#, php-format
+msgid ""
+"Shared folder for mount-point \"%1$s\" does not exist, cannot remove group "
+"\"%2$s\"."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:38
+#, php-format
+msgid ""
+"Shared folder for mount-point \"%1$s\" does not exist, cannot set "
+"permissions for group \"%2$s\"."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:39
+#, php-format
+msgid "Shared folder with ID \"%1$s\" does not exist."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:40
+#, php-format
+msgid ""
+"Supported data formats are \"%1$s\" and \"%2$s\", specified was \"%3$s\"."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:41
+#, php-format
+msgid ""
+"The \"%1$s\" driver claims to handle this format, but cannot extract the "
+"archive content."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:42
+#, php-format
+msgid "The \"%1$s\" driver could handle this format, but it is not installed."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:43
+#, php-format
+msgid ""
+"The archive format of \"%1$s\" has been detected as \"%2$s\", but there is "
+"no backend driver installed which can deal with this format."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:44
+msgid "The input color values are invalid."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:45
+#, php-format
+msgid "The supplied color-string \"%s\" seems to be invalid."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:46
+msgid "There is no archive file associated with this archiver instance."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:47
+#, php-format
+msgid "Unable to compute a serialization for an instance of \"%s\"."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:48
+msgid ""
+"Unable to deal with tar-files. Please check the installation of the app."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:49
+#, php-format
+msgid "Unable to detect the archive format of \"%1$s\"."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:50
+#, php-format
+msgid "Unable to determine the identifier values for an instance of \"%s\"."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:51
+#, php-format
+msgid ""
+"Unable to determine the version of the helper program \"%1$s\", is it "
+"installed?"
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:52
+#, php-format
+msgid "Unable to find any of the fallback converters \"%s\"."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:53
+#, php-format
+msgid "Unable to find the entity \"%1$s\" identified by \"%2$s\"."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:54
+#, php-format
+msgid "Unable to open archive file %s (%s)"
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:55
+msgid "Unable to register types with DBAL."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:56
+#, php-format
+msgid "Unable to sanitize filename \"%s\"."
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:57
+#, php-format
+msgid "Unable to serve request to \"%1$s\": %2$s"
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:58
+#, php-format
+msgid "Uncompressed size of archive \"%1$s\" is too large: %2$s > %3$s"
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:59
+#, php-format
+msgid ""
+"Universal converter \"%1$s\" has failed trying to convert MIME type \"%2$s\""
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:60
+#, php-format
+msgid "Unknown search topic \"%1$s\""
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:61
+msgid "User"
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:62
+msgid "bytes"
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:63
+msgid "not found"
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:64
+msgid "pass through"
+msgstr ""
+
+#: l10n-sources/toolkit-strings.php:65
+msgid "renamed file"
+msgstr ""
+
+#: lib/Controller/PageController.php:90
+msgid ""
+"Please tell a system administrator to configure the URL for the Redaxo "
+"instance"
+msgstr ""
+
+#: lib/Controller/SettingsController.php:121
+#: lib/Controller/SettingsController.php:193
+#: lib/Controller/SettingsController.php:236
+#: lib/Controller/SettingsController.php:259
+#, php-format
+msgid "Unknown admin setting: \"%1$s\""
+msgstr ""
+
+#: lib/Controller/SettingsController.php:124
+#, php-format
+msgid "The admin setting \"%1$s\" is read-only"
+msgstr ""
+
+#: lib/Controller/SettingsController.php:145
+msgid ""
+"Scheme of external URL must be one of \"http\" or \"https\", but nothing was "
+"specified."
+msgstr ""
+
+#: lib/Controller/SettingsController.php:148
+#, php-format
+msgid ""
+"Scheme of external URL must be one of \"http\" or \"https\", \"%s\" given."
+msgstr ""
+
+#: lib/Controller/SettingsController.php:154
+msgid "Host-part of external URL seems to be empty"
+msgstr ""
+
+#: lib/Controller/SettingsController.php:166
+msgid ""
+"Value \"%1$s\" for setting \"%2$s\" is either not convertible to integer or "
+"out of range (minimum is %d seconds)."
+msgstr ""
+
+#: lib/Controller/SettingsController.php:177
+#, php-format
+msgid "Value \"%1$s\" for setting \"%2$s\" is not convertible to boolean."
+msgstr ""
+
+#: lib/Controller/SettingsController.php:185
+#: lib/Controller/SettingsController.php:254
+msgid "true"
+msgstr ""
+
+#: lib/Controller/SettingsController.php:187
+#: lib/Controller/SettingsController.php:254
+msgid "false"
+msgstr ""
+
+#: lib/Service/AuthRedaxo.php:325
+msgid "Unable to log into Redaxo backend"
+msgstr ""
+
+#: lib/Service/RPC.php:130
+msgid "Not logged in."
+msgstr ""
+
+#: lib/Service/RPC.php:567
+#, php-format
+msgid "Empty article: / block-id: (%d / %d)."
+msgstr ""
+
+#: lib/Settings/AdminSection.php:56
+#: specialVueFakeDummyForL10nScript.js:61
+msgid "Redaxo Integration"
+msgstr ""
+
+#: specialAppInfoFakeDummyForL10nScript.php:2
+msgid "Redaxo CMS"
+msgstr ""
+
+#: specialAppInfoFakeDummyForL10nScript.php:3
+msgid "Redaxo"
+msgstr ""
+
+#: specialAppInfoFakeDummyForL10nScript.php:4
+msgid "Support embedding an external Redaxo CMS instance with SSO"
+msgstr ""
+
+#: specialAppInfoFakeDummyForL10nScript.php:5
+msgid ""
+"Redxao users and Nextcloud users have to coincide, e.g. by using a common "
+"authentication backend lik LDAP, or with an appropriate auth plugin on "
+"either side of the integration."
+msgstr ""
+
+#: specialVueFakeDummyForL10nScript.js:63
+msgid "Redaxo Installation Path"
+msgstr ""
+
+#: specialVueFakeDummyForL10nScript.js:65
+msgid ""
+"Please enter the location of the already installed Redaxo instance. This "
+"should either be a path, absolute or relative to the root of the web server, "
+"or a complete URL pointing to the web location of the Redaxo. In order to "
+"make things work, your have to enable the XML-RPC protocol in your Redaxo."
+msgstr ""
+
+#: specialVueFakeDummyForL10nScript.js:67
+msgid "Redaxo Session Refresh Interval [s]"
+msgstr ""
+
+#: specialVueFakeDummyForL10nScript.js:69
+msgid ""
+"Please enter the desired session-refresh interval here. The interval is "
+"measured in seconds and should be somewhat smaller than the configured "
+"session life-time for the Redaxo instance in use."
+msgstr ""
+
+#: specialVueFakeDummyForL10nScript.js:71
+msgid "Redaxo re-login delay [s]"
+msgstr ""
+
+#: specialVueFakeDummyForL10nScript.js:73
+msgid ""
+"Redaxo enforces a delay between successive login attempts. The value entered "
+"here must equal to or larger than the configured delay enforced by Redaxo."
+msgstr ""
+
+#: specialVueFakeDummyForL10nScript.js:75
+#: specialVueFakeDummyForL10nScript.js:79
+msgid ""
+"Disable SSL verification, e.g. for self-signed certificates or known mis-"
+"matching host-names like 'localhost'."
+msgstr ""
+
+#: specialVueFakeDummyForL10nScript.js:77
+msgid "Enable SSL verification."
+msgstr ""
+
+#: specialVueFakeDummyForL10nScript.js:149
+msgid "The initial navigation failed. This is likely a bug in this app."
+msgstr ""
+
+#: specialVueFakeDummyForL10nScript.js:159
+msgid "Redaxo Wrapper for Nextcloud"
+msgstr ""
+
+#: specialVueFakeDummyForL10nScript.js:258
+msgid ""
+"Unable to access the contents of the wrapped {wrappedApp} instance.\n"
+"This may be caused by cross-domain access restrictions.\n"
+"Please check that your Nextcloud instance ({nextcloudUrl}) and the wrapped "
+"{wrappedApp} instance ({iFrameUrl}) are served from the same domain."
+msgstr ""
