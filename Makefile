@@ -11,16 +11,23 @@ ifneq ($(XPATH),)
 APP_NAME = $(shell $(XPATH) -q -e '/info/id/text()' $(APP_INFO))
 APP_VERSION = $(shell $(XPATH) -q -e '/info/version/text()' $(APP_INFO))
 APP_NAMESPACE = $(shell $(XPATH) -q -e '/info/namespace/text()' $(APP_INFO))
+SCOPED_NAMESPACE_POSTFIX = $(shell $(XPATH) -q -e '/info/scopednamespace/text()' $(APP_INFO))
 else
-$(error The xpath binary could not be found, falling back to using the CWD as app-name)
+$(error The xpath binary could not be found)
 endif
+
 DEV_LIB_DIR = $(ABSSRCDIR)/dev-scripts/lib
 BUILDDIR = ./build
-ABSBUILDDIR = $(CURDIR)/build
+ABSBUILDDIR = $(ABSSRCDIR)/build
 BUILD_TOOLS_DIR = $(BUILDDIR)/tools
+DOWNLOADS_DIR = ./downloads
 TYPESCRIPT_CONVERTER = $(ABSSRCDIR)/dev-scripts/php-to-typescript.php
 TS_TYPES_DIR = $(ABSBUILDDIR)/ts-types
-TS_PHP_SOURCE_DIRS = lib
+TS_PHP_SOURCE_DIRS = lib vendor-scoped/rotdrop/nextcloud-app-toolkit/src
+
+include $(DEV_LIB_DIR)/makefile/setup.mk
+
+WRAPPER_NAMESPACE_POSTFIX = $(SCOPED_NAMESPACE_POSTFIX)
 
 SILENT = @
 
@@ -31,6 +38,8 @@ NPM = $(shell which npm 2> /dev/null)
 BUNDLER_CONFIG = vite.config.ts
 WGET = $(shell which wget 2> /dev/null)
 OPENSSL = $(shell which openssl 2> /dev/null)
+PHPUNIT = $(ABSSRCDIR)/vendor-bin/phpunit/vendor/bin/phpunit
+PHP_SCOPER = $(ABSSRCDIR)/vendor-bin/php-scoper/vendor/bin/php-scoper
 
 COMPOSER_SYSTEM = $(shell which composer 2> /dev/null)
 ifeq (, $(COMPOSER_SYSTEM))
@@ -74,44 +83,75 @@ all: help
 .PHONY: all
 
 #@@ Build the distribution assets (minified, without debugging info)
-build: dev-setup npm-build # test
+build: dev-setup npm-build
 .PHONY: build
 
 #@@ Build the development assets (include debugging information)
-dev: dev-setup npm-dev # test
+dev: dev-setup npm-dev
 .PHONY: dev
 
-#@@ Build the distribution assets (minified, without debugging info)
-build-no-dev:
-	make COMPOSER_OPTIONS="$(COMPOSER_OPTIONS) --no-dev" build
-.PHONY: build-no-dev
-
 #@private
-dev-setup: app-toolkit composer
+dev-setup: composer namespace-wrapper ts-app-config
 .PHONY: dev-setup
 
 include $(DEV_LIB_DIR)/makefile/composer.mk
 
-APP_TOOLKIT_DIR = $(ABSSRCDIR)/php-toolkit
-APP_TOOLKIT_DEST = $(ABSSRCDIR)/lib/Toolkit
-APP_TOOLKIT_NS = Redaxo
+#@private
+php-scoper-install: $(PHP_SCOPER)
+.PHONY: php-scoper-install
 
-include $(APP_TOOLKIT_DIR)/tools/scopeme.mk
+$(PHP_SCOPER): composer.lock
+	if ! [ -x "$@" ]; then $(COMPOSER) bin php-scoper install; else touch "$@"; fi
+
+composer-scoped.lock: composer-scoped.json Makefile
+	rm -f composer-scoped.lock
+
+$(BUILDDIR)/vendor-scoped: composer-scoped.lock
+	mkdir -p $(BUILDDIR)
+	ln -fs ../vendor $(BUILDDIR)
+	rm -rf $(BUILDDIR)/vendor-scoped
+	ln -sf ../composer-patches $(BUILDDIR)
+	env COMPOSER="$(ABSSRCDIR)/composer-scoped.json" $(COMPOSER) -d$(BUILDDIR) install $(COMPOSER_OPTIONS)
+	env COMPOSER="$(ABSSRCDIR)/composer-scoped.json" $(COMPOSER) -d$(BUILDDIR) update $(COMPOSER_OPTIONS) --no-dev
+
+$(BUILDDIR)/vendor-scoped/autoload.php: $(BUILDDIR)/vendor-scoped composer-scoped.json $(MAKEFILE_DEP)
+	env COMPOSER="$(ABSSRCDIR)/composer-scoped.json" $(COMPOSER) -d$(BUILDDIR) dump-autoload
+
+vendor-scoped: $(MAKEFILE_DEP) $(PHP_SCOPER) scoper.inc.php $(BUILDDIR)/vendor-scoped
+	$(PHP_SCOPER) add-prefix -d$(BUILDDIR) --config=$(ABSSRCDIR)/scoper.inc.php --output-dir=$(ABSSRCDIR)/vendor-scoped --force
+# scoper does not handle symlinks
+#	cp -a $(BUILDDIR)/vendor-scoped/bin $(ABSSRCDIR)/vendor-scoped/
+# scoper does not preserve executable bits
+#	find $(ABSSRCDIR)/vendor-scoped -name bin -a -type d -exec chmod -R gu+x {} \;
+
+vendor-scoped/autoload.php: vendor-scoped
+	env COMPOSER="$(ABSSRCDIR)/composer-scoped.json" $(COMPOSER) dump-autoload
+# the patch is only needed (and only applicable) if there are autoloaded files
+	cd vendor-scoped; if grep -q filesToLoad composer/autoload_real.php; then sed -e 's/@FILE_IDENTIFIER_PREFIX@/OCA_$(APP_NAMESPACE)_$(SCOPED_NAMESPACE_POSTFIX)/g' $(ABSSRCDIR)/composer-patches/composer/scoped_autoload_real.patch|patch -p1; fi
+
+namespace-wrapper: php-scoper-install vendor-scoped/autoload.php
+.PHONY: namespace-wrapper
+
 include $(DEV_LIB_DIR)/makefile/ts-app-config.mk
+include $(DEV_LIB_DIR)/makefile/ts-notification-api.mk
 include $(DEV_LIB_DIR)/makefile/ts-types-files.mk
 
-CSS_FILES = $(shell find $(ABSSRCDIR)/style -name "*.css" -o -name "*.scss")
-JS_FILES = $(shell find $(ABSSRCDIR)/src -name "*.js" -o -name "*.vue" -o -name "*.ts")
+L10N_FILES = $(wildcard l10n/*.js l10n/*.json)
+JS_FILES = $(shell find $(ABSSRCDIR)/src -name "*.js" -o -name "*.vue" -o -name "*.ts")\
+  $(shell find $(ABSSRCDIR)/repositories/rotdrop/nextcloud-vue-components -name "*.js" -o -name "*.vue" -o -name "*.ts")
+IMG_FILES = $(shell find $(ABSSRCDIR)/img -name "*.svg")
 
 NPM_INIT_DEPS =\
  Makefile package-lock.json package.json $(BUNDLER_CONFIG) eslint.config.mjs
 
 WEBPACK_DEPS =\
  $(NPM_INIT_DEPS)\
- $(CSS_FILES)\
  $(JS_FILES)\
+ $(IMG_FILES)\
+ $(L10N_FILES)\
  $(TS_APP_CONFIG)\
- ts-types-files
+ ts-types-files\
+ $(TS_NOTIFICATION_API)
 
 include $(DEV_LIB_DIR)/makefile/npm.mk
 
@@ -133,12 +173,13 @@ APPSTORE_FILES =\
  templates\
  lib\
  vendor\
+ vendor-scoped\
  CHANGELOG.md\
  COPYING\
  README.md
 
 # .htaccess is blacklisted by the app-store installer, so we have to remove it
-APPSTORE_BLACKLISTED = foobar .git* .*keep .htaccess *~
+APPSTORE_BLACKLISTED = foobar .htaccess .git* .*keep *~
 
 #@@ Prepare appstore archive
 appstore: clean dev-setup npm-build
@@ -169,7 +210,7 @@ fi
 	tar -c$(APPSTORE_COMPRESSION)f $(APPSTORE_PACKAGE_FILE) -C $(APPSTORE_SIGN_DIR) $(APP_NAME)
 	$(SILENT)if [ -f $(BUILD_CERT_DIR)/$(APP_NAME).key ] && [ -f $(BUILD_CERT_DIR)/$(APP_NAME).crt ]; then\
   echo "Signing package ...";\
-  $(OPENSSL) dgst -sha512 -sign $(C ERT_DIR)/$(APP_NAME).key $(APPSTORE_PACKAGE_FILE) | openssl base64; \
+  $(OPENSSL) dgst -sha512 -sign $(CERT_DIR)/$(APP_NAME).key $(APPSTORE_PACKAGE_FILE) | openssl base64; \
 else\
   echo 'Cannot sign app-store package, certificate "$(BUILD_CERT_DIR)/$(APP_NAME).crt" or private key "$(BUILD_CERT_DIR)/$(APP_NAME).key" not available.' 1>&2;\
 fi
@@ -185,15 +226,17 @@ clean: ## Tidy up local environment
 distclean: clean ## Clean even more, calls clean
 	rm -rf vendor
 	rm -rf vendor-bin/**/vendor
-	rm -rf node_modules
-	rm -rf lib/Toolkit/*
+	find . -name node_modules -exec rm -rf {} \; 2> /dev/null || true
 .PHONY: distclean
 
 #@@ Almost everything but downloads
 mostlyclean: webpack-clean distclean
 	rm -f composer*.lock
 	rm -f composer.json
+	rm -f vendor-bin/**/composer.lock
 	rm -f stamp.composer-core-versions
+	rm -f composer-scoped.lock
+	rm -rf vendor-scoped
 	rm -f package-lock.json
 	rm -f *.html
 	rm -f stats.json
@@ -213,12 +256,12 @@ test: unit-tests integration-tests
 
 #@@ Run the unit tests
 unit-tests:
-	./vendor/phpunit/phpunit/phpunit -c phpunit.xml
+	$(PHPUNIT) -c phpunit.xml
 .PHONY: unit-tests
 
 #@@ Run the integration tests
 integration-tests:
-	./vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml
+	$(PHPUNIT) -c phpunit.integration.xml
 .PHONY: integration-tests
 
 #@private

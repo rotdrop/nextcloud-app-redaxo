@@ -38,9 +38,9 @@ use Psr\Log\LoggerInterface;
  */
 class SettingsController extends Controller
 {
-  use \OCA\Redaxo\Toolkit\Traits\UtilTrait;
-  use \OCA\Redaxo\Toolkit\Traits\ResponseTrait;
-  use \OCA\Redaxo\Toolkit\Traits\LoggerTrait;
+  use \OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\Traits\UtilTrait;
+  use \OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\Traits\ResponseTrait;
+  use \OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\Traits\LoggerTrait;
 
   public const EXTERNAL_LOCATION = 'externalLocation';
   public const EXTERNAL_LOCATION_DEFAULT = '';

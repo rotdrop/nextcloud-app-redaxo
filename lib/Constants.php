@@ -25,7 +25,7 @@ namespace OCA\Redaxo;
 
 use Spatie\TypeScriptTransformer\Attributes as TSAttributes;
 
-use OCA\Redaxo\Toolkit\Constants as ToolkitConstants;
+use OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\Constants as ToolkitConstants;
 
 /** General constants for the app. */
 #[TSAttributes\Typescript]

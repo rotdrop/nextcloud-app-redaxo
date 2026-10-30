@@ -42,8 +42,8 @@ use OCA\Redaxo\Constants;
 /** Load additional scripts while running interactively. */
 class LoadAdditionalScriptsEventListener implements IEventListener
 {
-  use \OCA\Redaxo\Toolkit\Traits\LoggerTrait;
-  use \OCA\Redaxo\Toolkit\Traits\ApiRequestTrait;
+  use \OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\Traits\LoggerTrait;
+  use \OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\Traits\ApiRequestTrait;
 
   private const INITIAL_STATE_SECTION = 'authRefresh';
   public const EVENT = HandledEvent::class;

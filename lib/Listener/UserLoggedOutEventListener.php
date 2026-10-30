@@ -36,8 +36,8 @@ use OCA\Redaxo\Service\AuthRedaxo;
 /** Log the current user out of Redaxo if it logs out of Nextcloud. */
 class UserLoggedOutEventListener implements IEventListener
 {
-  use \OCA\Redaxo\Toolkit\Traits\LoggerTrait;
-  use \OCA\Redaxo\Toolkit\Traits\ApiRequestTrait;
+  use \OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\Traits\LoggerTrait;
+  use \OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\Traits\ApiRequestTrait;
 
   const EVENT = HandledEvent::class;
 

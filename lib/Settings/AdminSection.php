@@ -31,7 +31,7 @@ use OCP\IL10N;
 /** Admin settings section. */
 class AdminSection implements IIconSection
 {
-  use \OCA\Redaxo\Toolkit\Traits\LoggerTrait;
+  use \OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\Traits\LoggerTrait;
 
   // phpcs:disable Squiz.Commenting.FunctionComment.Missing
   public function __construct(

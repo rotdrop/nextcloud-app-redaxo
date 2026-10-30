@@ -30,7 +30,7 @@ namespace OCA\Redaxo\Enums;
  * @method static LoginStatusEnum LOGGED_IN()
  * @method static LoginStatusEnum LOGGED_OUT()
  */
-final class LoginStatusEnum extends \MyCLabs\Enum\Enum
+final class LoginStatusEnum extends \OCA\Redaxo\Scoped\MyCLabs\Enum\Enum
 {
   private const UNKNOWN = 'unknown';
   private const LOGGED_IN = 'logged-in';

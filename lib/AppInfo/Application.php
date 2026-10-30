@@ -29,9 +29,12 @@ namespace OCA\Redaxo\AppInfo;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 use OCA\Redaxo\Listener\Registration as ListenerRegistration;
-use OCA\Redaxo\Toolkit\AppInfo\AbstractApplication;
+use OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\AppInfo\AbstractApplication;
 
-include_once __DIR__ . '/../Toolkit/AppInfo/AbstractApplication.php';
+// The app-toolkit lives in the scoped vendor tree and must be autoloadable
+// before the class declaration.
+include_once __DIR__ . '/../../vendor/autoload.php';
+include_once __DIR__ . '/../../vendor-scoped/autoload.php';
 
 /**
  * App entry point.

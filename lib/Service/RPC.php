@@ -37,7 +37,7 @@ use OCP\IL10N;
  */
 class RPC
 {
-  use \OCA\Redaxo\Toolkit\Traits\LoggerTrait;
+  use \OCA\Redaxo\Scoped\OCA\RotDrop\Toolkit\Traits\LoggerTrait;
 
   const ON_ERROR_THROW = AuthRedaxo::ON_ERROR_THROW;
   const ON_ERROR_RETURN = AuthRedaxo::ON_ERROR_RETURN;
