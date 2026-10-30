@@ -36,7 +36,6 @@ RSYNC = $(shell which rsync 2> /dev/null)
 PHP = $(shell which php 2> /dev/null)
 NPM = $(shell which npm 2> /dev/null)
 BUNDLER_CONFIG = vite.config.ts
-WGET = $(shell which wget 2> /dev/null)
 OPENSSL = $(shell which openssl 2> /dev/null)
 PHPUNIT = $(ABSSRCDIR)/vendor-bin/phpunit/vendor/bin/phpunit
 PHP_SCOPER = $(ABSSRCDIR)/vendor-bin/php-scoper/vendor/bin/php-scoper
@@ -57,9 +56,6 @@ $(error NPM binary is needed, but could not be found and was not specified on th
 endif
 ifeq ($(COMPOSER),)
 $(error COMPOSER binary is needed, but could not be found and was not specified on the command-line)
-endif
-ifeq ($(WGET),)
-$(error WGET binary is needed, but could not be found and was not specified on the command-line)
 endif
 
 MAKE_HELP_DIR = $(SRCDIR)/dev-scripts/MakeHelp
