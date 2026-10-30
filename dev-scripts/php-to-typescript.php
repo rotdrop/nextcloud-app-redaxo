@@ -46,6 +46,7 @@ $autoloader->addPsr4(
 
 use Spatie\TypeScriptTransformer\Collectors\EnumCollector;
 use OCA\RotDrop\DevScripts\PhpToTypeScript\Collectors\DTOCollector;
+use OCA\RotDrop\DevScripts\PhpToTypeScript\Collectors\DefaultCollector;
 use OCA\RotDrop\DevScripts\PhpToTypeScript;
 
 // store output of different transformers in different files
@@ -58,8 +59,9 @@ $scopedNamespaces = [
 
 $phpToTypeScript = new PhpToTypeScript\PhpToTypeScript(
   collectors: [
-    DTOCollector::class,
     EnumCollector::class,
+    DTOCollector::class,
+    DefaultCollector::class,
   ],
   devScriptsFolder: __DIR__,
   scopedNamespaces: $scopedNamespaces,
