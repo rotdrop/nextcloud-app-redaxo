@@ -23,7 +23,7 @@ BUILD_TOOLS_DIR = $(BUILDDIR)/tools
 DOWNLOADS_DIR = ./downloads
 TYPESCRIPT_CONVERTER = $(ABSSRCDIR)/dev-scripts/php-to-typescript.php
 TS_TYPES_DIR = $(ABSBUILDDIR)/ts-types
-TS_PHP_SOURCE_DIRS = lib vendor-scoped/rotdrop/nextcloud-app-toolkit/src
+TS_PHP_SOURCE_DIRS = lib
 
 include $(DEV_LIB_DIR)/makefile/setup.mk
 
