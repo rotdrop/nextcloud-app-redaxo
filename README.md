@@ -33,6 +33,9 @@ embedding iframe.
   - `make build` will generate optimized assets
   - there are several build-dependencies like compose, node, tar
     ... just try and install all missing tools ;)
+  - `composer/autoload.php` registers the scoped toolkit during Nextcloud
+    app updates and keeps the old toolkit namespace working while earlier
+    app code is still loaded
 
 # Single Sign On
 
