@@ -2,41 +2,11 @@
 # later. See the COPYING file.
 SRCDIR = .
 ABSSRCDIR = $(CURDIR)
-#
-# try to parse the info.xml if we can, only then fall-back to the directory name
-#
-APP_INFO = $(SRCDIR)/appinfo/info.xml
-XPATH = $(shell which xpath 2> /dev/null)
-ifneq ($(XPATH),)
-APP_NAME = $(shell $(XPATH) -q -e '/info/id/text()' $(APP_INFO))
-APP_VERSION = $(shell $(XPATH) -q -e '/info/version/text()' $(APP_INFO))
-APP_NAMESPACE = $(shell $(XPATH) -q -e '/info/namespace/text()' $(APP_INFO))
-SCOPED_NAMESPACE_POSTFIX = $(shell $(XPATH) -q -e '/info/scopednamespace/text()' $(APP_INFO))
-else
-$(error The xpath binary could not be found)
-endif
-
 DEV_LIB_DIR = $(ABSSRCDIR)/dev-scripts/lib
-BUILDDIR = ./build
-ABSBUILDDIR = $(ABSSRCDIR)/build
-BUILD_TOOLS_DIR = $(BUILDDIR)/tools
-DOWNLOADS_DIR = ./downloads
-TYPESCRIPT_CONVERTER = $(ABSSRCDIR)/dev-scripts/php-to-typescript.php
-TS_TYPES_DIR = $(ABSBUILDDIR)/ts-types
-TS_PHP_SOURCE_DIRS = lib
 
 include $(DEV_LIB_DIR)/makefile/setup.mk
 
-# evaluate the (expensive) xpath look-ups only once
-XPATH := $(XPATH)
-APP_NAME := $(APP_NAME)
-APP_VERSION := $(APP_VERSION)
-APP_NAMESPACE := $(APP_NAMESPACE)
-SCOPED_NAMESPACE_POSTFIX := $(SCOPED_NAMESPACE_POSTFIX)
-CLOUD_MIN_VERSION := $(CLOUD_MIN_VERSION)
-CLOUD_MAX_VERSION := $(CLOUD_MAX_VERSION)
-
-WRAPPER_NAMESPACE_POSTFIX = $(SCOPED_NAMESPACE_POSTFIX)
+TS_PHP_SOURCE_DIRS = lib
 
 SILENT = @
 
