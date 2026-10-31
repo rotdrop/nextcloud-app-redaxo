@@ -162,6 +162,7 @@ APPSTORE_FILES =\
  l10n\
  templates\
  lib\
+ composer\
  vendor\
  vendor-scoped\
  CHANGELOG.md\
