@@ -84,7 +84,22 @@ jobs:
       - name: Build app archive
         env:
           COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ github.token }}"}}'
-        run: make appstore APP_VERSION=${{ steps.meta.outputs.version }}
+        run: |
+          for attempt in 1 2 3; do
+            log="$RUNNER_TEMP/appstore-build-$attempt.log"
+            set +e
+            make appstore APP_VERSION=${{ steps.meta.outputs.version }} 2>&1 | tee "$log"
+            status=${PIPESTATUS[0]}
+            set -e
+            if [ "$status" -eq 0 ]; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ] || ! grep -Eq '502 Bad Gateway|503 Service Unavailable|504 Gateway Time-out|HTTP 502|HTTP 503|HTTP 504' "$log"; then
+              exit "$status"
+            fi
+            echo "Transient upstream gateway error; retrying appstore build ($attempt/3) ..."
+            sleep "$((attempt * 10))"
+          done
 
       - name: Check generated TypeScript modules
         run: >-
