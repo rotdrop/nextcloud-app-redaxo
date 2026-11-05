@@ -14,7 +14,6 @@ vendor-scoped
 composer-scoped.lock
 /vendor-bin/**/vendor/
 /vendor-bin/**/composer.lock
-!/vendor-bin/php-to-typescript/composer.lock
 patches.lock.json
 *-build-hash
 .vite/
