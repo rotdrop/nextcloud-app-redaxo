@@ -15,6 +15,7 @@ RSYNC = $(shell which rsync 2> /dev/null)
 PHP = $(shell which php 2> /dev/null)
 NPM = $(shell which npm 2> /dev/null)
 BUNDLER_CONFIG = vite.config.ts
+L10N_VITE_CONFIG = vite.l10n.config.ts
 OPENSSL = $(shell which openssl 2> /dev/null)
 PHPUNIT = $(ABSSRCDIR)/vendor-bin/phpunit/vendor/bin/phpunit
 PHP_SCOPER = $(ABSSRCDIR)/vendor-bin/php-scoper/vendor/bin/php-scoper
@@ -79,6 +80,9 @@ include $(DEV_LIB_DIR)/makefile/l10n.mk
 include $(DEV_LIB_DIR)/makefile/ts-app-config.mk
 include $(DEV_LIB_DIR)/makefile/ts-notification-api.mk
 include $(DEV_LIB_DIR)/makefile/ts-types-files.mk
+
+# The l10n-ignore analysis runs Vite builds which need the generated TS sources.
+vue-components-l10n-ignore: ts-app-config ts-types-files ts-notification-api
 
 L10N_FILES = $(wildcard l10n/*.js l10n/*.json)
 JS_FILES = $(shell find $(ABSSRCDIR)/src -name "*.js" -o -name "*.vue" -o -name "*.ts")
