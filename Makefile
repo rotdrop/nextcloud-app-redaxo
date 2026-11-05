@@ -72,55 +72,16 @@ dev-setup: composer namespace-wrapper ts-app-config
 .PHONY: dev-setup
 
 include $(DEV_LIB_DIR)/makefile/composer.mk
+include $(DEV_LIB_DIR)/makefile/namespace-wrapper.mk
 
-#@private
-php-scoper-install: $(PHP_SCOPER)
-.PHONY: php-scoper-install
-
-$(PHP_SCOPER): composer.lock
-	if ! [ -x "$@" ]; then $(COMPOSER) bin php-scoper install; else touch "$@"; fi
-
-composer-scoped.lock: composer-scoped.json Makefile
-	rm -f composer-scoped.lock
-
-$(BUILDDIR)/vendor-scoped: composer-scoped.lock
-	mkdir -p $(BUILDDIR)
-	ln -fs ../vendor $(BUILDDIR)
-	rm -rf $(BUILDDIR)/vendor-scoped
-	ln -sfn ../dev-scripts/lib/patches $(BUILDDIR)/composer-patches
-	env COMPOSER="$(ABSSRCDIR)/composer-scoped.json" $(COMPOSER) -d$(BUILDDIR) install $(COMPOSER_OPTIONS)
-	env COMPOSER="$(ABSSRCDIR)/composer-scoped.json" $(COMPOSER) -d$(BUILDDIR) update $(COMPOSER_OPTIONS) --no-dev
-
-$(BUILDDIR)/vendor-scoped/autoload.php: $(BUILDDIR)/vendor-scoped composer-scoped.json $(MAKEFILE_DEP)
-	env COMPOSER="$(ABSSRCDIR)/composer-scoped.json" $(COMPOSER) -d$(BUILDDIR) dump-autoload
-
-vendor-scoped: $(MAKEFILE_DEP) $(PHP_SCOPER) scoper.inc.php $(BUILDDIR)/vendor-scoped
-	$(PHP_SCOPER) add-prefix -d$(BUILDDIR) --config=$(ABSSRCDIR)/scoper.inc.php --output-dir=$(ABSSRCDIR)/vendor-scoped --force
-# scoper does not handle symlinks
-#	cp -a $(BUILDDIR)/vendor-scoped/bin $(ABSSRCDIR)/vendor-scoped/
-# scoper does not preserve executable bits
-#	find $(ABSSRCDIR)/vendor-scoped -name bin -a -type d -exec chmod -R gu+x {} \;
-
-vendor-scoped/autoload.php: vendor-scoped
-	env COMPOSER="$(ABSSRCDIR)/composer-scoped.json" $(COMPOSER) dump-autoload
-# the patch is only needed (and only applicable) if there are autoloaded files
-	if grep -q filesToLoad vendor-scoped/composer/autoload_real.php; then $(call apply-scoped-autoload-patch,vendor-scoped); fi
-
-namespace-wrapper: php-scoper-install vendor-scoped/autoload.php
-.PHONY: namespace-wrapper
-
-#@@ Generate the toolkit string catalogue for translation extraction.
-toolkit-l10n: vendor-scoped/autoload.php
-	$(PHP) vendor-scoped/rotdrop/nextcloud-app-toolkit/tools/extract-l10n.php l10n-sources/toolkit-strings.php
-.PHONY: toolkit-l10n
+include $(DEV_LIB_DIR)/makefile/l10n.mk
 
 include $(DEV_LIB_DIR)/makefile/ts-app-config.mk
 include $(DEV_LIB_DIR)/makefile/ts-notification-api.mk
 include $(DEV_LIB_DIR)/makefile/ts-types-files.mk
 
 L10N_FILES = $(wildcard l10n/*.js l10n/*.json)
-JS_FILES = $(shell find $(ABSSRCDIR)/src -name "*.js" -o -name "*.vue" -o -name "*.ts")\
-  $(shell find $(ABSSRCDIR)/repositories/rotdrop/nextcloud-vue-components -name "*.js" -o -name "*.vue" -o -name "*.ts")
+JS_FILES = $(shell find $(ABSSRCDIR)/src -name "*.js" -o -name "*.vue" -o -name "*.ts")
 IMG_FILES = $(shell find $(ABSSRCDIR)/img -name "*.svg")
 
 NPM_INIT_DEPS =\
