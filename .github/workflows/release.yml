@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Thin caller of the shared release workflow of the build system.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    uses: rotdrop/nextcloud-app-build-system/.github/workflows/release.yml@main
+    secrets: inherit
+    permissions:
+      contents: write
+    with:
+      php-version: '8.5'
