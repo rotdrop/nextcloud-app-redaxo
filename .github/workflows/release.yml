@@ -15,3 +15,5 @@ jobs:
       contents: write
     with:
       php-version: '8.5'
+      sign: false
+      upload-to-appstore: false
